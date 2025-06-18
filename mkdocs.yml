@@ -1,4 +1,4 @@
-site_name: Docker Containers
+site_name: NGINX Learning Path
 theme:
   name: material
   palette:
