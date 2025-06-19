@@ -108,7 +108,74 @@ systemctl reload nginx
 
 ## NGINX .conf File
 
+The `nginx.conf` file has two important sections:
+* context
+* directive
+
+The context refers about sections inside `{}` and the directive refers about statments like `user nginx;` or `include mime.types;`
+
+Context example:
+
+```bash
+http {
+    index index.html index.htm index.php;
+    include mime.types;
+
+    server {
+        listen 80;
+        server_name mydomain.com;
+    }
+}
+```
+
+Directive example:
+
+```bash
+user www www;
+worker_processes auto;
+```
+
 ## Creating a Virtual Host
+
+You should create and edit some folder and files to contain your `html`, `css` and `js` files.
+
+In my case I will use: 
+
+* `ls -l /sites/demo/`: To configure the static site, maybe you will need to create the folder structure
+* `ls -l /etc/nginx/nginx.conf`: To register the site configuration
+
+About `nginx.conf` content:
+
+```sh
+events {}
+
+http {
+    include mime.types;
+
+    server {
+        listen 80;
+        server_name <DOMAIN>;
+        return 301 https://$host$request_uri;
+    }
+
+    server {
+        listen 443 ssl;
+        server_name <DOMAIN>;
+        root /sites/demo;
+        ssl_certificate /etc/letsencrypt/live/<DOMAIN>/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/<DOMAIN>/privkey.pem;
+        ssl_protocols TLSv1.2 TLSv1.3;
+        ssl_ciphers HIGH:!aNULL:!MD5;
+    }
+}
+```
+
+After changes we will need to validate the changes and start nginx again
+
+```bash
+nginx -t
+systemctl reload nginx
+```
 
 ## NGINX Location Contents
 
