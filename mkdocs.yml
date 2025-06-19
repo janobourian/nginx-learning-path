@@ -14,6 +14,23 @@ docs_dir: docs
 nav:
   - Home: index.md
   - Go to Production: production.md
+  - Foundational Concepts:
+      - NGINX Configuration: foundational/configuration.md
+      - NGINX .conf File: foundational/nginx_conf.md
+      - Creating a Virtual Host: foundational/virtual_host.md
+      - NGINX Location Contents: foundational/location_contents.md
+      - NGINX Variables: foundational/variables.md
+      - NGINX Rewrites and Returns: foundational/rewrites_returns.md
+      - NGINX Try Files: foundational/try_files.md
+      - NGINX Logs: foundational/logs.md
+      - NGINX Inherentance and directives: foundational/inheritance_directives.md
+      - PHP Processing: foundational/php_processing.md
+      - NGINX Worker Processes: foundational/worker_processes.md
+      - NGINX Buffers and Timeouts: foundational/buffers_timeouts.md
+      - NGINX Modules: foundational/modules.md
+  - Performance:
+  - Security:
+  - Load Balancing:
 
 markdown_extensions:
   - admonition
