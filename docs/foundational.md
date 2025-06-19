@@ -179,7 +179,131 @@ systemctl reload nginx
 
 ## NGINX Location Contents
 
+* Exact Match = 
+* Preferential Prefix Match ^~
+* REGEX Match ~*
+* Prefix Match
+
+```sh
+events {}
+
+http {
+    include mime.types;
+
+    server {
+        listen 80;
+        server_name <DOMAIN>;
+        return 301 https://$host$request_uri;
+    }
+
+    server {
+        listen 443 ssl;
+        server_name <DOMAIN>;
+        root /sites/demo;
+        ssl_certificate /etc/letsencrypt/live/<DOMAIN>/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/<DOMAIN>/privkey.pem;
+        ssl_protocols TLSv1.2 TLSv1.3;
+        ssl_ciphers HIGH:!aNULL:!MD5;
+
+        # Exact Match
+        location = /api/health {
+            default_type application/json;
+            add_header Content-Type application/json;
+            return 200 '{"status": "ok"}';
+        }
+
+        # REGEX match - case sensitive
+        # location ~ /greet[0-9] {
+
+        #     return 200 'Hello from NGINX "/greet" location - REGEX MATCH';
+        # }
+
+        # REGEX match - case insensitive
+        # location ~* /greet[0-9] {
+
+        #     return 200 'Hello from NGINX "/greet" location - REGEX MATCH INSENSITIVE';
+        # }
+
+        # Prefix match
+        # location /greet {
+
+        #     return 200 'Hello from NGINX "/greet" location.';
+        # }
+    }
+}
+```
+
 ## NGINX Variables
+
+* Nginx variables: https://nginx.org/en/docs/varindex.html
+
+```sh
+events {}
+
+http {
+    include mime.types;
+
+    server {
+        listen 80;
+        server_name <DOMAIN>;
+        return 301 https://$host$request_uri;
+    }
+
+    server {
+        listen 443 ssl;
+        server_name <DOMAIN>;
+        root /sites/demo;
+        ssl_certificate /etc/letsencrypt/live/<DOMAIN>/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/<DOMAIN>/privkey.pem;
+        ssl_protocols TLSv1.2 TLSv1.3;
+        ssl_ciphers HIGH:!aNULL:!MD5;
+
+        # Check static API key
+        # if ( $arg_apikey != 1234 ) {
+        #     return 401 "Incorrect API Key";
+        # }
+
+        # Variable
+        set $weekend 'No';
+
+        # Check if weekend
+        if ( $date_local ~ 'Saturday|Sunday' ){
+            set $weekend 'Yes';
+        }
+
+        location = /inspect {
+            default_type application/json;
+            add_header Content-Type application/json;
+            return 200 "{\"host\": \"$host\", \"uri\": \"$uri\", \"name\": \"$arg_name\", \"Date Local\": \"$date_local\", \"is_weekend\":\"$weekend\", \"args\": \"$args\"}";
+        }
+
+        # Exact Match
+        location = /api/health {
+            default_type application/json;
+            add_header Content-Type application/json;
+            return 200 '{"status": "ok"}';
+        }
+
+        # REGEX match - case sensitive
+        # location ~ /greet[0-9] {
+
+        #     return 200 'Hello from NGINX "/greet" location - REGEX MATCH';
+        # }
+
+        # REGEX match - case insensitive
+        # location ~* /greet[0-9] {
+
+        #     return 200 'Hello from NGINX "/greet" location - REGEX MATCH INSENSITIVE';
+        # }
+
+        # Prefix match
+        # location /greet {
+
+        #     return 200 'Hello from NGINX "/greet" location.';
+        # }
+    }
+}
+```
 
 ## NGINX Rewrites and Returns
 
