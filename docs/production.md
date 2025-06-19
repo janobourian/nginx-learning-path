@@ -28,6 +28,10 @@ dnf update -y
 dnf install -y nginx
 ```
 
+The encrypt files are:
+* `/etc/letsencrypt/live/<DOMAIN>/fullchain.pem`
+* `/etc/letsencrypt/live/<DOMAIN>/privkey.pem`
+
 ### Update the corresponding files
 
 #### General config /etc/nginx/nginx.conf
