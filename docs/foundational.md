@@ -307,16 +307,328 @@ http {
 
 ## NGINX Rewrites and Returns
 
+* rewrite pattern URI -> maintain your uri
+    * The requests are re-evaluated
+    * Some examples:
+        * `rewrite ^/user/\w+ /greet;`
+        * `rewrite ^/user/{\w+} /greet/$1;`
+    * `last`:
+        * `rewrite ^/user/{\w+} /greet/$1 last;`
+        * `rewrite ^/user/{\w+} /thumb.png;`
+* return status URI -> change your uri
+
 ## NGINX Try Files
+
+* Remember that you can use `named_locations`
+
+```sh
+events {}
+
+http {
+    include mime.types;
+
+    server {
+        listen 80;
+        server_name <DOMAIN>;
+        return 301 https://$host$request_uri;
+    }
+
+    server {
+        listen 443 ssl;
+        server_name <DOMAIN>;
+        root /sites/demo;
+        ssl_certificate /etc/letsencrypt/live/<DOMAIN>/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/<DOMAIN>/privkey.pem;
+        ssl_protocols TLSv1.2 TLSv1.3;
+        ssl_ciphers HIGH:!aNULL:!MD5;
+
+        # try_files $uri $uri/ /404;
+
+        # location = /404 {
+        #     return 404 'Sorry, this page or file does not exist.';
+        # }
+
+        try_files $uri $uri/ @404;
+
+        location @404 {
+            return 404 'Sorry, this page or file does not exist.';
+        }
+
+        location = /api/health {
+            default_type application/json;
+            add_header Content-Type application/json;
+            return 200 '{"status": "ok"}';
+        }
+    }
+}
+```
 
 ## NGINX Logs
 
+* Error Log
+* Access Log
+* In my case `ls -l /var/log/nginx/`
+* `access_log off;`
+
+```sh
+ls -l /var/log/nginx/
+cd /var/log/nginx
+echo '' > access.log
+echo '' > error.log
+cat error.log
+```
+
+Another way to check logs
+
+```sh
+tail -n 1 /var/log/nginx/error.log
+```
+
+```sh
+events {}
+
+http {
+    include mime.types;
+
+    server {
+        listen 80;
+        server_name <DOMAIN>;
+        return 301 https://$host$request_uri;
+    }
+
+    server {
+        listen 443 ssl;
+        server_name <DOMAIN>;
+        root /sites/demo;
+        ssl_certificate /etc/letsencrypt/live/<DOMAIN>/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/<DOMAIN>/privkey.pem;
+        ssl_protocols TLSv1.2 TLSv1.3;
+        ssl_ciphers HIGH:!aNULL:!MD5;
+        try_files $uri $uri/ @404;
+
+        location @404 {
+            access_log /var/log/nginx/404.access.log;
+            return 404 'Sorry, this page or file does not exist.';
+        }
+
+        location = /api/health {
+            default_type application/json;
+            add_header Content-Type application/json;
+            return 200 '{"status": "ok"}';
+        }
+    }
+}
+```
+
 ## NGINX Inherentance and directives
+
+* Array Directive
+* Standard Directive
+* Action Directive
 
 ## PHP Processing
 
+We can use php-fpm
+
+```sh
+dnf check-update
+dnf install php-fpm
+which php-fpm
+systemctl list-unit-files | grep php
+systemctl enable php-fpm
+systemctl start php-fpm
+systemctl status php-fpm
+find / -name *www.sock
+echo '<?php phpinfo(); ?>' > /sites/demo/info.php
+echo '<h1> Date: <?php echo date("l jS F"); ?></h1>' > /sites/demo/index.php
+```
+
+To deal with the basic interactions `index index.php index.html;`
+
+```sh
+user nginx;
+worker_processes auto;
+
+events {
+    worker_connections 65535;
+}
+
+http {
+    include mime.types;
+
+    server {
+        listen 80;
+        server_name <DOMAIN>;
+        return 301 https://$host$request_uri;
+    }
+
+    server {
+        listen 443 ssl;
+        server_name <DOMAIN>;
+        root /sites/demo;
+        ssl_certificate /etc/letsencrypt/live/<DOMAIN>/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/<DOMAIN>/privkey.pem;
+        ssl_protocols TLSv1.2 TLSv1.3;
+        ssl_ciphers HIGH:!aNULL:!MD5;
+        index index.php index.html;
+
+        location / {
+            try_files $uri $uri/ @404;
+        }
+
+        location ~\.php$ {
+            include fastcgi.conf;
+            fastcgi_pass unix:/run/php-fpm/www.sock;
+        }
+
+        location @404 {
+            access_log /var/log/nginx/404.access.log;
+            return 404 'Sorry, this page or file does not exist.';
+        }
+
+        location = /api/health {
+            default_type application/json;
+            add_header Content-Type application/json;
+            return 200 '{"status": "ok"}';
+        }
+    }
+}
+```
+
 ## NGINX Worker Processes
+
+`systemctl status nginx`
+
+* Check additional information:
+    * `nproc`
+    * `lscpu`
+    * `ulimit -n`
+* Total connections:
+    * worker_processes x worker_connections = max_connections
+* If you need to change you pid file
+    * `pid /var/run/new_nginx.pid`
+
+```sh
+user nginx;
+worker_processes auto;
+
+events {
+    worker_connections 65535;
+}
+
+http {
+    include mime.types;
+
+    server {
+        listen 80;
+        server_name <DOMAIN>;
+        return 301 https://$host$request_uri;
+    }
+
+    server {
+        listen 443 ssl;
+        server_name <DOMAIN>;
+        root /sites/demo;
+        ssl_certificate /etc/letsencrypt/live/<DOMAIN>/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/<DOMAIN>/privkey.pem;
+        ssl_protocols TLSv1.2 TLSv1.3;
+        ssl_ciphers HIGH:!aNULL:!MD5;
+        try_files $uri $uri/ @404;
+
+        location @404 {
+            access_log /var/log/nginx/404.access.log;
+            return 404 'Sorry, this page or file does not exist.';
+        }
+
+        location = /api/health {
+            default_type application/json;
+            add_header Content-Type application/json;
+            return 200 '{"status": "ok"}';
+        }
+    }
+}
+```
 
 ## NGINX Buffers and Timeouts
 
+Buffering is the amount of data to save before to realese that amount.
+
+```sh
+user nginx;
+worker_processes auto;
+
+events {
+    worker_connections 65535;
+}
+
+http {
+    include mime.types;
+
+    # Buffer size for POST submissions
+    client_body_buffer_size 10K;
+    client_max_body_size 8m;
+
+    # Buffer size for Headers
+    client_header_buffer_size 1K;
+
+    # Max time to receive client headers/body (milliseconds)
+    client_body_timeout 12;
+    client_header_timeout 12;
+
+    # Max time to keep a connection open for
+    keepalive_timeout 60s;
+
+    # Max time for the client accept/receive a response
+    send_timeout 60s;
+
+    # Skip buffering for static files
+    sendfile on;
+
+    # Optimise sendfile packets
+    tcp_nopush on;
+
+    server {
+        listen 80;
+        server_name <DOMAIN>;
+        return 301 https://$host$request_uri;
+    }
+
+    server {
+        listen 443 ssl;
+        server_name <DOMAIN>;
+        root /sites/demo;
+        ssl_certificate /etc/letsencrypt/live/<DOMAIN>/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/<DOMAIN>/privkey.pem;
+        ssl_protocols TLSv1.2 TLSv1.3;
+        ssl_ciphers HIGH:!aNULL:!MD5;
+        try_files $uri $uri/ @404;
+
+        location @404 {
+            access_log /var/log/nginx/404.access.log;
+            return 404 'Sorry, this page or file does not exist.';
+        }
+
+        location = /api/health {
+            default_type application/json;
+            add_header Content-Type application/json;
+            return 200 '{"status": "ok"}';
+        }
+    }
+}
+```
+
 ## NGINX Modules
+
+* Add new modules like: SSL, pagespeed
+* In the folder where you started the configuration type `nginx -V` and you'll get something like this:
+    * `--sbin-path=/usr/bin/nginx --conf-path=/etc/nginx/nginx.conf --error-log-path=/var/log/nginx/error.log --http-log-path=/var/log/nginx/access.log --with-pcre --pid-path=/var/run/nginx.pid --with-http_ssl_module`
+* Adding the new modules (http_image_filter_module=dynamic)
+
+```sh
+./configure --help
+./configure --help | grep dynamic
+dnf install gd gd-devel
+./configure --sbin-path=/usr/bin/nginx --conf-path=/etc/nginx/nginx.conf --error-log-path=/var/log/nginx/error.log --http-log-path=/var/log/nginx/access.log --with-pcre --pid-path=/var/run/nginx.pid --with-http_ssl_module --with-http_image_filter_module=dynamic --modules-path=/etc/nginx/modules
+make
+make install
+```
