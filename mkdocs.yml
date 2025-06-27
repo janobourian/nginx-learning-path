@@ -14,13 +14,15 @@ use_directory_urls: false
 docs_dir: docs
 
 nav:
-  - Section:
+  - NGINX:
     - index.md
     - Go to Production: production.md
     - Foundational Concepts: foundational.md
     - Performance: performance.md
     - Security: security.md
     - Load Balancing: load_balancing.md
+  - uv:
+    - uv/index.md
 
 markdown_extensions:
   - admonition
