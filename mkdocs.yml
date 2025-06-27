@@ -1,4 +1,4 @@
-site_name: NGINX Learning Path
+site_name: Software Development Learning Path
 theme:
   name: material
   palette:
@@ -7,17 +7,20 @@ theme:
   font:
     text: Roboto
     code: Roboto Mono
+  features:
+    - navigation.tabs
 
 use_directory_urls: false
 docs_dir: docs
 
 nav:
-  - Home: index.md
-  - Go to Production: production.md
-  - Foundational Concepts: foundational.md
-  - Performance: performance.md
-  - Security: security.md
-  - Load Balancing: load_balancing.md
+  - Section:
+    - index.md
+    - Go to Production: production.md
+    - Foundational Concepts: foundational.md
+    - Performance: performance.md
+    - Security: security.md
+    - Load Balancing: load_balancing.md
 
 markdown_extensions:
   - admonition
