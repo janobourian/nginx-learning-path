@@ -50,3 +50,33 @@ http {
     }
 }
 ```
+
+## Rate Limiting
+
+* Managing incoming requests
+* Reasons:
+    * Security - Brute Force Protection
+    * Reliability - Prevent Traffic Spikes
+    * Shaping - Service Priority
+* `Siege` is a tool to measure the traffic
+    * Load Testing Tool
+* 1r/s + 5 burts = 6 connections
+
+## Basic Auth
+
+* First we need a password `htpasswd -c /etc/nginx/.htpasswd user1` 
+* Now you should add the password
+    * `auth_basic "Secure Area";`
+    * `auth_basic_user_file /etc/nginx/.htpasswd;`
+
+## Hardering NGINX
+
+* You can remove the nginx version from the response after `cUrl` request
+* You can prevent to embed your website in other webpages using `iframe` html tag
+    * `add_header X-Frame-Options "SAMEORIGIN";`
+    * `add_header X-XSS-Protection "1; mode=block";`
+* Remove unused and potential risk modules
+
+## Let's Encrypt - SSL Certificates
+
+* You can use the indicated tools on the `production` section on this documentation  
