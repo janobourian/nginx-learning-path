@@ -27,6 +27,7 @@ nav:
   - DMS SQL CDC:
     - dms-aws/index.md
     - DMS Source: dms-aws/dms-source.md
+    - DMS Target: dms-aws/dms-target.md
 
 markdown_extensions:
   - admonition
