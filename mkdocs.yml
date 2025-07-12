@@ -23,6 +23,9 @@ nav:
     - Load Balancing: load_balancing.md
   - uv:
     - uv/index.md
+  - DMS SQL CDC:
+    - dms-aws/index.md
+    - DMS Source: dms-aws/dms-source.md
 
 markdown_extensions:
   - admonition
