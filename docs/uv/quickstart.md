@@ -34,6 +34,13 @@ uv build
 ls dist/
 ```
 
+## If you have a requirements.txt file
+
+```sh
+uv venv
+uv add -r requirements.txt
+```
+
 ## Docker configuration
 
 ```Dockerfile
