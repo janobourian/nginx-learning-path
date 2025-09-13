@@ -28,6 +28,10 @@ nav:
     - dms-aws/index.md
     - DMS Source: dms-aws/dms-source.md
     - DMS Target: dms-aws/dms-target.md
+  - Bash Scripting:
+    - bash_scripting/index.md
+    - Introduction: bash_scripting/introduction.md
+    - Commands: bash_scripting/commands.md
 
 markdown_extensions:
   - admonition
