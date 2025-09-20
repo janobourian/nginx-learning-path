@@ -32,6 +32,8 @@ nav:
     - bash_scripting/index.md
     - Introduction: bash_scripting/introduction.md
     - Commands: bash_scripting/commands.md
+  - Assembly Language:
+    - assembly_language/index.md
 
 markdown_extensions:
   - admonition
