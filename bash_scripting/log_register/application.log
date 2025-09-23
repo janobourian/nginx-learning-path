@@ -1,0 +1,22 @@
+[2023-12-15 09:45:12] DEBUG OrderProcessor - Processing order #ORD-2023-001234
+[2023-12-15 09:45:13] INFO OrderProcessor - Order validation successful for customer ID: 5678
+[2023-12-15 09:45:14] INFO PaymentService - Payment processed: $129.99 via VISA ending in 4567
+[2023-12-15 09:47:23] WARN InventoryService - Low stock alert: Product SKU-ABC123 (5 units remaining)
+[2023-12-15 09:48:45] ERROR ShippingService - Failed to calculate shipping cost for ZIP: 90210
+[2023-12-15 09:49:01] INFO ShippingService - Retry successful: Shipping cost calculated $15.99
+[2023-12-15 09:52:18] DEBUG UserController - User session created: session_id=sess_xyz789abc
+[2023-12-15 09:54:33] INFO NotificationService - Email sent to customer@example.com: Order Confirmation
+[2023-12-15 09:56:12] WARN SecurityFilter - Suspicious activity detected from IP: 203.0.113.45
+[2023-12-15 09:58:07] ERROR DatabaseService - Query timeout: SELECT * FROM products WHERE category='electronics'
+[2023-12-15 10:00:15] INFO DatabaseService - Connection pool refreshed: 10 active connections
+[2023-12-15 10:02:44] DEBUG CacheManager - Cache hit ratio: 87% (435/500 requests)
+[2023-12-15 10:05:23] INFO ReportGenerator - Monthly sales report generated: 2,847 orders, $456,789.12 revenue
+[2023-12-15 10:07:56] WARN APIGateway - Rate limit exceeded for client: api_key_abc123 (1000 requests/hour)
+[2023-12-15 10:10:12] ERROR FileUploadService - Upload failed: file size exceeds 10MB limit
+[2023-12-15 10:12:33] INFO FileUploadService - File uploaded successfully: document_2023_report.pdf (8.5MB)
+[2023-12-15 10:15:18] DEBUG SessionManager - Active sessions: 234, Peak today: 567
+[2023-12-15 10:18:45] INFO ScheduledTask - Data cleanup completed: 1,250 old records removed
+[2023-12-15 10:21:07] WARN ConfigService - Configuration reload required: settings.yml modified
+[2023-12-15 10:23:44] ERROR ExternalAPI - Third-party service unavailable: weather.api.com (HTTP 503)
+[2023-12-15 10:25:12] INFO ExternalAPI - Fallback service activated: backup-weather.api.com
+[2023-12-15 10:28:33] DEBUG PerformanceMonitor - Average response time: 245ms, 95th percentile: 890ms
