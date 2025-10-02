@@ -34,6 +34,26 @@ nav:
     - Commands: bash_scripting/commands.md
   - Assembly Language:
     - assembly_language/index.md
+  - Amazon Q:
+    - amazon_q/index.md
+    - Getting Started: amazon_q/getting_started.md
+    - Creating a Bot: amazon_q/creating_a_bot.md
+    - Advanced Features: amazon_q/advanced_features.md
+  - Test Python CDK code:
+    - test_python_cdk_code/index.md
+    - Unit Testing: test_python_cdk_code/unit_testing.md
+    - Integration Testing: test_python_cdk_code/integration_testing.md
+  - AWS Nag:
+    - aws_nag/index.md
+    - Setup and Installation: aws_nag/setup_and_installation.md
+    - Usage: aws_nag/usage.md
+    - Best Practices: aws_nag/best_practices.md
+  - AWS SNS:
+    - aws_sns/index.md
+    - Getting Started: aws_sns/getting_started.md
+    - Publishing Messages: aws_sns/publishing_messages.md
+    - Subscribing to Topics: aws_sns/subscribing_to_topics.md
+    - Troubleshooting: aws_sns/troubleshooting.md
 
 markdown_extensions:
   - admonition
