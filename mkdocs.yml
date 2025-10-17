@@ -54,6 +54,18 @@ nav:
     - Publishing Messages: aws_sns/publishing_messages.md
     - Subscribing to Topics: aws_sns/subscribing_to_topics.md
     - Troubleshooting: aws_sns/troubleshooting.md
+  - Cloud Application Architecture Patterns:
+    - cloud_application_architecture_patterns/index.md
+    - Cloud Applications: cloud_application_architecture_patterns/cloud_applications.md
+    - Application Architecture: cloud_application_architecture_patterns/application_architecture.md
+    - Cloud-Native Application: cloud_application_architecture_patterns/cloud_native_application.md
+    - Microservices Architecture: cloud_application_architecture_patterns/microservices_architecture.md
+    - Microservices Design: cloud_application_architecture_patterns/microservices_design.md
+    - Event-Driven Architecture: cloud_application_architecture_patterns/event_driven_architecture.md
+    - Cloud-Native Storage: cloud_application_architecture_patterns/cloud_native_storage.md
+    - Cloud Application Clients: cloud_application_architecture_patterns/cloud_application_clients.md
+    - Application Migration and Modernization: cloud_application_architecture_patterns/application_migration_and_modernization.md
+    - Strangling Monoliths: cloud_application_architecture_patterns/strangling_monoliths.md
 
 markdown_extensions:
   - admonition
