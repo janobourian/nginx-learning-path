@@ -1,1 +1,73 @@
 # Cloud Application Architecture Patterns
+
+## List of Patterns and Concepts
+
+- **Adapter Microservices**: How can the application take advantage of existing functionlity without abandoning the microservices approach?
+- **Aggregate**: How do you tie together the groups of tightly related concepts and the values that belong within them in a subdomain?
+- **Anti-Corruption Layer**: How can we design the system so that the Bounded Contexts (BCs) can interact without being tightly coupled together?
+- **Application Database**: How should a cloud-native application store the data it uses so that it can run as a stateless application?
+- **Application Package**: What features of a computer language ecosystem are required to implement a Cloud Application?
+- **Backend Service**: How can multiple applications share the same reusable functionality?
+- **Big Ball of mud**: What is the simplest possible architecture for an application that helps get something working quickly to get needed feedback?
+- **Bounded Context**: How do you clearly define the logical boundaries (edges) of a domain and subdomain(s) where particular terms and rules apply?
+- **Browser Application**: What is the easiest, most universal Client Application for any user that does not assume specific hardware or software configuration?
+- **Client Application**: How can I build applications to take advantage of the services provided by an application running in the cloud?
+- **Cloud Application**: How can I build applications to take the maximum advantage of all the features of the cloud for best future proofing and agility?
+- **Cloud Database**: How should a cloud-native application store data persistently in a cloud environment?
+- **Cloud-Native Architecture**: How can I architect an application to take maximum advantage of the cloud platform it will run on?
+- **Columnar Database**: How can an application most efficiently store data for performing analytics, such as in a data warehouse?
+- **Command-line Interface**: How can an end user automate activities like bulk loads, bulks changes, or schedukle execution of activities using the services provided by an application running in the cloud?
+- **Command Query Responsibility Segregation (CQRS)**: How do you optimize throughput for query and updates by multiple clients that have numerous cross-cutting views of the data?
+- **Configuration Database**: How can a cloud service store its service state such that all of the nodes in the services can share and access state?
+- **Containerize the Application**: How can an application be packaged to facilitate greater deployment density and platform portability?
+- **Data Module**: How can I align my data model with my application model so that both are easier to maintain and can evolve quickly?
+- **Databse-as-a-Service**: Hoe does an application have access to an Application Database?
+- **Dispatcher**: How can a client access a microservices application through a channel-specific service interface when the business functionality is spread across an evolving set of domain-specific APIs?
+- **Distributed Architecture**: How can I architect my application so that parts of it can be developed, deployed, and run independently?
+- **Document Database**: How can and application most efficiently store and retrieve data when the future structure of the data is not well known?
+- **Domain Event**: How do you moidel those aspects of a design that correspond to things that happen during the various scenario encountered by the system?
+- **Domain Microservice**: How should a set of microservices in an architecture provide the business functionality for an application?
+- **Domain Service**: How do you model those operations within a subdomain that do not belong to a specific Entity or Aggregate?
+- **Event**: How do you represent a change in one component to be communicated to other components?
+- **Event API**: How can the reactive components in an event-driven architecture know what events to expect?
+- **Event Backbone**: How can reactive components receive the event they are interested in without being coupled directly to the event notifiers that generate the events?
+- **Event Choreography**: When a change ocurrs in one component, how can a variable number of other components react accordingy?
+- **Event Notifier**: How and when shpuld a component announce changes to other components?
+- **Event Sourcing**: As an application's state changes constantly and unpredictably due to evolving conditions, how can you audit the history that created the current state?
+- **Event Storming**: How do you get the stakeholders to understand and describe the elements and event arouund the domain and subdomain?
+- **External Configuration**: How can I build my application once and yet be able to deploy it to multiple environments that are configured differently?
+- **Extract Component**: How do you separate loosely related parts of the code in our monolith into distinct deployable units?
+- **Graph Database**: How can an application most efficiently store and retrieve interrelated data entities by navitating their relationships?
+- **Hairline Cracks**: How do you identify the areas within a monolith application that are candidate boundaries for microservices?
+- **Interaction Model**: How do yo avoid mixing business and presentation logic inside your Client application?
+- **Key-value Database**: How can an application most efficiently store and retrieve independent data entities thar are always looked up by the same key?
+- **Lift and shift**: What is the simplest possible way to move an existing application to the cloud?
+- **Micro Frontend**: How do you avoid creating a monolithic Single-Page application by placing too much functionality in a common front-end?
+- **Microservices**: How do you architect an application as a set of interconnected modules that can be developed independently?
+- **Mobile Application**: How do you provide the most optimized user experience on a mobile device and take advantage of the features that make mobile computing unique?
+- **Model Around the Domain**: How can you encourage stakeholders to explain enough of the domain requirements in a way that reveals the relevant capabilities for the application you are building?
+- **Modular Monolith**: How can I architect my application to make it easier to maintain anf evolve quickly?
+- **New Features as Microservices**: While strangling a monolith, how do ypu avoid adding new functionality to the monolith that will later have to be modernized into microservices?
+- **Pave the road**: How can we encourage teams to move to the cloud and adopt these new technologies without letting each team go in their own direction and work at cross purposes?
+- **Playback testing**: How do you ensure that the new microservices architecture maintains the same functionality as the old monolithic system, especially when the amount of detailed end-to-end application knowledge of the existing application may be limited?
+- **Polyglot Persistence**: How can an application store its Data Modelues in the type of database that works best for the application's data structure and how it accesses the data?
+- **Polyglot Development**: What computer language(s) should be used for implementing microservices?
+- **Public API**: How do you best enable third-party applications to interact programmatically with a Cloud Application?
+- **Reactive Component**: How can you construct an application that can react to events?
+- **Refactor the Monolith**: How can I make an existing application easier for multiple trams to maintain and able to run effectively in a multi-computer environment?
+- **Refactor the Extract**: How do we address coupling within the moniolith to facilitate extraction into microservices?
+- **Relation Database**: How can an application store well-structured data that it needs to query dynamically?
+- **Replace as Microservice**: How can we move complex and important pieces of functionality that are tightlyu coupled in the monolith to microservices with minimal impact?
+- **Replicable application**: How can an application run reliably on an unreliable platform and scale to handle greater client load the way the platform scales?
+- **Replicated Database**: How can a Cloud Database provide the same quality of service as a cloud-native application with the same availability, scalability, and performance as the application?
+- **Repositories**: How do we address coupling within the monolith to facilitate extraction into microservices?
+- **Self-Managed Data Store**: How does a microservice store its state?
+- **Service API**: How should an application expose its functionality to clients that want to use the application?
+- **Service Orchestator**: How does a microservice perfor a complex task, one that is performed in multiple steps?
+- **Single-Page application**: How do you desing the front ed of your application to provide the best mix of client responsiveness and server optimization?
+- **Smart Small**: How can we start adopting cloud services and moving existing application to the cloud or writing applications for the cloud, possibly using microservices?
+- **Stateless Application**: How can an application support concurrent requests efficiently and reover from failures without losing data?
+- **Strangle the Monolith**: How can we replace a monolithic architecture with a microservice architecture while reducing overall risk?
+- **Transform Monolith into microservices**: How do you kieep tje monolithic system working while you substiture piece of functionality with microservices over time?
+- **Virtualize the application** What is the simpliest possible way to package an application so that it can easily be deployed to traditional IT or to the cloud?
+- **Web Form application**: How do you build a user interface to provide basic functionality to the largest possible set of users using the largest set of devices and hardware.
