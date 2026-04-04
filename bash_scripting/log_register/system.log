@@ -1,0 +1,22 @@
+2023-12-15 10:00:01 INFO [SystemMonitor] CPU usage: 45%
+2023-12-15 10:00:01 INFO [SystemMonitor] Memory usage: 2.1GB/8GB (26%)
+2023-12-15 10:00:01 INFO [SystemMonitor] Disk usage: 120GB/500GB (24%)
+2023-12-15 10:05:23 WARN [NetworkService] High latency detected: 250ms
+2023-12-15 10:07:45 ERROR [DatabaseConnection] Connection timeout after 30 seconds
+2023-12-15 10:08:12 INFO [DatabaseConnection] Reconnection successful
+2023-12-15 10:10:33 INFO [UserService] User login: admin@example.com
+2023-12-15 10:12:18 WARN [SecurityService] Failed login attempt from IP: 192.168.1.200
+2023-12-15 10:15:01 INFO [SystemMonitor] CPU usage: 52%
+2023-12-15 10:15:01 INFO [SystemMonitor] Memory usage: 2.8GB/8GB (35%)
+2023-12-15 10:15:01 INFO [SystemMonitor] Disk usage: 120GB/500GB (24%)
+2023-12-15 10:18:44 ERROR [EmailService] SMTP server unreachable
+2023-12-15 10:20:15 INFO [BackupService] Daily backup started
+2023-12-15 10:22:33 WARN [SecurityService] Multiple failed login attempts from IP: 10.0.0.100
+2023-12-15 10:25:07 INFO [CacheService] Cache cleared successfully
+2023-12-15 10:27:19 ERROR [PaymentGateway] Transaction failed: insufficient funds
+2023-12-15 10:30:01 INFO [SystemMonitor] CPU usage: 38%
+2023-12-15 10:30:01 INFO [SystemMonitor] Memory usage: 2.3GB/8GB (29%)
+2023-12-15 10:30:01 INFO [SystemMonitor] Disk usage: 121GB/500GB (24%)
+2023-12-15 10:32:45 INFO [UserService] User logout: admin@example.com
+2023-12-15 10:35:12 WARN [NetworkService] Packet loss detected: 2%
+2023-12-15 10:38:33 INFO [BackupService] Daily backup completed successfully

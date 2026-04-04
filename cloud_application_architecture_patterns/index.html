@@ -1,0 +1,4223 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../aws_sns/troubleshooting.html">
+      
+      
+        <link rel="next" href="cloud_applications.html">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Cloud Application Architecture Patterns - Software Development Learning Path</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#cloud-application-architecture-patterns" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Software Development Learning Path" class="md-header__button md-logo" aria-label="Software Development Learning Path" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Software Development Learning Path
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Cloud Application Architecture Patterns
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../index.html" class="md-tabs__link">
+          
+  
+  
+  NGINX
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../uv/index.html" class="md-tabs__link">
+          
+  
+  
+  uv
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../dms-aws/index.html" class="md-tabs__link">
+          
+  
+  
+  DMS SQL CDC
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../bash_scripting/index.html" class="md-tabs__link">
+          
+  
+  
+  Bash Scripting
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../assembly_language/index.html" class="md-tabs__link">
+          
+  
+  
+  Assembly Language
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../amazon_q/index.html" class="md-tabs__link">
+          
+  
+  
+  Amazon Q
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../test_python_cdk_code/index.html" class="md-tabs__link">
+          
+  
+  
+  Test Python CDK code
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../aws_nag/index.html" class="md-tabs__link">
+          
+  
+  
+  AWS Nag
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../aws_sns/index.html" class="md-tabs__link">
+          
+  
+  
+  AWS SNS
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="index.html" class="md-tabs__link">
+          
+  
+  
+  Cloud Application Architecture Patterns
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Software Development Learning Path" class="md-nav__button md-logo" aria-label="Software Development Learning Path" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Software Development Learning Path
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    NGINX
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    NGINX
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    NGINX Learning Path
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../production.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Go to Production
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../foundational.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Foundational Concepts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../performance.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Performance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../security.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../load_balancing.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Load Balancing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    uv
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    uv
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../uv/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    UV
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../uv/quickstart.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DMS SQL CDC
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    DMS SQL CDC
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dms-aws/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Workshop
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dms-aws/dms-source.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DMS Source
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dms-aws/dms-target.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DMS Target
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bash Scripting
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Bash Scripting
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bash_scripting/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bash_scripting/introduction.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bash_scripting/commands.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Commands
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Assembly Language
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Assembly Language
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../assembly_language/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Assembly Language
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Amazon Q
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Amazon Q
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../amazon_q/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Amazon Q
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../amazon_q/getting_started.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../amazon_q/creating_a_bot.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Creating a Bot
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../amazon_q/advanced_features.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced Features
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Test Python CDK code
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Test Python CDK code
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../test_python_cdk_code/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Test Python CDK Code
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../test_python_cdk_code/unit_testing.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Unit Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../test_python_cdk_code/integration_testing.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Integration Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AWS Nag
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    AWS Nag
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../aws_nag/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AWS Nag
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../aws_nag/setup_and_installation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Setup and Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../aws_nag/usage.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Usage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../aws_nag/best_practices.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AWS SNS
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    AWS SNS
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../aws_sns/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AWS SNS
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../aws_sns/getting_started.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../aws_sns/publishing_messages.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Publishing Messages
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../aws_sns/subscribing_to_topics.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Subscribing to Topics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../aws_sns/troubleshooting.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cloud Application Architecture Patterns
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Cloud Application Architecture Patterns
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cloud Application Architecture Patterns
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="index.html" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cloud Application Architecture Patterns
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#adapter-microservices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adapter Microservices:
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#real-world-applications-the-e-commerce-migration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Real-World Applications: The E-commerce Migration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aws-implementation-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AWS Implementation Strategy
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="AWS Implementation Strategy">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-to-apply-it-in-aws" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to Apply It in AWS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pro-tip-the-strangler-fig-connection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pro-Tip: The "Strangler Fig" Connection
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aggregate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Aggregate:
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Aggregate:">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#real-world-applications-the-order-processing-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Real-World Applications: The Order Processing System
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aws-implementation-strategy_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AWS Implementation Strategy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-apply-it-in-aws_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to Apply It in AWS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pro-tip-keep-aggregates-small" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pro-Tip: Keep Aggregates Small
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#anti-corruption-layer-acl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Anti-Corruption Layer (ACL):
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Anti-Corruption Layer (ACL):">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#real-world-applications-legacy-mainframe-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Real-World Applications: Legacy Mainframe Integration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aws-implementation-strategy_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AWS Implementation Strategy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-apply-it-in-aws_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to Apply It in AWS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pro-tip-acl-vs-adapter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pro-Tip: ACL vs. Adapter
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#application-database" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Application Database:
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Application Database:">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#real-world-applications-the-scaling-web-portal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Real-World Applications: The Scaling Web Portal
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aws-implementation-strategy_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AWS Implementation Strategy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-apply-it-in-aws_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to Apply It in AWS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pro-tip-the-12-factor-app-rule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pro-Tip: The "12-Factor App" Rule
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#application-package" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Application Package:
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Application Package:">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#real-world-applications-the-it-works-on-my-machine-problem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Real-World Applications: The "It Works on My Machine" Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aws-implementation-strategy_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AWS Implementation Strategy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-apply-it-in-aws_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to Apply It in AWS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pro-tip-the-golden-image-vs-lean-containers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pro-Tip: The "Golden Image" vs. Lean Containers
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#backend-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backend Service:
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Backend Service:">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#real-world-applications-the-universal-notification-engine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Real-World Applications: The Universal Notification Engine
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aws-implementation-strategy_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AWS Implementation Strategy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-apply-it-in-aws_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to Apply It in AWS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pro-tip-version-your-shared-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pro-Tip: Version Your Shared API
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#big-ball-of-mud" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Big Ball of Mud:
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Big Ball of Mud:">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#real-world-applications-the-viral-startup-mvp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Real-World Applications: The Viral Startup MVP
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aws-implementation-strategy_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AWS Implementation Strategy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-apply-it-in-aws_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to Apply It in AWS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pro-tip-when-to-clean-the-mud" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pro-Tip: When to "Clean the Mud"
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bounded-context" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bounded Context:
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Bounded Context:">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#real-world-applications-the-multi-faceted-product" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Real-World Applications: The Multi-Faceted "Product"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aws-implementation-strategy_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AWS Implementation Strategy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-apply-it-in-aws_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to Apply It in AWS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pro-tip-beware-of-the-shared-kernel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pro-Tip: Beware of the "Shared Kernel"
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#browser-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Browser Application:
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Browser Application:">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#real-world-applications-the-zero-install-saas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Real-World Applications: The "Zero-Install" SaaS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aws-implementation-strategy_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AWS Implementation Strategy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-apply-it-in-aws_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to Apply It in AWS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pro-tip-progressive-web-apps-pwa" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pro-Tip: Progressive Web Apps (PWA)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#introduction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Introduction
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#modern-application-development" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Modern Application Development
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aspects-of-software-development" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Aspects of Software Development
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evolution-of-application-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Evolution of application architecture
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cloud_applications.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cloud Applications
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="application_architecture.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Application Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cloud_native_application.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cloud-Native Application
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="microservices_architecture.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Microservices Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="microservices_design.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Microservices Design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="event_driven_architecture.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Event-Driven Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cloud_native_storage.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cloud-Native Storage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cloud_application_clients.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cloud Application Clients
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="application_migration_and_modernization.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Application Migration and Modernization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="strangling_monoliths.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Strangling Monoliths
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#adapter-microservices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adapter Microservices:
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#real-world-applications-the-e-commerce-migration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Real-World Applications: The E-commerce Migration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aws-implementation-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AWS Implementation Strategy
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="AWS Implementation Strategy">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-to-apply-it-in-aws" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to Apply It in AWS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pro-tip-the-strangler-fig-connection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pro-Tip: The "Strangler Fig" Connection
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aggregate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Aggregate:
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Aggregate:">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#real-world-applications-the-order-processing-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Real-World Applications: The Order Processing System
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aws-implementation-strategy_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AWS Implementation Strategy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-apply-it-in-aws_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to Apply It in AWS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pro-tip-keep-aggregates-small" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pro-Tip: Keep Aggregates Small
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#anti-corruption-layer-acl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Anti-Corruption Layer (ACL):
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Anti-Corruption Layer (ACL):">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#real-world-applications-legacy-mainframe-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Real-World Applications: Legacy Mainframe Integration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aws-implementation-strategy_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AWS Implementation Strategy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-apply-it-in-aws_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to Apply It in AWS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pro-tip-acl-vs-adapter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pro-Tip: ACL vs. Adapter
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#application-database" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Application Database:
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Application Database:">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#real-world-applications-the-scaling-web-portal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Real-World Applications: The Scaling Web Portal
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aws-implementation-strategy_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AWS Implementation Strategy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-apply-it-in-aws_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to Apply It in AWS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pro-tip-the-12-factor-app-rule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pro-Tip: The "12-Factor App" Rule
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#application-package" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Application Package:
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Application Package:">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#real-world-applications-the-it-works-on-my-machine-problem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Real-World Applications: The "It Works on My Machine" Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aws-implementation-strategy_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AWS Implementation Strategy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-apply-it-in-aws_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to Apply It in AWS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pro-tip-the-golden-image-vs-lean-containers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pro-Tip: The "Golden Image" vs. Lean Containers
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#backend-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backend Service:
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Backend Service:">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#real-world-applications-the-universal-notification-engine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Real-World Applications: The Universal Notification Engine
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aws-implementation-strategy_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AWS Implementation Strategy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-apply-it-in-aws_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to Apply It in AWS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pro-tip-version-your-shared-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pro-Tip: Version Your Shared API
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#big-ball-of-mud" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Big Ball of Mud:
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Big Ball of Mud:">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#real-world-applications-the-viral-startup-mvp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Real-World Applications: The Viral Startup MVP
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aws-implementation-strategy_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AWS Implementation Strategy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-apply-it-in-aws_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to Apply It in AWS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pro-tip-when-to-clean-the-mud" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pro-Tip: When to "Clean the Mud"
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bounded-context" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bounded Context:
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Bounded Context:">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#real-world-applications-the-multi-faceted-product" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Real-World Applications: The Multi-Faceted "Product"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aws-implementation-strategy_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AWS Implementation Strategy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-apply-it-in-aws_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to Apply It in AWS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pro-tip-beware-of-the-shared-kernel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pro-Tip: Beware of the "Shared Kernel"
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#browser-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Browser Application:
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Browser Application:">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#real-world-applications-the-zero-install-saas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Real-World Applications: The "Zero-Install" SaaS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aws-implementation-strategy_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AWS Implementation Strategy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-apply-it-in-aws_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to Apply It in AWS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pro-tip-progressive-web-apps-pwa" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pro-Tip: Progressive Web Apps (PWA)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#introduction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Introduction
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#modern-application-development" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Modern Application Development
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aspects-of-software-development" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Aspects of Software Development
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evolution-of-application-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Evolution of application architecture
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="cloud-application-architecture-patterns">Cloud Application Architecture Patterns<a class="headerlink" href="#cloud-application-architecture-patterns" title="Permanent link">&para;</a></h1>
+<h2 id="adapter-microservices"><strong>Adapter Microservices</strong>:<a class="headerlink" href="#adapter-microservices" title="Permanent link">&para;</a></h2>
+<p>How can the application take advantage of existing functionality without abandoning the microservices approach?. Essentially, the Adapter acts as a translator. It allows your new, shiny microservices to talk to "messy" existing systems using a clean, modern interface that fits your new architecture.</p>
+<h2 id="real-world-applications-the-e-commerce-migration">Real-World Applications: The E-commerce Migration<a class="headerlink" href="#real-world-applications-the-e-commerce-migration" title="Permanent link">&para;</a></h2>
+<p>Imagine you are building a modern mobile shopping app using microservices, but your company’s core Inventory Management still runs on an on-premise mainframe that only accepts SOAP/XML requests via a VPN.</p>
+<p>Instead of making every new microservice learn how to talk to that old mainframe, you build an Adapter Microservice.
+* The New Service: Requests data via a clean REST/JSON API.
+* The Adapter: Receives the JSON, transforms it into XML, handles the mainframe's specific authentication, and returns a simplified JSON response to the caller.</p>
+<h2 id="aws-implementation-strategy">AWS Implementation Strategy<a class="headerlink" href="#aws-implementation-strategy" title="Permanent link">&para;</a></h2>
+<p>To keep this pattern cloud-native and scalable, you can implement it using several different "flavors" depending on your needs:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Layer</th>
+<th style="text-align: left;">AWS Service</th>
+<th style="text-align: left;">Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>API Interface</strong></td>
+<td style="text-align: left;"><strong>Amazon API Gateway</strong></td>
+<td style="text-align: left;">Provides the REST/GraphQL endpoint for your modern services to call.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Translation Logic</strong></td>
+<td style="text-align: left;"><strong>AWS Lambda</strong></td>
+<td style="text-align: left;">The "brain." It converts data formats (e.g., JSON to XML) and maps fields between systems.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Connectivity</strong></td>
+<td style="text-align: left;"><strong>AWS PrivateLink / VPN</strong></td>
+<td style="text-align: left;">Securely connects the Adapter in the cloud to the existing functionality (on-prem or another VPC).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Resiliency</strong></td>
+<td style="text-align: left;"><strong>Amazon SQS</strong></td>
+<td style="text-align: left;">Acts as a buffer to protect the legacy system from being overwhelmed by modern traffic spikes.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Secrets Management</strong></td>
+<td style="text-align: left;"><strong>AWS Secrets Manager</strong></td>
+<td style="text-align: left;">Stores legacy credentials or API keys so the Adapter can authenticate securely.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="how-to-apply-it-in-aws">How to Apply It in AWS<a class="headerlink" href="#how-to-apply-it-in-aws" title="Permanent link">&para;</a></h3>
+<p><strong>1. The Serverless Adapter (Most Common)</strong></p>
+<p>Use AWS Lambda as your adapter. It's cost-effective because you only pay when a translation happens.</p>
+<ul>
+<li>
+<p>Flow: Service A → API Gateway → Lambda (Adapter) → Legacy System.</p>
+</li>
+<li>
+<p>Benefit: You don't have to manage servers for a simple translation layer. </p>
+</li>
+</ul>
+<p><strong>2. The Containerized Adapter</strong></p>
+<p>If the transformation logic is heavy (e.g., using a specific Java library that requires a lot of memory), use AWS Fargate.</p>
+<ul>
+<li>
+<p>Flow: Run the adapter as a small Docker container.</p>
+</li>
+<li>
+<p>Benefit: Provides a persistent connection if the legacy system requires long-lived sessions.</p>
+</li>
+</ul>
+<p><strong>3. Protecting the New "Domain"</strong></p>
+<p>Ensure the Adapter is the only thing that knows about the legacy system's quirks. If the legacy system uses weird naming conventions (e.g., CUST_ID_01_VAL), the Adapter should map that to customerId before any other service sees it.</p>
+<h3 id="pro-tip-the-strangler-fig-connection"><strong>Pro-Tip: The "Strangler Fig" Connection</strong><a class="headerlink" href="#pro-tip-the-strangler-fig-connection" title="Permanent link">&para;</a></h3>
+<p>The Adapter Pattern is often the first step in a Strangler Fig migration. Once the Adapter is in place, you can eventually replace the "existing functionality" behind it with a new microservice without ever changing the code in your mobile app or other services. They won't even know the backend changed!</p>
+<hr>
+
+<h2 id="aggregate"><strong>Aggregate</strong>:<a class="headerlink" href="#aggregate" title="Permanent link">&para;</a></h2>
+<p>How do you tie together the groups of tightly related concepts and the values that belong within them in a subdomain? In microservices, an Aggregate is a cluster of domain objects that can be treated as a single unit. It ensures data consistency and defines clear boundaries, where one specific entity (the <strong>Aggregate Root</strong>) acts as the sole gatekeeper for all changes within that group.</p>
+<h3 id="real-world-applications-the-order-processing-system">Real-World Applications: The Order Processing System<a class="headerlink" href="#real-world-applications-the-order-processing-system" title="Permanent link">&para;</a></h3>
+<p>Imagine an e-commerce system with an <strong>Order</strong> entity. An "Order" isn't just one row; it consists of OrderItems, ShippingAddress, and Discounts. </p>
+<p>If you let a microservice change an OrderItem price without checking the total Order value, you break business rules. By using the Aggregate pattern:
+* The Aggregate Root: The Order entity.
+* The Rule: No outside service can talk directly to OrderItem. They must talk to Order.
+* The Result: The Order ensures that the total sum is always correct and that items aren't added if the order is already "Shipped."</p>
+<h3 id="aws-implementation-strategy_1">AWS Implementation Strategy<a class="headerlink" href="#aws-implementation-strategy_1" title="Permanent link">&para;</a></h3>
+<p>Managing aggregates in the cloud requires databases that support ACID transactions or strong consistency models to ensure the "cluster" of data stays valid.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Layer</th>
+<th style="text-align: left;">AWS Service</th>
+<th style="text-align: left;">Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Data Storage</strong></td>
+<td style="text-align: left;"><strong>Amazon DynamoDB</strong></td>
+<td style="text-align: left;">Uses a "Single-Table Design" to store the entire Aggregate (Root + Children) in one partition for atomic updates.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Transactional Integrity</strong></td>
+<td style="text-align: left;"><strong>DynamoDB Transactions</strong></td>
+<td style="text-align: left;">Ensures that updates to multiple items within the Aggregate succeed or fail together (All-or-Nothing).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Relational Storage</strong></td>
+<td style="text-align: left;"><strong>Amazon Aurora</strong></td>
+<td style="text-align: left;">Ideal if your Aggregate has complex relationships; uses Row-Level locking to maintain the Root's integrity.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Eventual Consistency</strong></td>
+<td style="text-align: left;"><strong>Amazon EventBridge</strong></td>
+<td style="text-align: left;">Once an Aggregate is updated, this service broadcasts the change to other subdomains/microservices.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>State Management</strong></td>
+<td style="text-align: left;"><strong>AWS Step Functions</strong></td>
+<td style="text-align: left;">Orchestrates complex logic that might span across the boundaries of the Aggregate Root.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="how-to-apply-it-in-aws_1">How to Apply It in AWS<a class="headerlink" href="#how-to-apply-it-in-aws_1" title="Permanent link">&para;</a></h3>
+<p><strong>1. Single-Table Design (DynamoDB)</strong></p>
+<p>In AWS, the most efficient way to handle an Aggregate is to store the Root and all its child entities in a single DynamoDB partition using the same Partition Key (PK).</p>
+<ul>
+<li>Flow: When you need to update an OrderItem, you fetch the entire partition (the whole Aggregate), apply business logic in your Lambda, and save it back.</li>
+<li>Benefit: You get the speed of NoSQL while maintaining the strict boundaries of the Aggregate.</li>
+</ul>
+<p><strong>2. Enforcing Boundaries with Lambda</strong></p>
+<p>The Lambda function representing the "Order Service" should be the only piece of code with the IAM permissions to write to that specific DynamoDB table.</p>
+<ul>
+<li>Flow: Other services (like Inventory) never touch the Order table. They send a message to the Order Service.</li>
+<li>Benefit: Prevents "Data Silo Leaking" where external services accidentally corrupt the internal logic of your Aggregate.</li>
+</ul>
+<p><strong>3. Versioning for Concurrency (Optimistic Locking)</strong></p>
+<p>Use a version attribute in your DynamoDB items. When the Aggregate Root is updated, the version must match.</p>
+<ul>
+<li>Flow: If two processes try to update the Order at once, the second one will fail because the version number changed.</li>
+<li>Benefit: Ensures that the Aggregate Root always stays in a consistent state even under high load.</li>
+</ul>
+<h3 id="pro-tip-keep-aggregates-small"><strong>Pro-Tip: Keep Aggregates Small</strong><a class="headerlink" href="#pro-tip-keep-aggregates-small" title="Permanent link">&para;</a></h3>
+<p>A common mistake is making Aggregates too large (e.g., putting every "User" action into one Aggregate). In AWS, large Aggregates lead to "hot partitions" in DynamoDB and slower Lambda execution times. Aim for the smallest possible boundary that still satisfies your business's consistency rules.</p>
+<hr>
+
+<h2 id="anti-corruption-layer-acl"><strong>Anti-Corruption Layer (ACL)</strong>:<a class="headerlink" href="#anti-corruption-layer-acl" title="Permanent link">&para;</a></h2>
+<p>How can we design the system so that the Bounded Contexts (BCs) can interact without being tightly coupled together? The Anti-Corruption Layer (ACL) is a specialized architectural component that translates between two different domain models. It prevents "corrupting" a clean, modern Bounded Context with the technical debt, confusing naming conventions, or outdated logic of a legacy system or external API.</p>
+<h3 id="real-world-applications-legacy-mainframe-integration">Real-World Applications: Legacy Mainframe Integration<a class="headerlink" href="#real-world-applications-legacy-mainframe-integration" title="Permanent link">&para;</a></h3>
+<p>Imagine your company is launching a modern "Customer Loyalty" microservice. This service has a clean model where a customer has a <code>loyaltyTier</code> and <code>pointsBalance</code>. However, the only way to get customer data is from a 20-year-old Mainframe system where customers are identified by <code>REC_TYPE_A_09</code> and tiers are stored as numeric codes like <code>001, 002</code>.</p>
+<p>Instead of letting those "001" codes leak into your Loyalty service logic, you build an ACL:
+* The Modern Service: Only knows about <code>Gold</code>, <code>Silver</code>, and <code>Platinum</code> tiers.
+* The ACL: Intercepts calls to the Mainframe, maps <code>001</code> to <code>Gold</code>, and renames the fields to match the modern domain.
+* The Result: If the Mainframe is eventually replaced, you only change the ACL code; the Loyalty service remains untouched.</p>
+<h3 id="aws-implementation-strategy_2">AWS Implementation Strategy<a class="headerlink" href="#aws-implementation-strategy_2" title="Permanent link">&para;</a></h3>
+<p>In AWS, the ACL is usually a standalone set of components that acts as a gateway or a "transformer" between services.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Layer</th>
+<th style="text-align: left;">AWS Service</th>
+<th style="text-align: left;">Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Logic Layer</strong></td>
+<td style="text-align: left;"><strong>AWS Lambda</strong></td>
+<td style="text-align: left;">Performs the heavy lifting of mapping "Legacy-Speak" to "Modern-Speak."</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Interface</strong></td>
+<td style="text-align: left;"><strong>Amazon API Gateway</strong></td>
+<td style="text-align: left;">Exposes a clean, RESTful interface for the modern BC to consume.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Decoupling</strong></td>
+<td style="text-align: left;"><strong>Amazon EventBridge</strong></td>
+<td style="text-align: left;">Translates legacy events into clean, domain-specific events for the new system.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Protocol Translation</strong></td>
+<td style="text-align: left;"><strong>AWS App Mesh</strong></td>
+<td style="text-align: left;">Can facilitate the routing and translation between services in a complex microservices mesh.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Data Translation</strong></td>
+<td style="text-align: left;"><strong>AWS Glue / AppFlow</strong></td>
+<td style="text-align: left;">If the "corruption" is at the data layer, these tools transform data formats between systems.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="how-to-apply-it-in-aws_2">How to Apply It in AWS<a class="headerlink" href="#how-to-apply-it-in-aws_2" title="Permanent link">&para;</a></h3>
+<p><strong>1. The "Facade" Lambda</strong></p>
+<p>Create a Lambda function that sits in front of the legacy API. The modern microservice calls this Lambda as if it were a native part of its own domain.</p>
+<ul>
+<li>Flow: New Service → Lambda (ACL) → Legacy API.</li>
+<li>Benefit: The New Service code stays "pure." It never contains logic to handle legacy errors or weird data structures.</li>
+</ul>
+<p><strong>2. Event Transformation (EventBridge Pipes)</strong></p>
+<p>If the legacy system emits messy events, use <strong>Amazon EventBridge Pipes</strong>. You can use the "Enrichment" or "Input Transformation" step to clean up the event payload before it reaches your new Bounded Context.</p>
+<ul>
+<li>Flow: Legacy Event → EventBridge Pipe (Transform) → New Microservice.</li>
+<li>Benefit: Your new service's event handlers don't need "if/else" logic to handle legacy data formats.</li>
+</ul>
+<p><strong>3. Separate VPCs for Isolation</strong></p>
+<p>To ensure strict decoupling, host the ACL in its own network space or as part of the "Adapter" layer. Use <strong>AWS PrivateLink</strong> to allow the modern BC to talk to the ACL without exposing the legacy system to the wider network.</p>
+<ul>
+<li>Benefit: Provides both architectural and security isolation.</li>
+</ul>
+<h3 id="pro-tip-acl-vs-adapter"><strong>Pro-Tip: ACL vs. Adapter</strong><a class="headerlink" href="#pro-tip-acl-vs-adapter" title="Permanent link">&para;</a></h3>
+<p>While they look similar, the <strong>Adapter</strong> (which you learned previously) focuses on <strong>technical</strong> translation (REST to SOAP, JSON to XML). The <strong>Anti-Corruption Layer</strong> focuses on <strong>semantic</strong> translation (changing the meaning and structure of the data to match the new business logic). Often, you will use them together!</p>
+<hr>
+
+<h2 id="application-database"><strong>Application Database</strong>:<a class="headerlink" href="#application-database" title="Permanent link">&para;</a></h2>
+<p>How should a cloud-native application store the data it uses so that it can run as a stateless application? In cloud-native architecture, "statelessness" means the application tier does not store any client data or session info on its local disk or memory. Instead, all persistent information is offloaded to an external <strong>Application Database</strong>, allowing the application instances to be destroyed, replaced, or scaled horizontally at any moment without data loss.</p>
+<h3 id="real-world-applications-the-scaling-web-portal">Real-World Applications: The Scaling Web Portal<a class="headerlink" href="#real-world-applications-the-scaling-web-portal" title="Permanent link">&para;</a></h3>
+<p>Imagine a news website during a major breaking event. Traffic spikes from 1,000 to 1,000,000 users in minutes. </p>
+<p>If the application stored user sessions or draft articles on the local server's hard drive:
+* Scaling would be impossible because "Server A" wouldn't know what "Server B" is doing.
+* If a server crashed, all users connected to it would lose their work.</p>
+<p>By using an external Application Database:
+* Any web server can handle any request because they all fetch the "state" (user profile, preferences, cart) from a central, managed database.
+* You can add 100 new servers instantly to handle the load.</p>
+<h3 id="aws-implementation-strategy_3">AWS Implementation Strategy<a class="headerlink" href="#aws-implementation-strategy_3" title="Permanent link">&para;</a></h3>
+<p>The key in AWS is choosing a database that matches the access pattern and offers high availability so the "stateless" app can always reach its "state."</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Layer</th>
+<th style="text-align: left;">AWS Service</th>
+<th style="text-align: left;">Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>NoSQL / High Scale</strong></td>
+<td style="text-align: left;"><strong>Amazon DynamoDB</strong></td>
+<td style="text-align: left;">A serverless KV store that provides millisecond latency at any scale. Perfect for session state and user profiles.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Relational (SQL)</strong></td>
+<td style="text-align: left;"><strong>Amazon Aurora</strong></td>
+<td style="text-align: left;">A cloud-native MySQL/PostgreSQL compatible database that handles complex queries while managing backups and scaling automatically.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>In-Memory Cache</strong></td>
+<td style="text-align: left;"><strong>Amazon ElastiCache</strong></td>
+<td style="text-align: left;">Uses Redis or Memcached to store "ephemeral" state (like login sessions) for ultra-fast access.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Global State</strong></td>
+<td style="text-align: left;"><strong>DynamoDB Global Tables</strong></td>
+<td style="text-align: left;">Synchronizes data across AWS Regions so your app remains stateless even if a whole region goes down.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Connection Pooling</strong></td>
+<td style="text-align: left;"><strong>Amazon RDS Proxy</strong></td>
+<td style="text-align: left;">Sits between your stateless Lambda functions and your database to manage thousands of simultaneous connections efficiently.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="how-to-apply-it-in-aws_3">How to Apply It in AWS<a class="headerlink" href="#how-to-apply-it-in-aws_3" title="Permanent link">&para;</a></h3>
+<p><strong>1. Offloading Sessions to ElastiCache (Redis)</strong></p>
+<p>Instead of storing a user's login session in the application memory (sticky sessions), write the session data to <strong>Amazon ElastiCache</strong>.</p>
+<ul>
+<li>Flow: User → Load Balancer → Any App Instance → ElastiCache.</li>
+<li>Benefit: You can terminate any application instance without logging the user out.</li>
+</ul>
+<p><strong>2. Utilizing DynamoDB for "Eventual" Persistence</strong></p>
+<p>For cloud-native apps that need to scale rapidly, DynamoDB is the gold standard. Because it is accessed via an HTTP API (rather than a persistent TCP connection), it is perfect for "stateless" compute like AWS Lambda.</p>
+<ul>
+<li>Flow: Lambda Function → AWS SDK → DynamoDB.</li>
+<li>Benefit: No connection management overhead, allowing for thousands of concurrent executions.</li>
+</ul>
+<p><strong>3. Handling Relational Data with Aurora Serverless</strong></p>
+<p>If your application requires SQL, use <strong>Aurora Serverless v2</strong>. It scales its capacity up and down based on the application's demand.</p>
+<ul>
+<li>Benefit: Matches the "cloud-native" philosophy where you don't manage the underlying database hardware, only the data.</li>
+</ul>
+<h3 id="pro-tip-the-12-factor-app-rule"><strong>Pro-Tip: The "12-Factor App" Rule</strong><a class="headerlink" href="#pro-tip-the-12-factor-app-rule" title="Permanent link">&para;</a></h3>
+<p>A core tenet of the "12-Factor App" methodology is treating backing services (databases) as <strong>attached resources</strong>. In AWS, this means your application should never "know" the IP address of the database. Instead, use environment variables to store the <strong>Endpoint URL</strong> (provided by Route 53 or RDS). This makes the app truly portable and stateless.</p>
+<hr>
+
+<h2 id="application-package"><strong>Application Package</strong>:<a class="headerlink" href="#application-package" title="Permanent link">&para;</a></h2>
+<p>What features of a computer language ecosystem are required to implement a Cloud Application? The Application Package refers to the standardized way an application's code, runtime, libraries, and configurations are bundled together. To thrive in the cloud, a language ecosystem must support "Immutability" and "Portability"—ensuring that the same package runs identically in development, testing, and production environments.</p>
+<h3 id="real-world-applications-the-it-works-on-my-machine-problem">Real-World Applications: The "It Works on My Machine" Problem<a class="headerlink" href="#real-world-applications-the-it-works-on-my-machine-problem" title="Permanent link">&para;</a></h3>
+<p>Imagine a developer writes a Python script that requires Python 3.11 and a specific version of a library like Pandas. They deploy it to a server that only has Python 3.8. The application crashes instantly.</p>
+<p>With the Application Package pattern (specifically using Containers):
+* The Developer: Creates a "Manifest" (like a Dockerfile) that lists the exact OS, Python version, and libraries needed.
+* The Package: A single, read-only "Image" is built.
+* The Result: That exact image is moved from the developer's laptop to an AWS cluster. Because the package includes the entire environment, it is guaranteed to run without "missing dependency" errors.</p>
+<h3 id="aws-implementation-strategy_4">AWS Implementation Strategy<a class="headerlink" href="#aws-implementation-strategy_4" title="Permanent link">&para;</a></h3>
+<p>In AWS, packaging moves away from simple "zip files" toward container images and serverless deployment bundles that integrate with automated pipelines.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Layer</th>
+<th style="text-align: left;">AWS Service</th>
+<th style="text-align: left;">Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Artifact Storage</strong></td>
+<td style="text-align: left;"><strong>Amazon ECR</strong></td>
+<td style="text-align: left;">A managed Docker registry to store, version, and scan your application packages (images).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Serverless Packaging</strong></td>
+<td style="text-align: left;"><strong>AWS SAM / Zip</strong></td>
+<td style="text-align: left;">Bundles Lambda code and dependencies into a single deployment package.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Orchestration</strong></td>
+<td style="text-align: left;"><strong>Amazon ECS / EKS</strong></td>
+<td style="text-align: left;">Pulls the Application Package from ECR and runs it across a cluster of servers.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Automated Building</strong></td>
+<td style="text-align: left;"><strong>AWS CodeBuild</strong></td>
+<td style="text-align: left;">Compiles code and "packages" it into a container image or zip file automatically.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Environment Config</strong></td>
+<td style="text-align: left;"><strong>AWS AppConfig</strong></td>
+<td style="text-align: left;">Manages the configurations that sit inside the package but change between environments.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="how-to-apply-it-in-aws_4">How to Apply It in AWS<a class="headerlink" href="#how-to-apply-it-in-aws_4" title="Permanent link">&para;</a></h3>
+<p><strong>1. Containerization (Docker + Amazon ECR)</strong></p>
+<p>Standardize your application by wrapping it in a Docker container. This is the ultimate "Application Package."</p>
+<ul>
+<li>Flow: Build Image -&gt; Tag Image -&gt; Push to Amazon ECR.</li>
+<li>Benefit: Total isolation. Your application doesn't care if the underlying AWS server is running Amazon Linux, Ubuntu, or Windows; it only sees its own internal package environment.</li>
+</ul>
+<p><strong>2. AWS SAM (Serverless Application Model)</strong></p>
+<p>For serverless apps, use AWS SAM to define your package. It treats your code, its dependencies, and the required AWS infrastructure (like an S3 bucket or DynamoDB table) as a single deployable unit.</p>
+<ul>
+<li>Flow: sam build -&gt; sam deploy.</li>
+<li>Benefit: Simplifies the "packaging" of complex serverless architectures into a single CloudFormation stack.</li>
+</ul>
+<p><strong>3. Infrastructure as Code (CDK)</strong></p>
+<p>Use the AWS Cloud Development Kit (CDK) to package your application and its environment using familiar languages (Python, TS, Java).</p>
+<ul>
+<li>Benefit: The "Package" now includes not just the code, but the network, security groups, and database definitions required for it to run.</li>
+</ul>
+<h3 id="pro-tip-the-golden-image-vs-lean-containers"><strong>Pro-Tip: The "Golden Image" vs. Lean Containers</strong><a class="headerlink" href="#pro-tip-the-golden-image-vs-lean-containers" title="Permanent link">&para;</a></h3>
+<p>In a cloud-native ecosystem, you want your Application Package to be as small as possible. Use "Distroless" or "Alpine" base images. Smaller packages result in faster "cold starts" for Lambdas and quicker scaling for ECS tasks, which directly reduces your AWS costs and improves user experience during traffic spikes.</p>
+<hr>
+
+<h2 id="backend-service"><strong>Backend Service</strong>:<a class="headerlink" href="#backend-service" title="Permanent link">&para;</a></h2>
+<p>How can multiple applications share the same reusable functionality? A Backend Service is a discrete, server-side component that provides specific business logic or data processing capabilities to multiple "frontends" or other services. By centralizing common tasks—such as payment processing, authentication, or notification delivery—you eliminate code duplication and ensure that business rules are enforced consistently across the entire organization.</p>
+<h3 id="real-world-applications-the-universal-notification-engine">Real-World Applications: The Universal Notification Engine<a class="headerlink" href="#real-world-applications-the-universal-notification-engine" title="Permanent link">&para;</a></h3>
+<p>Imagine a large company with a web store, a mobile app, and an internal admin portal. All three need to send SMS and Email alerts to users.</p>
+<p>Without a shared Backend Service:
+* Each team writes its own code to integrate with Twilio or SendGrid.
+* Security credentials for these providers are scattered across three different codebases.
+* If the company decides to switch providers, all three applications must be updated and redeployed.</p>
+<p>With a shared <strong>Notification Backend Service</strong>:
+* All applications send a standardized JSON request (e.g., <code>{"userId": "123", "message": "Your order is ready"}</code>) to one central API.
+* The Backend Service handles the routing, retry logic, and provider credentials.
+* The Result: One team manages notifications for the whole company, and adding a new app (like an Apple Watch app) takes minutes instead of days.</p>
+<h3 id="aws-implementation-strategy_5">AWS Implementation Strategy<a class="headerlink" href="#aws-implementation-strategy_5" title="Permanent link">&para;</a></h3>
+<p>Shared services in AWS are typically built to be "multi-tenant" (serving multiple callers) and are often hidden behind a central entry point for security and monitoring.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Layer</th>
+<th style="text-align: left;">AWS Service</th>
+<th style="text-align: left;">Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>API Entry Point</strong></td>
+<td style="text-align: left;"><strong>Amazon API Gateway</strong></td>
+<td style="text-align: left;">Provides a single URL for all applications to call, handling rate limiting and API keys for each "client" app.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Compute</strong></td>
+<td style="text-align: left;"><strong>AWS Lambda / ECS</strong></td>
+<td style="text-align: left;">Hosts the reusable logic. Lambda is great for event-driven tasks; ECS/Fargate is better for long-running processes.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Service Discovery</strong></td>
+<td style="text-align: left;"><strong>AWS Cloud Map</strong></td>
+<td style="text-align: left;">Allows applications to find the shared service's location dynamically without hardcoding IP addresses.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Authentication</strong></td>
+<td style="text-align: left;"><strong>Amazon Cognito</strong></td>
+<td style="text-align: left;">Centralizes user identity so multiple apps can share the same login session and permissions.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Monitoring</strong></td>
+<td style="text-align: left;"><strong>AWS X-Ray</strong></td>
+<td style="text-align: left;">Traces requests as they travel from the "caller" application into the shared Backend Service for debugging.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="how-to-apply-it-in-aws_5">How to Apply It in AWS<a class="headerlink" href="#how-to-apply-it-in-aws_5" title="Permanent link">&para;</a></h3>
+<p><strong>1. Centralized API with API Gateway</strong></p>
+<p>Expose your shared functionality as a REST or HTTP API. Use <strong>Usage Plans</strong> in API Gateway to track how much the "Mobile App" vs. the "Web App" is using the service.</p>
+<ul>
+<li>Flow: Client App → API Gateway (Auth Check) → Shared Lambda Function.</li>
+<li>Benefit: You can throttle a specific app if it starts sending too many requests, protecting the backend for everyone else.</li>
+</ul>
+<p><strong>2. The Microservice Chassis</strong></p>
+<p>If you have many backend services, create a "Chassis"—a reusable template or library that includes common AWS integrations like logging to CloudWatch and security headers.</p>
+<ul>
+<li>Benefit: Every new backend service you build automatically follows your company's AWS best practices.</li>
+</ul>
+<p><strong>3. Internal Service Mesh (AWS App Mesh)</strong></p>
+<p>For complex internal sharing, use <strong>AWS App Mesh</strong>. It manages the communication between your "Consumer" apps and your "Provider" backend services automatically.</p>
+<ul>
+<li>Flow: App A talks to "NotificationService" (a virtual name). App Mesh routes the traffic to the healthiest container.</li>
+<li>Benefit: Provides advanced traffic splitting (e.g., sending 10% of traffic to a "Beta" version of the shared service).</li>
+</ul>
+<h3 id="pro-tip-version-your-shared-api"><strong>Pro-Tip: Version Your Shared API</strong><a class="headerlink" href="#pro-tip-version-your-shared-api" title="Permanent link">&para;</a></h3>
+<p>When a service is shared, changing it is dangerous. Always version your API (e.g., <code>api.example.com/v1/notify</code> vs. <code>/v2/notify</code>). This allows the "Web Team" to upgrade to the new features while the "Mobile Team" continues using the old version until they are ready to update their app.</p>
+<hr>
+
+<h2 id="big-ball-of-mud"><strong>Big Ball of Mud</strong>:<a class="headerlink" href="#big-ball-of-mud" title="Permanent link">&para;</a></h2>
+<p>What is the simplest possible architecture for an application that helps get something working quickly to get needed feedback? While often used as a pejorative for messy code, the <strong>Big Ball of Mud</strong> is an actual architectural pattern defined by expediency. It prioritizes "working software" over "perfect structure." It is the natural result of high-pressure deadlines and evolving requirements where the goal is to ship a prototype or MVP (Minimum Viable Product) as fast as possible to validate a business idea.</p>
+<h3 id="real-world-applications-the-viral-startup-mvp">Real-World Applications: The Viral Startup MVP<a class="headerlink" href="#real-world-applications-the-viral-startup-mvp" title="Permanent link">&para;</a></h3>
+<p>Imagine a small team building a new social media app. They don't know if people will actually use the "Photo Filter" feature. 
+* The "Clean" Approach: They spend 3 months designing microservices, setting up Kubernetes, and defining strict API contracts. By the time they launch, a competitor has already captured the market.
+* The Big Ball of Mud Approach: They write one big monolithic script. The database queries are mixed with the UI logic, and there are no unit tests. They ship in 2 weeks. 
+* The Result: Users love the app! Now that they have "needed feedback" and actual revenue, they can afford to hire more developers to "clean up the mud" and migrate to a better architecture.</p>
+<h3 id="aws-implementation-strategy_6">AWS Implementation Strategy<a class="headerlink" href="#aws-implementation-strategy_6" title="Permanent link">&para;</a></h3>
+<p>In AWS, the "Big Ball of Mud" is best implemented using services that require the least amount of "plumbing" and allow you to mix logic freely.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Layer</th>
+<th style="text-align: left;">AWS Service</th>
+<th style="text-align: left;">Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Compute</strong></td>
+<td style="text-align: left;"><strong>AWS Amplify</strong></td>
+<td style="text-align: left;">The fastest way to "throw together" a full-stack app. It automates the backend, auth, and hosting.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Database</strong></td>
+<td style="text-align: left;"><strong>Amazon DynamoDB</strong></td>
+<td style="text-align: left;">Use a single table with no strict schema. Just dump your JSON data there and worry about the structure later.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Backend Logic</strong></td>
+<td style="text-align: left;"><strong>AWS Lambda</strong></td>
+<td style="text-align: left;">Write one or two "fat" Lambda functions that handle everything (monolithic Lambda) instead of 50 small ones.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Storage</strong></td>
+<td style="text-align: left;"><strong>Amazon S3</strong></td>
+<td style="text-align: left;">Use S3 as a "junk drawer" for images, logs, and temporary files without setting up complex file systems.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Rapid Prototyping</strong></td>
+<td style="text-align: left;"><strong>AWS App Runner</strong></td>
+<td style="text-align: left;">Deploy a single containerized "monolith" directly from your code with zero infrastructure management.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="how-to-apply-it-in-aws_6">How to Apply It in AWS<a class="headerlink" href="#how-to-apply-it-in-aws_6" title="Permanent link">&para;</a></h3>
+<p><strong>1. The "Fat Lambda" (Lambda-lith)</strong></p>
+<p>Instead of creating a separate Lambda for every API endpoint, put all your code in one function. Use a simple routing library (like express for Node.js or Mangum for Python) inside that single Lambda.</p>
+<ul>
+<li>Flow: API Gateway -&gt; One Single Lambda -&gt; DynamoDB.</li>
+<li>Benefit: Extremely fast to deploy and debug in the beginning. You don't have to manage dozens of IAM roles or CloudFormation resources.</li>
+</ul>
+<p><strong>2. AWS Amplify Gen 2</strong></p>
+<p>Use Amplify to "generate" your backend. It allows you to define your data model and authentication in TypeScript code and handles the AWS infrastructure for you.</p>
+<ul>
+<li>Flow: Local Code -&gt; npx ampx sandbox -&gt; Immediate Cloud Resources.</li>
+<li>Benefit: You get a working app in minutes, which is the core goal of the Big Ball of Mud pattern.</li>
+</ul>
+<p><strong>3. Single-Table "Messy" Design</strong></p>
+<p>Don't spend weeks on database normalization. Use DynamoDB as a document store. If a user record needs a new field like favoriteColor tomorrow, just start saving it.</p>
+<ul>
+<li>Benefit: Zero downtime for "schema migrations" because there is no schema.</li>
+</ul>
+<h3 id="pro-tip-when-to-clean-the-mud"><strong>Pro-Tip: When to "Clean the Mud"</strong><a class="headerlink" href="#pro-tip-when-to-clean-the-mud" title="Permanent link">&para;</a></h3>
+<p>The Big Ball of Mud is a starting point, not a destination. The moment your "quick prototype" becomes "production software" that people rely on, you must start applying patterns like the Strangler Fig or Anti-Corruption Layer to prevent the mud from becoming a permanent disaster. If you wait too long, the cost of change will become higher than the value of the software.</p>
+<hr>
+
+<h2 id="bounded-context"><strong>Bounded Context</strong>:<a class="headerlink" href="#bounded-context" title="Permanent link">&para;</a></h2>
+<p>How do you clearly define the logical boundaries (edges) of a domain and subdomain(s) where particular terms and rules apply? A Bounded Context is a central pattern in Domain-Driven Design (DDD). It acts as a linguistic and conceptual boundary where a specific model and its language (Ubiquitous Language) are strictly valid. In microservices, a Bounded Context often maps to a single microservice or a logical group of services, ensuring that "Customer" in the Sales context doesn't get confused with "Customer" in the Support context.</p>
+<h3 id="real-world-applications-the-multi-faceted-product">Real-World Applications: The Multi-Faceted "Product"<a class="headerlink" href="#real-world-applications-the-multi-faceted-product" title="Permanent link">&para;</a></h3>
+<p>Imagine a large retail company. The word "Product" means different things to different departments:
+* <strong>Sales Context</strong>: A Product has a price, a discount code, and a marketing description.
+* <strong>Inventory Context</strong>: A Product has a weight, dimensions, a bin location in the warehouse, and a stock count.
+* <strong>Shipping Context</strong>: A Product has a tracking number, a shipping class, and a delivery status.</p>
+<p>If you try to build one giant "Product" database table for the whole company, it becomes a nightmare to maintain. By using Bounded Contexts:
+* You create three separate services (Sales, Inventory, Shipping).
+* Each service has its own "Product" model that only contains the fields it cares about.
+* They communicate via well-defined APIs or events when something changes (e.g., "Product Sold" in Sales triggers "Decrement Stock" in Inventory).</p>
+<h3 id="aws-implementation-strategy_7">AWS Implementation Strategy<a class="headerlink" href="#aws-implementation-strategy_7" title="Permanent link">&para;</a></h3>
+<p>In AWS, Bounded Contexts are best enforced through physical isolation and strict communication patterns.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Layer</th>
+<th style="text-align: left;">AWS Service</th>
+<th style="text-align: left;">Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Isolation</strong></td>
+<td style="text-align: left;"><strong>AWS Accounts / VPCs</strong></td>
+<td style="text-align: left;">For large organizations, each Bounded Context lives in its own AWS account to ensure total resource isolation.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Service Boundary</strong></td>
+<td style="text-align: left;"><strong>Amazon ECS / Lambda</strong></td>
+<td style="text-align: left;">Each Bounded Context is deployed as its own independent compute unit with its own IAM roles.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Data Sovereignty</strong></td>
+<td style="text-align: left;"><strong>Amazon DynamoDB / RDS</strong></td>
+<td style="text-align: left;">Each Bounded Context <strong>must</strong> have its own database. No "sharing" tables between contexts.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Communication</strong></td>
+<td style="text-align: left;"><strong>Amazon EventBridge</strong></td>
+<td style="text-align: left;">Used to pass information between contexts without them needing to know about each other's internal models.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Governance</strong></td>
+<td style="text-align: left;"><strong>AWS Organizations</strong></td>
+<td style="text-align: left;">Manages the different accounts belonging to different Bounded Contexts under one billing umbrella.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="how-to-apply-it-in-aws_7">How to Apply It in AWS<a class="headerlink" href="#how-to-apply-it-in-aws_7" title="Permanent link">&para;</a></h3>
+<p><strong>1. Database-per-Service (The Golden Rule)</strong></p>
+<p>To enforce a Bounded Context in AWS, ensure that the Sales Lambda cannot talk to the Inventory Database.</p>
+<ul>
+<li><strong>Flow</strong>: Sales Lambda → Sales DynamoDB. To update Inventory, Sales Lambda → EventBridge → Inventory Lambda → Inventory DynamoDB.</li>
+<li><strong>Benefit</strong>: You can change the Inventory database schema without breaking the Sales service.</li>
+</ul>
+<p><strong>2. Ubiquitous Language in Code (IAM and Tags)</strong></p>
+<p>Use the language of the Bounded Context in your AWS Resource tags and IAM Role names.</p>
+<ul>
+<li><strong>Example</strong>: Use <code>Sales-Admin-Role</code> vs <code>Inventory-Admin-Role</code>.</li>
+<li><strong>Benefit</strong>: It becomes immediately clear which "domain" an AWS resource belongs to during an audit or when looking at a billing report.</li>
+</ul>
+<p><strong>3. Event-Driven Decoupling</strong></p>
+<p>When a "Customer" is created in the Identity context, don't have that service call the "Marketing" service directly. Instead, publish a <code>CustomerCreated</code> event to EventBridge.</p>
+<ul>
+<li><strong>Benefit</strong>: The Identity context doesn't need to know that a Marketing context even exists. This preserves the "logical boundary" of the domain.</li>
+</ul>
+<h3 id="pro-tip-beware-of-the-shared-kernel"><strong>Pro-Tip: Beware of the "Shared Kernel"</strong><a class="headerlink" href="#pro-tip-beware-of-the-shared-kernel" title="Permanent link">&para;</a></h3>
+<p>Sometimes teams try to share a "Common" library across Bounded Contexts (like a shared <code>User</code> class). In AWS, this often leads to a "Deployment Monolith" where changing the library requires redeploying every service. Instead, allow for a little bit of code duplication—let each Bounded Context define its own version of the object so they can evolve independently.</p>
+<hr>
+
+<h2 id="browser-application"><strong>Browser Application</strong>:<a class="headerlink" href="#browser-application" title="Permanent link">&para;</a></h2>
+<p>What is the easiest, most universal Client Application for any user that does not assume specific hardware or software configuration? The Browser Application pattern (often implemented as a Single Page Application or SPA) offloads the user interface logic to the client's web browser. By using standard web technologies (HTML, CSS, JavaScript), the application becomes platform-agnostic, running on any device with a modern browser—from a high-end desktop to a low-cost smartphone—without requiring an installation process.</p>
+<h3 id="real-world-applications-the-zero-install-saas">Real-World Applications: The "Zero-Install" SaaS<a class="headerlink" href="#real-world-applications-the-zero-install-saas" title="Permanent link">&para;</a></h3>
+<p>Imagine a collaborative project management tool like Trello or Jira. 
+* <strong>The Traditional Approach</strong>: You would have to download a .exe for Windows, a .dmg for Mac, and an .app for mobile. Every time there is a bug fix, you have to download an update.
+* <strong>The Browser Application Approach</strong>: The user simply navigates to a URL. the browser downloads the "Client Application" (JavaScript) on the fly. 
+* <strong>The Result</strong>: The user always has the latest version. The company doesn't have to manage different codebases for different operating systems, and users can access their data from any device instantly.</p>
+<h3 id="aws-implementation-strategy_8">AWS Implementation Strategy<a class="headerlink" href="#aws-implementation-strategy_8" title="Permanent link">&para;</a></h3>
+<p>In a cloud-native AWS environment, the Browser Application pattern allows you to host the frontend at a extremely low cost because the "computing" happens on the user's device, not on your servers.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Layer</th>
+<th style="text-align: left;">AWS Service</th>
+<th style="text-align: left;">Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Storage (Hosting)</strong></td>
+<td style="text-align: left;"><strong>Amazon S3</strong></td>
+<td style="text-align: left;">Stores the static files (HTML, JS, CSS, Images). S3 is virtually indestructible and incredibly cheap for hosting.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Global Delivery</strong></td>
+<td style="text-align: left;"><strong>Amazon CloudFront</strong></td>
+<td style="text-align: left;">A Content Delivery Network (CDN) that caches your browser app at "Edge Locations" close to your users for fast loading.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Security (SSL/TLS)</strong></td>
+<td style="text-align: left;"><strong>AWS Certificate Manager</strong></td>
+<td style="text-align: left;">Provides the "HTTPS" padlock for your site for free, ensuring data sent between the browser and AWS is encrypted.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Authentication</strong></td>
+<td style="text-align: left;"><strong>Amazon Cognito</strong></td>
+<td style="text-align: left;">Allows the browser app to sign users in directly using social logins (Google, Amazon) or email/password.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Domain Management</strong></td>
+<td style="text-align: left;"><strong>Amazon Route 53</strong></td>
+<td style="text-align: left;">Connects your user-friendly URL (e.g., <a href="http://www.myapp.com">www.myapp.com</a>) to your CloudFront distribution.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="how-to-apply-it-in-aws_8">How to Apply It in AWS<a class="headerlink" href="#how-to-apply-it-in-aws_8" title="Permanent link">&para;</a></h3>
+<p><strong>1. The "Static Website Hosting" Combo</strong></p>
+<p>The gold standard for Browser Apps in AWS is S3 + CloudFront. </p>
+<ul>
+<li>Flow: User Browser -&gt; CloudFront -&gt; S3 Bucket.</li>
+<li>Benefit: Your "server" can never "crash" because there is no server running the frontend—just files being served globally. It can handle millions of users for pennies.</li>
+</ul>
+<p><strong>2. Decoupled API Communication</strong></p>
+<p>Because the Browser App runs on the user's machine, it needs to talk to your backend via the internet. Use <strong>CORS (Cross-Origin Resource Sharing)</strong> settings in <strong>Amazon API Gateway</strong> to allow the browser to securely call your microservices.</p>
+<ul>
+<li>Flow: Browser JS -&gt; AJAX/Fetch Call -&gt; API Gateway -&gt; Lambda.</li>
+<li>Benefit: The frontend and backend can be developed and deployed by separate teams.</li>
+</ul>
+<p><strong>3. Single Page Application (SPA) Routing</strong></p>
+<p>When using frameworks like React or Vue, the browser handles the "navigation" between pages. You must configure CloudFront to redirect "404 Not Found" errors back to <code>index.html</code> so the browser app can handle the routing logic.</p>
+<ul>
+<li>Benefit: Provides a smooth, app-like experience without the screen flickering or reloading.</li>
+</ul>
+<h3 id="pro-tip-progressive-web-apps-pwa"><strong>Pro-Tip: Progressive Web Apps (PWA)</strong><a class="headerlink" href="#pro-tip-progressive-web-apps-pwa" title="Permanent link">&para;</a></h3>
+<p>You can enhance the Browser Application pattern by making it a <strong>PWA</strong>. By adding a small "Service Worker" file and a manifest, you can allow users to "Install" your web app to their home screen and even use parts of it offline. In AWS, you can use <strong>AWS Amplify</strong> to automate the creation of PWAs, giving you the reach of the web with the feel of a native app.</p>
+<hr>
+
+<hr>
+
+<ul>
+<li><strong>Client Application</strong>: How can I build applications to take advantage of the services provided by an application running in the cloud?</li>
+<li><strong>Cloud Application</strong>: How can I build applications to take the maximum advantage of all the features of the cloud for best future proofing and agility?</li>
+<li><strong>Cloud Database</strong>: How should a cloud-native application store data persistently in a cloud environment?</li>
+<li><strong>Cloud-Native Architecture</strong>: How can I architect an application to take maximum advantage of the cloud platform it will run on?</li>
+<li><strong>Columnar Database</strong>: How can an application most efficiently store data for performing analytics, such as in a data warehouse?</li>
+<li><strong>Command-line Interface</strong>: How can an end user automate activities like bulk loads, bulks changes, or schedukle execution of activities using the services provided by an application running in the cloud?</li>
+<li><strong>Command Query Responsibility Segregation (CQRS)</strong>: How do you optimize throughput for query and updates by multiple clients that have numerous cross-cutting views of the data?</li>
+<li><strong>Configuration Database</strong>: How can a cloud service store its service state such that all of the nodes in the services can share and access state?</li>
+<li><strong>Containerize the Application</strong>: How can an application be packaged to facilitate greater deployment density and platform portability?</li>
+<li><strong>Data Module</strong>: How can I align my data model with my application model so that both are easier to maintain and can evolve quickly?</li>
+<li><strong>Databse-as-a-Service</strong>: How does an application have access to an Application Database?</li>
+<li><strong>Dispatcher</strong>: How can a client access a microservices application through a channel-specific service interface when the business functionality is spread across an evolving set of domain-specific APIs?</li>
+<li><strong>Distributed Architecture</strong>: How can I architect my application so that parts of it can be developed, deployed, and run independently?</li>
+<li><strong>Document Database</strong>: How can and application most efficiently store and retrieve data when the future structure of the data is not well known?</li>
+<li><strong>Domain Event</strong>: How do you model those aspects of a design that correspond to things that happen during the various scenario encountered by the system?</li>
+<li><strong>Domain Microservice</strong>: How should a set of microservices in an architecture provide the business functionality for an application?</li>
+<li><strong>Domain Service</strong>: How do you model those operations within a subdomain that do not belong to a specific Entity or Aggregate?</li>
+<li><strong>Event</strong>: How do you represent a change in one component to be communicated to other components?</li>
+<li><strong>Event API</strong>: How can the reactive components in an event-driven architecture know what events to expect?</li>
+<li><strong>Event Backbone</strong>: How can reactive components receive the event they are interested in without being coupled directly to the event notifiers that generate the events?</li>
+<li><strong>Event Choreography</strong>: When a change ocurrs in one component, how can a variable number of other components react according?</li>
+<li><strong>Event Notifier</strong>: How and when should a component announce changes to other components?</li>
+<li><strong>Event Sourcing</strong>: As an application's state changes constantly and unpredictably due to evolving conditions, how can you audit the history that created the current state?</li>
+<li><strong>Event Storming</strong>: How do you get the stakeholders to understand and describe the elements and event around the domain and subdomain?</li>
+<li><strong>External Configuration</strong>: How can I build my application once and yet be able to deploy it to multiple environments that are configured differently?</li>
+<li><strong>Extract Component</strong>: How do you separate loosely related parts of the code in our monolith into distinct deployable units?</li>
+<li><strong>Graph Database</strong>: How can an application most efficiently store and retrieve interrelated data entities by navitating their relationships?</li>
+<li><strong>Hairline Cracks</strong>: How do you identify the areas within a monolith application that are candidate boundaries for microservices?</li>
+<li><strong>Interaction Model</strong>: How do yo avoid mixing business and presentation logic inside your Client application?</li>
+<li><strong>Key-value Database</strong>: How can an application most efficiently store and retrieve independent data entities thar are always looked up by the same key?</li>
+<li><strong>Lift and shift</strong>: What is the simplest possible way to move an existing application to the cloud?</li>
+<li><strong>Micro Frontend</strong>: How do you avoid creating a monolithic Single-Page application by placing too much functionality in a common front-end?</li>
+<li><strong>Microservices</strong>: How do you architect an application as a set of interconnected modules that can be developed independently?</li>
+<li><strong>Mobile Application</strong>: How do you provide the most optimized user experience on a mobile device and take advantage of the features that make mobile computing unique?</li>
+<li><strong>Model Around the Domain</strong>: How can you encourage stakeholders to explain enough of the domain requirements in a way that reveals the relevant capabilities for the application you are building?</li>
+<li><strong>Modular Monolith</strong>: How can I architect my application to make it easier to maintain and evolve quickly?</li>
+<li><strong>New Features as Microservices</strong>: While strangling a monolith, how do you avoid adding new functionality to the monolith that will later have to be modernized into microservices?</li>
+<li><strong>Pave the road</strong>: How can we encourage teams to move to the cloud and adopt these new technologies without letting each team go in their own direction and work at cross purposes?</li>
+<li><strong>Playback testing</strong>: How do you ensure that the new microservices architecture maintains the same functionality as the old monolithic system, especially when the amount of detailed end-to-end application knowledge of the existing application may be limited?</li>
+<li><strong>Polyglot Persistence</strong>: How can an application store its Data Modelues in the type of database that works best for the application's data structure and how it accesses the data?</li>
+<li><strong>Polyglot Development</strong>: What computer language(s) should be used for implementing microservices?</li>
+<li><strong>Public API</strong>: How do you best enable third-party applications to interact programmatically with a Cloud Application?</li>
+<li><strong>Reactive Component</strong>: How can you construct an application that can react to events?</li>
+<li><strong>Refactor the Monolith</strong>: How can I make an existing application easier for multiple teams to maintain and able to run effectively in a multi-computer environment?</li>
+<li><strong>Refactor the Extract</strong>: How do we address coupling within the monolith to facilitate extraction into microservices?</li>
+<li><strong>Relation Database</strong>: How can an application store well-structured data that it needs to query dynamically?</li>
+<li><strong>Replace as Microservice</strong>: How can we move complex and important pieces of functionality that are tightlyu coupled in the monolith to microservices with minimal impact?</li>
+<li><strong>Replicable application</strong>: How can an application run reliably on an unreliable platform and scale to handle greater client load the way the platform scales?</li>
+<li><strong>Replicated Database</strong>: How can a Cloud Database provide the same quality of service as a cloud-native application with the same availability, scalability, and performance as the application?</li>
+<li><strong>Repositories</strong>: How do we address coupling within the monolith to facilitate extraction into microservices?</li>
+<li><strong>Self-Managed Data Store</strong>: How does a microservice store its state?</li>
+<li><strong>Service API</strong>: How should an application expose its functionality to clients that want to use the application?</li>
+<li><strong>Service Orchestator</strong>: How does a microservice perfor a complex task, one that is performed in multiple steps?</li>
+<li><strong>Single-Page application</strong>: How do you desing the frontend of your application to provide the best mix of client responsiveness and server optimization?</li>
+<li><strong>Smart Small</strong>: How can we start adopting cloud services and moving existing application to the cloud or writing applications for the cloud, possibly using microservices?</li>
+<li><strong>Stateless Application</strong>: How can an application support concurrent requests efficiently and reover from failures without losing data?</li>
+<li><strong>Strangle the Monolith</strong>: How can we replace a monolithic architecture with a microservice architecture while reducing overall risk?</li>
+<li><strong>Transform Monolith into microservices</strong>: How do you kieep the monolithic system working while you substiture piece of functionality with microservices over time?</li>
+<li><strong>Virtualize the application</strong> What is the simpliest possible way to package an application so that it can easily be deployed to traditional IT or to the cloud?</li>
+<li><strong>Web Form application</strong>: How do you build a user interface to provide basic functionality to the largest possible set of users using the largest set of devices and hardware.</li>
+</ul>
+<h2 id="introduction">Introduction<a class="headerlink" href="#introduction" title="Permanent link">&para;</a></h2>
+<p>Cloud Application Architecture Patterns is a collection of patterns and concepts that help you design, build, and run applications that take full advantage of cloud computing.</p>
+<p>These patterns and concepts cover a wide range of topics, including microservices architecture, cloud-native design principles, data storage options, event-driven architectures, and strategies for modernizing existing applications.</p>
+<p>By understanding and applying these patterns, you can create applications that are scalable, resilient, and adaptable to changing business needs in a cloud environment.</p>
+<p>Each pattern and concept provides a solution to a specific problem or challenge encountered when developing cloud applications. They offer best practices, design strategies, and implementation guidelines to help you navigate the complexities of cloud application architecture.</p>
+<p>Whether you are building new cloud-native applications or modernizing existing ones, these patterns and concepts serve as valuable resources to guide your architectural decisions and ensure successful outcomes in the cloud.</p>
+<p>Phases:</p>
+<ul>
+<li>Application Architecture and Design</li>
+<li>Application Development and Deployment</li>
+<li>Cloud Operations and Nonfunctional Requirements</li>
+</ul>
+<h2 id="modern-application-development">Modern Application Development<a class="headerlink" href="#modern-application-development" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Modular Code</li>
+<li>Polyglot development</li>
+<li>Iterative development</li>
+<li>Continuos Delivery</li>
+<li>Automated builds</li>
+</ul>
+<h2 id="aspects-of-software-development">Aspects of Software Development<a class="headerlink" href="#aspects-of-software-development" title="Permanent link">&para;</a></h2>
+<ul>
+<li>SDLC = Software Development Lifecycle</li>
+<li>
+<p>SDLC Phases = [Planning, Analysis, Design, Implementation, Testing, Deployment, Maintenance]</p>
+</li>
+<li>
+<p>Application architecture</p>
+</li>
+<li>Application migration and modernization: Migrate (rehost) and modernization (run in the cloud)</li>
+<li>Application development</li>
+<li>Build pipeline</li>
+<li>Application deployment</li>
+<li>Environent creation</li>
+<li>Application operations</li>
+<li>Cloud topology</li>
+<li>Security</li>
+</ul>
+<h2 id="evolution-of-application-architecture">Evolution of application architecture<a class="headerlink" href="#evolution-of-application-architecture" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Mainframe Application</li>
+<li>Desktop Application</li>
+<li>Client/Server Application</li>
+<li>Cloud-Native Application</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
