@@ -24,6 +24,22 @@ nav:
   - uv:
     - uv/index.md
     - Quickstart: uv/quickstart.md
+  - Disaster Recovery Plan:
+    - disaster_recovery_plan/index.md
+    - Implementation Plan: disaster_recovery_plan/implementation_plan.md
+    - Checklist: disaster_recovery_plan/checklist.md
+    - Step by Step: disaster_recovery_plan/step_by_step.md
+    - Testing and Validation: disaster_recovery_plan/testing_and_validation.md
+    - Troubleshooting: disaster_recovery_plan/troubleshooting.md
+    - Cuestionario de Contexto: disaster_recovery_plan/cuestionario_contexto.md
+  - DB Migration On-Prem to AWS:
+    - database_migration_onprem_to_aws/index.md
+    - Implementation Plan: database_migration_onprem_to_aws/implementation_plan.md
+    - Checklist: database_migration_onprem_to_aws/checklist.md
+    - Step by Step: database_migration_onprem_to_aws/step_by_step.md
+    - Testing and Validation: database_migration_onprem_to_aws/testing_and_validation.md
+    - Troubleshooting: database_migration_onprem_to_aws/troubleshooting.md
+    - Cuestionario de Contexto: database_migration_onprem_to_aws/cuestionario_contexto.md
   - DMS SQL CDC:
     - dms-aws/index.md
     - DMS Source: dms-aws/dms-source.md
@@ -66,6 +82,136 @@ nav:
     - Cloud Application Clients: cloud_application_architecture_patterns/cloud_application_clients.md
     - Application Migration and Modernization: cloud_application_architecture_patterns/application_migration_and_modernization.md
     - Strangling Monoliths: cloud_application_architecture_patterns/strangling_monoliths.md
+  - Amazon Connect:
+    - amazon_connect/index.md
+    - Getting Started: amazon_connect/getting_started.md
+    - Setting Up an Instance: amazon_connect/setting_up_an_instance.md
+    - Create Flows: amazon_connect/create_flows.md
+    - Routing: amazon_connect/routing.md
+    - Queues: amazon_connect/queues.md
+    - Users and Security: amazon_connect/users_and_security.md
+    - Metrics and Reporting: amazon_connect/metrics_and_reporting.md
+    - Voice ID: amazon_connect/voice_id.md
+    - Customer Profiles: amazon_connect/customer_profiles.md
+    - Wisdom: amazon_connect/wisdom.md
+    - Cases: amazon_connect/cases.md
+    - Forecasting and Scheduling: amazon_connect/forecasting_and_scheduling.md
+    - Outbound Campaigns: amazon_connect/outbound_campaigns.md
+    - Chat: amazon_connect/chat.md
+    - Tasks: amazon_connect/tasks.md
+    - APIs and SDKs: amazon_connect/apis_and_sdks.md
+    - Integration: amazon_connect/integration.md
+    - Monitoring: amazon_connect/monitoring.md
+    - Troubleshooting: amazon_connect/troubleshooting.md
+  - Amazon VPC:
+    - amazon_vpc/index.md
+    - Getting Started: amazon_vpc/getting_started.md
+    - VPCs and Subnets: amazon_vpc/vpcs_and_subnets.md
+    - Internet Gateways: amazon_vpc/internet_gateways.md
+    - Route Tables: amazon_vpc/route_tables.md
+    - NAT Gateways: amazon_vpc/nat_gateways.md
+    - Security Groups: amazon_vpc/security_groups.md
+    - Network ACLs: amazon_vpc/network_acls.md
+    - VPC Endpoints: amazon_vpc/vpc_endpoints.md
+    - VPC Peering: amazon_vpc/vpc_peering.md
+    - Transit Gateway: amazon_vpc/transit_gateway.md
+    - VPN Connections: amazon_vpc/vpn_connections.md
+    - Direct Connect: amazon_vpc/direct_connect.md
+    - Elastic IP Addresses: amazon_vpc/elastic_ip_addresses.md
+    - Network Load Balancer: amazon_vpc/network_load_balancer.md
+    - Application Load Balancer: amazon_vpc/application_load_balancer.md
+    - DNS and DHCP: amazon_vpc/dns_and_dhcp.md
+    - Flow Logs: amazon_vpc/flow_logs.md
+    - Monitoring: amazon_vpc/monitoring.md
+    - Troubleshooting: amazon_vpc/troubleshooting.md
+  - AWS CDK:
+    - aws_cdk/index.md
+    - Getting Started: aws_cdk/getting_started.md
+    - Your First CDK App: aws_cdk/your_first_cdk_app.md
+    - Concepts: aws_cdk/concepts.md
+    - Constructs: aws_cdk/constructs.md
+    - Stacks: aws_cdk/stacks.md
+    - Apps: aws_cdk/apps.md
+    - Environments: aws_cdk/environments.md
+    - Resources: aws_cdk/resources.md
+    - Identifiers: aws_cdk/identifiers.md
+    - Tokens: aws_cdk/tokens.md
+    - Parameters: aws_cdk/parameters.md
+    - Outputs: aws_cdk/outputs.md
+    - Conditions: aws_cdk/conditions.md
+    - Mappings: aws_cdk/mappings.md
+    - Aspects: aws_cdk/aspects.md
+    - Bootstrapping: aws_cdk/bootstrapping.md
+    - Synthesis: aws_cdk/synthesis.md
+    - Deployment: aws_cdk/deployment.md
+    - Testing: aws_cdk/testing.md
+    - Security: aws_cdk/security.md
+    - Best Practices: aws_cdk/best_practices.md
+    - Troubleshooting: aws_cdk/troubleshooting.md
+  - Amazon Q Developer:
+    - amazon_q_developer/index.md
+    - Getting Started: amazon_q_developer/getting_started.md
+    - IDE Integration: amazon_q_developer/ide_integration.md
+    - Code Suggestions: amazon_q_developer/code_suggestions.md
+    - Chat Interface: amazon_q_developer/chat_interface.md
+    - Code Transformation: amazon_q_developer/code_transformation.md
+    - Security Scanning: amazon_q_developer/security_scanning.md
+    - Unit Test Generation: amazon_q_developer/unit_test_generation.md
+    - Code Explanation: amazon_q_developer/code_explanation.md
+    - Customization: amazon_q_developer/customization.md
+    - Best Practices: amazon_q_developer/best_practices.md
+    - Troubleshooting: amazon_q_developer/troubleshooting.md
+  - DevOps on AWS:
+    - devops_aws/index.md
+    - Introduction to DevOps: devops_aws/introduction_to_devops.md
+    - DevOps Culture: devops_aws/devops_culture.md
+    - Continuous Integration: devops_aws/continuous_integration.md
+    - Continuous Delivery: devops_aws/continuous_delivery.md
+    - Infrastructure as Code: devops_aws/infrastructure_as_code.md
+    - Monitoring and Logging: devops_aws/monitoring_and_logging.md
+    - Communication and Collaboration: devops_aws/communication_and_collaboration.md
+    - Security: devops_aws/security.md
+    - AWS DevOps Services: devops_aws/aws_devops_services.md
+    - CodeCommit: devops_aws/codecommit.md
+    - CodeBuild: devops_aws/codebuild.md
+    - CodeDeploy: devops_aws/codedeploy.md
+    - CodePipeline: devops_aws/codepipeline.md
+    - CloudFormation: devops_aws/cloudformation.md
+    - CloudWatch: devops_aws/cloudwatch.md
+    - Best Practices: devops_aws/best_practices.md
+  - Amazon SQS:
+    - amazon_sqs/index.md
+    - Getting Started: amazon_sqs/getting_started.md
+    - Creating Queues: amazon_sqs/creating_queues.md
+    - Sending Messages: amazon_sqs/sending_messages.md
+    - Receiving Messages: amazon_sqs/receiving_messages.md
+    - Message Attributes: amazon_sqs/message_attributes.md
+    - Dead Letter Queues: amazon_sqs/dead_letter_queues.md
+    - FIFO Queues: amazon_sqs/fifo_queues.md
+    - Visibility Timeout: amazon_sqs/visibility_timeout.md
+    - Long Polling: amazon_sqs/long_polling.md
+    - Message Deduplication: amazon_sqs/message_deduplication.md
+    - Access Control: amazon_sqs/access_control.md
+    - Encryption: amazon_sqs/encryption.md
+    - Monitoring: amazon_sqs/monitoring.md
+    - Best Practices: amazon_sqs/best_practices.md
+    - Troubleshooting: amazon_sqs/troubleshooting.md
+  - Amazon MQ:
+    - amazon_mq/index.md
+    - Getting Started: amazon_mq/getting_started.md
+    - Creating Brokers: amazon_mq/creating_brokers.md
+    - Apache ActiveMQ: amazon_mq/apache_activemq.md
+    - RabbitMQ: amazon_mq/rabbitmq.md
+    - Connecting to Brokers: amazon_mq/connecting_to_brokers.md
+    - Users and Groups: amazon_mq/users_and_groups.md
+    - Configuration: amazon_mq/configuration.md
+    - Security: amazon_mq/security.md
+    - Networking: amazon_mq/networking.md
+    - Monitoring: amazon_mq/monitoring.md
+    - Maintenance: amazon_mq/maintenance.md
+    - Migration: amazon_mq/migration.md
+    - Best Practices: amazon_mq/best_practices.md
+    - Troubleshooting: amazon_mq/troubleshooting.md
 
 markdown_extensions:
   - admonition
