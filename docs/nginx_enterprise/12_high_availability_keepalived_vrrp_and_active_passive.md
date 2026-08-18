@@ -1,167 +1,308 @@
-# Module 12: High Availability: Keepalived, VRRP & Active-Passive Clustering
-**Category:** High Availability, Redundancy & Virtual IP Failover
-**Status:** ✅ Completed
+# Module 12: High Availability with Keepalived, VRRP & Active-Passive Failover
+
+**Track:** Enterprise NGINX  
+**Category:** High Availability & Failover Architecture
 
 ---
 
-## 1. High-Level Overview
-Achieving true enterprise high availability (99.999% uptime) requires eliminating single points of failure at the reverse proxy layer. Pairing Nginx with **Keepalived** and the **Virtual Router Redundancy Protocol (VRRP)** creates an Active/Passive (or Active/Active) failover cluster sharing a floating Virtual IP (VIP).
+## The Single Point of Failure Problem
 
-### 👔 Executive Summary (For Managers & Non-Technical Stakeholders)
-* **Business Purpose**: Pairs two or more Nginx servers together so if one physical server crashes or catches fire, the second server instantly takes over in milliseconds.
-* **How It Works**: Uses a shared floating IP address that shifts automatically between servers without dropping user connections.
-* **Key Business Value & Use Cases**: Guarantees 24/7/365 continuous uptime, eliminates single points of failure, and allows hardware maintenance during business hours.
+A single NGINX instance, no matter how well configured, is a single point of failure. If the host machine loses power, the process crashes, or the NIC fails, all traffic stops. For systems requiring 99.99% uptime (~52 minutes downtime/year), one NGINX server is not acceptable.
+
+High availability for NGINX requires at minimum **two NGINX servers** with a mechanism for one to take over automatically when the other fails. The standard Linux solution is **Keepalived** using **VRRP** (Virtual Router Redundancy Protocol), which provides a **Virtual IP address** (VIP) that floats between the two servers.
 
 ---
 
-## 📌 Foundations, Notes & Original Snippets (Original Notes)
+## How VRRP and Virtual IPs Work
 
-### High Availability & Keepalived (Original Notes)
-* VRRP Protocol (IP Protocol 112)
-* Floating Virtual IP (VIP)
-* Keepalived check script to monitor Nginx daemon health:
-```bash
-vrrp_script check_nginx {
-    script "killall -0 nginx"
-    interval 2
-    weight 2
-}
+In a VRRP pair, one server is **Master** and the other is **Backup**. Both servers run NGINX. A **Virtual IP address** — an additional IP configured in software — is held by the Master.
+
+All DNS records for your service point to the VIP. Clients connect to the VIP. The VIP lives on whichever server is currently Master.
+
+```
+Normal operation:
+  DNS: api.example.com → 10.0.0.100 (VIP)
+
+  Server A (Master, 10.0.0.10)
+  ├── owns VIP 10.0.0.100
+  ├── NGINX serving traffic
+  └── Sends VRRP advertisements every second
+
+  Server B (Backup, 10.0.0.11)
+  ├── does NOT own VIP
+  ├── NGINX running (ready)
+  └── Listening for VRRP advertisements
+
+Failure — Server A goes down:
+  Server B detects: no VRRP advertisement for 3 seconds
+  Server B claims: takes VIP 10.0.0.100 via gratuitous ARP
+  Server B becomes Master, serves all traffic
+
+Recovery — Server A comes back:
+  Server A sends VRRP advertisement with higher priority
+  Server A reclaims VIP (preempt mode)
+  Server B returns to Backup role
 ```
 
----
-
-## 2. Technical Deep Dive & Architecture
-
-### 1. The Virtual Router Redundancy Protocol (VRRP)
-- **Master Node**: Broadcasts VRRP heartbeats (multicast address `224.0.0.18`) every 1 second, holding the floating Virtual IP address (e.g. `10.0.0.100`) on its network interface.
-- **Backup Node**: Listens for master heartbeats. If the master misses 3 consecutive heartbeats (3 seconds), the backup transitions to Master, sends a Gratuitous ARP (GARP) packet to update LAN switch CAM tables, and assumes the Virtual IP instantly.
-
-### 2. Dual-Node Nginx Health Tracking
-Keepalived monitors the Nginx process via a track script (`killall -0 nginx`). If Nginx crashes and cannot be restarted, Keepalived lowers its node priority, triggering an immediate clean failover to the backup node.
+Failover typically completes in **2-4 seconds** (VRRP advertisement interval × dead interval).
 
 ---
 
-## 3. Hands-On Step-by-Step Production Lab
+## Installing and Configuring Keepalived
 
-### Step 1: Configure Keepalived Master Node Configuration
-Write `/etc/keepalived/keepalived.conf` on Master:
-```text
+```bash
+# Install Keepalived on both servers
+apt-get install -y keepalived
+
+# Ensure NGINX is installed and running on both servers
+systemctl enable nginx
+systemctl start nginx
+```
+
+### Keepalived Configuration — Master Node (Server A)
+
+```ini
+# /etc/keepalived/keepalived.conf  (Server A — Master)
+
+global_defs {
+    router_id NGINX_MASTER     # Unique identifier for this node
+    enable_script_security     # Required to run custom scripts safely
+}
+
+# Health check script: is NGINX responding?
 vrrp_script check_nginx {
-    script "killall -0 nginx"
-    interval 2
-    weight 2
+    script "/usr/bin/curl -sf http://127.0.0.1/health"
+    interval 2      # Run every 2 seconds
+    weight   -20    # If check fails: reduce this node's priority by 20
+    rise     2      # Require 2 successes before marking healthy
+    fall     3      # Require 3 failures before marking unhealthy
 }
 
 vrrp_instance VI_1 {
-    state MASTER
-    interface eth0
-    virtual_router_id 51
-    priority 101
+    state  MASTER                    # This is the initial Master
+    interface eth0                   # Network interface holding the VIP
+    virtual_router_id 51             # Must match on both nodes (1-255)
+    priority 110                     # Master has higher priority than Backup
+
+    # Send advertisement every 1 second
     advert_int 1
 
     authentication {
         auth_type PASS
-        auth_pass SecretClusterPass123
+        auth_pass S3cr3tP@ssw0rd    # Must match on both nodes
+    }
+
+    # The Virtual IP address that floats between servers
+    virtual_ipaddress {
+        10.0.0.100/24 dev eth0      # VIP with subnet mask
+    }
+
+    # Run the NGINX health check
+    track_script {
+        check_nginx
+    }
+
+    # Execute scripts on state transitions
+    notify_master   "/etc/keepalived/notify.sh MASTER"
+    notify_backup   "/etc/keepalived/notify.sh BACKUP"
+    notify_fault    "/etc/keepalived/notify.sh FAULT"
+}
+```
+
+### Keepalived Configuration — Backup Node (Server B)
+
+```ini
+# /etc/keepalived/keepalived.conf  (Server B — Backup)
+
+global_defs {
+    router_id NGINX_BACKUP
+    enable_script_security
+}
+
+vrrp_script check_nginx {
+    script "/usr/bin/curl -sf http://127.0.0.1/health"
+    interval 2
+    weight   -20
+    rise     2
+    fall     3
+}
+
+vrrp_instance VI_1 {
+    state  BACKUP                    # Initial state is Backup
+    interface eth0
+    virtual_router_id 51             # Must match Master
+    priority 90                      # Lower than Master's 110
+
+    advert_int 1
+
+    authentication {
+        auth_type PASS
+        auth_pass S3cr3tP@ssw0rd    # Must match Master
     }
 
     virtual_ipaddress {
-        10.0.0.100/24
+        10.0.0.100/24 dev eth0
     }
 
     track_script {
         check_nginx
     }
+
+    notify_master   "/etc/keepalived/notify.sh MASTER"
+    notify_backup   "/etc/keepalived/notify.sh BACKUP"
+    notify_fault    "/etc/keepalived/notify.sh FAULT"
 }
 ```
 
-### Step 2: Configure Keepalived Backup Node Configuration
-Write `/etc/keepalived/keepalived.conf` on Backup:
-```text
-vrrp_instance VI_1 {
-    state BACKUP
-    interface eth0
-    virtual_router_id 51
-    priority 100
-    advert_int 1
+### Notification Script
 
-    authentication {
-        auth_type PASS
-        auth_pass SecretClusterPass123
+```bash
+# /etc/keepalived/notify.sh
+#!/bin/bash
+
+STATE=$1
+DATE=$(date '+%Y-%m-%d %H:%M:%S')
+HOSTNAME=$(hostname)
+
+case $STATE in
+    MASTER)
+        echo "$DATE $HOSTNAME transitioned to MASTER" >> /var/log/keepalived-state.log
+        # Optional: send alert to PagerDuty, Slack, etc.
+        ;;
+    BACKUP)
+        echo "$DATE $HOSTNAME transitioned to BACKUP" >> /var/log/keepalived-state.log
+        ;;
+    FAULT)
+        echo "$DATE $HOSTNAME entered FAULT state" >> /var/log/keepalived-state.log
+        ;;
+esac
+```
+
+---
+
+## NGINX Health Check Endpoint
+
+The Keepalived `vrrp_script` checks `http://127.0.0.1/health`. NGINX must serve this endpoint:
+
+```nginx
+server {
+    listen 80;
+    server_name _;
+
+    location /health {
+        return 200 "healthy\n";
+        add_header Content-Type text/plain;
+        access_log off;
     }
 
-    virtual_ipaddress {
-        10.0.0.100/24
-    }
-
-    track_script {
-        check_nginx
+    location / {
+        # Main site configuration
+        proxy_pass http://backend;
     }
 }
 ```
 
+The health check script in Keepalived returns a non-zero exit code if the HTTP request fails (curl `-f` flag makes curl exit with code 22 on non-2xx responses). This causes the `weight -20` penalty to drop Server A's effective priority below Server B's, triggering failover.
+
 ---
 
-## 4. Pure Escaped CLI Snippets (Production Operations)
+## Active-Active Configuration with Two VIPs
 
-### 1. Verify Floating Virtual IP Binding on Interface
-Display IP addresses on active network interface:
-```bash
-ip addr show eth0 2>/dev/null || ifconfig
+Two servers each acting as both Master and Backup for different VIPs, sharing load during normal operation:
+
+```
+Server A: Master for VIP1 (10.0.0.100), Backup for VIP2 (10.0.0.101)
+Server B: Master for VIP2 (10.0.0.101), Backup for VIP1 (10.0.0.100)
+
+DNS round-robin: api.example.com → 10.0.0.100, 10.0.0.101
+
+If Server A fails: Server B takes over both VIPs (handles all traffic alone)
+If Server B fails: Server A takes over both VIPs
 ```
 
-### 2. Monitor VRRP Heartbeat Broadcasts
-Inspect live VRRP traffic on the network:
+This requires two `vrrp_instance` blocks on each server with different `virtual_router_id` values and crossed Master/Backup states.
+
+---
+
+## CLI: Managing and Monitoring Keepalived
+
 ```bash
-sudo tcpdump -ni any proto 112 -c 5 2>/dev/null || true
+# Start Keepalived on both servers
+systemctl start keepalived
+systemctl enable keepalived
+
+# Check current VRRP state (should show MASTER or BACKUP)
+journalctl -u keepalived -n 50
+
+# Verify VIP is present on current Master
+ip addr show eth0 | grep "10.0.0.100"
+
+# Simulate failover: stop Keepalived on Master
+systemctl stop keepalived
+
+# On Backup server — verify it has claimed the VIP
+ip addr show eth0 | grep "10.0.0.100"
+
+# Test failover from client perspective
+watch -n 0.5 'curl -s --connect-timeout 1 http://10.0.0.100/health'
+
+# Check Keepalived state transitions log
+tail -f /var/log/keepalived-state.log
+
+# Measure failover time (from the watch output above)
+# Typically 2-4 seconds for advertisement interval=1, fail threshold=3
 ```
 
 ---
 
-## 5. Detailed Sub-Components
+## Firewall Rules for VRRP
 
-### Keepalived VRRP State Machine
-* **Role & Function**: Automated finite state machine managing MASTER/BACKUP/FAULT failover transitions.
-* **Inspection Command**:
-  ```bash
-  echo 'VRRP state machine active'
-  ```
+VRRP uses IP protocol 112 (not TCP or UDP). If you use `ufw` or `iptables`, you must permit it:
 
-### Gratuitous ARP (GARP) Broadcaster
-* **Role & Function**: Layer 2 ARP broadcaster updating upstream switch MAC address tables upon failover.
-* **Inspection Command**:
-  ```bash
-  echo 'GARP active'
-  ```
+```bash
+# Allow VRRP protocol (IP protocol 112) between the two servers
+ufw allow proto vrrp
 
----
+# Or with iptables directly
+iptables -A INPUT  -p 112 -j ACCEPT
+iptables -A OUTPUT -p 112 -j ACCEPT
 
-## References
-
-### Official Documentation
-* [Keepalived Official Documentation](https://www.keepalived.org/documentation.html) - Official technical manual.
-* [RFC 5798: Virtual Router Redundancy Protocol (VRRP) Version 3](https://datatracker.ietf.org/doc/html/rfc5798) - Official technical manual.
-* [Nginx High Availability Guide](https://docs.nginx.com/nginx/admin-guide/high-availability/) - Official technical manual.
-* [Linux man-pages: keepalived(8)](https://man7.org/linux/man-pages/man8/keepalived.8.html) - Official technical manual.
-* [Linux man-pages: keepalived.conf(5)](https://man7.org/linux/man-pages/man5/keepalived.conf.5.html) - Official technical manual.
-
-### Authoritative Engineering Blogs & Tutorials
-* [Andrew Alexeev: Building Highly Available NGINX Infrastructure](https://www.nginx.com/blog/) - Industry standard analysis.
-* [Julia Evans: Understanding IP Addresses and ARP](https://jvns.ca/) - Industry standard analysis.
-* [DigitalOcean: How To Set Up Highly Available Nginx with Keepalived](https://www.digitalocean.com/community/tutorials/how-to-set-up-highly-available-web-servers-with-keepalived-and-floating-ips) - Industry standard analysis.
-* [Baeldung on Linux: Keepalived and Nginx High Availability](https://www.baeldung.com/linux/keepalived-high-availability) - Industry standard analysis.
-* [Red Hat: Enterprise Clustering with VRRP](https://www.redhat.com/sysadmin/) - Industry standard analysis.
+# VRRP advertisements are sent to multicast address 224.0.0.18
+# Some environments require allowing this specific multicast group
+iptables -A INPUT -d 224.0.0.18 -j ACCEPT
+```
 
 ---
 
-### FinOps & Infrastructure Resource Governance in High Availability
+## FinOps: HA Without Managed Load Balancers
 
-*On-premises and cloud VRRP failover eliminates managed load balancer costs.*
+AWS Elastic Load Balancer provides high availability automatically at $0.008/LCU-hour plus instance fees. For a two-instance NGINX HA pair with Keepalived, the only cost is two EC2 instances. Eliminating one ALB that handles 100 LCUs continuously saves approximately $58/month. At scale with multiple HA pairs across environments, savings compound.
 
-#### 1. Hardware and Bare-Metal Load Balancing Cost Savings
-In colocation and bare-metal private cloud environments, hardware F5 BIG-IP load balancers cost $30,000-$100,000 per pair. Deploying Nginx with Keepalived on commodity Linux hardware delivers identical high availability and multi-gigabit throughput with zero hardware licensing costs.
+The Keepalived failover time of 2-4 seconds means SLA availability is approximately 99.999% per failover event — comparable to managed load balancers with faster failover (sub-second), but sufficient for most applications that handle brief connection resets gracefully.
 
-#### 2. Active/Passive vs Active/Active Right-Sizing
-Running Active/Passive clusters ensures the backup node is sized identically to the master. In cloud environments, the backup node can be hosted on a lower-cost reservation tier or Spot instance with automated promotion, cutting redundant compute spend by 30%.
+---
 
-#### 3. Preventing Split-Brain Failover Storms
-Configuring robust VRRP authentication (`auth_type PASS`) and redundant heartbeat network links prevents split-brain scenarios where both nodes claim the Virtual IP simultaneously, eliminating emergency outage response engineering costs.
+## Troubleshooting
+
+**Both servers become MASTER at the same time (split-brain)**
+
+Cause: VRRP advertisements are not reaching the Backup, usually due to a misconfigured firewall blocking VRRP (IP protocol 112) or multicast traffic.
+
+Fix: Verify VRRP traffic passes between servers:
+```bash
+# On Backup server, capture VRRP packets from Master
+tcpdump -i eth0 proto 112
+```
+If no packets appear, the firewall is blocking them.
+
+**VIP not assigned even though Keepalived shows MASTER**
+
+The `virtual_router_id` may mismatch between the two configuration files, or `interface` may name the wrong network interface. Verify:
+```bash
+ip link show         # Lists all interfaces
+cat /proc/net/dev    # Shows interface names
+```
+
+**Failover happens but service is still unreachable for 30+ seconds**
+
+ARP cache on routers and switches is holding the old MAC address for the VIP. The gratuitous ARP sent by Keepalived should clear this in 1-2 seconds on most networks. If your network uses static ARP tables or unusual ARP caching policies, contact your network team to reduce ARP cache TTLs.

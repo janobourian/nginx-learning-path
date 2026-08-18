@@ -1,161 +1,269 @@
 # Module 06: Caching Mechanisms, Cache Keys, Purging & Microcaching
-**Category:** HTTP Caching, Microcaching & Edge Acceleration
-**Status:** ✅ Completed
+
+**Track:** Enterprise NGINX  
+**Category:** Response Caching & Performance Optimization
 
 ---
 
-## 1. High-Level Overview
-Nginx caching intercepts upstream responses, stores them on local high-speed disk or RAM filesystems, and serves subsequent identical requests directly from cache with sub-millisecond latency. Implementing **Microcaching** (1-second caching of dynamic API endpoints) allows high-concurrency APIs to scale 100x.
+## What NGINX Caching Does
 
-### 👔 Executive Summary (For Managers & Non-Technical Stakeholders)
-* **Business Purpose**: Stores copies of web pages and API responses on high-speed disk so repeated requests are served in less than 1 millisecond without touching backend databases.
-* **How It Works**: Uses microcaching (caching dynamic data for just 1 second) to survive massive viral traffic spikes without crashing application servers.
-* **Key Business Value & Use Cases**: Cuts cloud database and backend compute bills by 80-90% and delivers lightning-fast user response times.
+NGINX can store backend responses on disk (or in memory) and serve them directly to subsequent clients without touching the backend server at all. For a response that takes 200ms to generate on your backend, caching means the 2nd through 10,000th requests each take 2ms — served from disk.
+
+This is **proxy caching**: NGINX caches what it receives from an `upstream` backend. It is distinct from browser caching (controlled by `Cache-Control` headers you send to clients) or CDN caching (external services like Cloudflare). You control NGINX proxy caching entirely in your configuration.
 
 ---
 
-## 📌 Foundations, Notes & Original Snippets (Original Notes)
+## Setting Up the Cache Zone
 
-### Caching Directives (Original Notes)
-* `proxy_cache_path /var/cache/nginx levels=1:2 keys_zone=my_cache:10m max_size=10g inactive=60m use_temp_path=off;`
-* `proxy_cache my_cache;`
-* `proxy_cache_valid 200 302 10m;`
-* `proxy_cache_valid 404 1m;`
-* `proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;`
+Before any server block, define a cache storage zone in the `http` context:
 
----
-
-## 2. Technical Deep Dive & Architecture
-
-### 1. `proxy_cache_path` Architecture
 ```nginx
-proxy_cache_path /var/cache/nginx/api
-    levels=1:2
-    keys_zone=api_cache:20m
-    max_size=10g
-    inactive=120m
-    use_temp_path=off;
+http {
+    # proxy_cache_path defines where cache files live on disk
+    # levels=1:2   creates a two-level directory tree under the path
+    #              (prevents having too many files in one directory)
+    # keys_zone=my_cache:10m  — the shared memory zone that holds cache keys
+    #              10m = 10MB, stores ~80,000 key entries
+    # max_size=2g  — maximum total cache size on disk; oldest files evicted first
+    # inactive=60m — remove files not accessed in 60 minutes regardless of TTL
+    # use_temp_path=off — write cache files directly without a temp-file copy step
+    proxy_cache_path /var/cache/nginx
+        levels=1:2
+        keys_zone=api_cache:10m
+        max_size=2g
+        inactive=60m
+        use_temp_path=off;
+}
 ```
-- `levels=1:2`: Creates a two-level directory hierarchy (`/var/cache/nginx/api/f/d4/abc123...`) to prevent thousands of cache files from residing in a single directory, avoiding filesystem inode lookup bottlenecks.
-- `keys_zone=api_cache:20m`: Allocates 20MB of RAM to store cache keys and metadata (~160,000 cached objects).
-- `use_temp_path=off`: Writes directly to the cache directory, eliminating atomic cross-filesystem copy operations.
-
-### 2. Microcaching for Dynamic High-Traffic APIs
-Microcaching caches dynamic, personalized API responses for a brief window (e.g. 1 second):
-- If 10,000 requests arrive in 1 second, the backend processes **1 request**, and Nginx serves the remaining **9,999 requests directly from RAM cache**!
 
 ---
 
-## 3. Hands-On Step-by-Step Production Lab
+## Enabling Cache in a Location Block
 
-### Step 1: Configure Microcaching for Dynamic REST API
-Write microcaching reverse proxy block:
 ```nginx
-proxy_cache_path /var/cache/nginx/microcache
+server {
+    listen 443 ssl;
+    server_name api.example.com;
+
+    location /api/v1/ {
+        proxy_pass http://backend_servers;
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+        proxy_set_header Host $host;
+
+        # ── Cache configuration ───────────────────────────────────────────
+        proxy_cache            api_cache;
+
+        # Cache 200 responses for 10 minutes; 404 for 1 minute
+        proxy_cache_valid      200 10m;
+        proxy_cache_valid      404  1m;
+
+        # Only cache GET and HEAD requests (never cache POST/PUT/DELETE)
+        proxy_cache_methods    GET HEAD;
+
+        # Cache key: what makes two requests "the same"?
+        # This key caches per scheme + host + URI (excluding query string)
+        proxy_cache_key        "$scheme$host$request_uri";
+
+        # Serve stale cache while revalidating in background
+        proxy_cache_use_stale  error timeout updating;
+
+        # Lock: if a cache entry is being populated, queue other requests
+        # rather than letting all of them hit the backend simultaneously
+        proxy_cache_lock       on;
+        proxy_cache_lock_timeout 5s;
+
+        # Bypass cache when client sends no-cache
+        proxy_cache_bypass     $http_pragma $http_authorization;
+
+        # Add header showing whether response came from cache
+        add_header             X-Cache-Status $upstream_cache_status;
+
+        # Set Cache-Control for downstream clients
+        add_header             Cache-Control "public, max-age=600";
+    }
+}
+```
+
+The `$upstream_cache_status` variable reports: `HIT`, `MISS`, `BYPASS`, `EXPIRED`, `STALE`, `UPDATING`, or `REVALIDATED`. Logging this tells you your cache hit rate.
+
+---
+
+## Cache Keys: The Most Important Decision
+
+The cache key determines when NGINX considers two requests identical and serves the cached response. Choosing the wrong key causes either:
+- **Over-caching**: serving the same response to requests that should receive different data
+- **Under-caching**: treating identical requests as different, defeating caching
+
+```nginx
+# Scenario 1: Public API — cache by URL only
+# All users requesting /api/products/123 get the same response
+proxy_cache_key "$scheme$host$request_uri";
+
+# Scenario 2: Authenticated API — cache per user
+# Include the Authorization header so each user's data is cached separately
+proxy_cache_key "$scheme$host$request_uri$http_authorization";
+
+# Scenario 3: Content-negotiated API — cache per Accept header
+# /api/data.json and /api/data.xml are different cached entries
+proxy_cache_key "$scheme$host$request_uri$http_accept";
+
+# Scenario 4: Localized content — cache per language
+proxy_cache_key "$scheme$host$request_uri$http_accept_language";
+```
+
+---
+
+## Microcaching: Caching for Just 1 Second
+
+For dynamic pages generated from a database, even caching for 1 second can massively reduce backend load during traffic spikes. If 5,000 users hit a page within the same second, NGINX fetches it once from the backend and serves the cached copy to all 4,999 others.
+
+```nginx
+proxy_cache_path /var/cache/nginx/micro
     levels=1:2
-    keys_zone=MICROCACHE:10m
-    max_size=1g
-    inactive=10m
+    keys_zone=micro_cache:5m
+    max_size=500m
+    inactive=2m
     use_temp_path=off;
 
 server {
-    listen 80;
-    server_name api.example.com;
+    location / {
+        proxy_pass http://app_servers;
 
-    # Bypass cache for authenticated sessions
-    set $no_cache 0;
-    if ($http_authorization) { set $no_cache 1; }
-    if ($request_method != GET) { set $no_cache 1; }
-
-    location /api/v1/products {
-        proxy_pass http://127.0.0.1:8000;
-        proxy_http_version 1.1;
-        proxy_set_header Connection "";
-
-        proxy_cache MICROCACHE;
-        proxy_cache_valid 200 1s; # Microcache for 1 second
-        proxy_cache_valid 404 10s;
-
-        proxy_cache_bypass $no_cache;
-        proxy_no_cache $no_cache;
-
-        proxy_cache_use_stale error timeout updating http_502 http_503;
-        proxy_cache_lock on; # Mutex lock: only 1 request populates cache
+        proxy_cache       micro_cache;
+        proxy_cache_valid 200 1s;        # Cache for exactly 1 second
+        proxy_cache_key   "$scheme$host$request_uri";
+        proxy_cache_use_stale updating;  # Serve stale while refreshing
+        proxy_cache_lock  on;
 
         add_header X-Cache-Status $upstream_cache_status;
     }
 }
 ```
 
-### Step 2: Validate Syntax
-Test configuration:
+With `proxy_cache_use_stale updating`, when the 1-second TTL expires, one request fetches a new copy from the backend while all concurrent requests receive the (now-stale) previous response. This prevents the **cache stampede** problem.
+
+---
+
+## Cache Bypass: Skipping the Cache Conditionally
+
+There are situations where you must bypass the cache:
+- Authenticated requests with personal data
+- Requests with `Cache-Control: no-cache` from clients
+- Admin users who need real-time data
+
+```nginx
+# Define a bypass variable: 1 = bypass cache, 0 = use cache
+map $http_cookie $no_cache {
+    default           0;
+    "~*session_token" 1;   # Users with a session cookie bypass cache
+}
+
+map $request_method $bypass_on_write {
+    default 0;
+    POST    1;              # Never cache POST responses
+    PUT     1;
+    DELETE  1;
+    PATCH   1;
+}
+
+location /api/ {
+    proxy_cache       api_cache;
+    proxy_cache_valid 200 5m;
+    proxy_no_cache    $no_cache $bypass_on_write;
+    proxy_cache_bypass $no_cache $bypass_on_write;
+}
+```
+
+`proxy_no_cache` controls whether the response is **stored**. `proxy_cache_bypass` controls whether the cache is **consulted** for the incoming request. Setting both ensures that write requests neither read from nor write to the cache.
+
+---
+
+## Cache Purging
+
+NGINX open source does not have built-in cache purge. To invalidate a cached entry you can either wait for its TTL to expire or delete the file from disk.
+
 ```bash
-nginx -t
+# Find and delete a specific cached URL
+# Cache files are stored with a hash of the cache key as the filename
+
+# Method 1: Delete all cache files (nuclear option)
+rm -rf /var/cache/nginx/*
+nginx -s reload
+
+# Method 2: Find the file for a specific key
+# The cache filename is the MD5 hash of the cache key
+CACHE_KEY="httpexample.com/api/products/123"
+echo -n "$CACHE_KEY" | md5sum
+# Use the hash to find and delete the specific file
+
+# Method 3: Use the ngx_cache_purge module (if compiled in)
+# Sends a PURGE request to force NGINX to remove the cache entry
+curl -X PURGE https://example.com/api/products/123
+```
+
+For production cache purging, the `ngx_cache_purge` module adds a `proxy_cache_purge` directive that accepts a special PURGE HTTP method:
+
+```nginx
+location ~ /purge(/.*) {
+    # Only allow internal network to trigger purges
+    allow 10.0.0.0/8;
+    deny  all;
+    proxy_cache_purge api_cache "$scheme$host$1";
+}
 ```
 
 ---
 
-## 4. Pure Escaped CLI Snippets (Production Operations)
+## Checking Cache Performance
 
-### 1. Test Cache Hit / Miss Status with cURL
-Verify `X-Cache-Status` response header (MISS -> HIT):
 ```bash
-curl -I http://localhost/api/v1/products 2>/dev/null || true
+# Real-time cache hit rate from access log
+tail -f /var/log/nginx/access.log \
+    | awk '/X-Cache-Status/ {print $NF}' \
+    | sort | uniq -c
+
+# Count HITs vs MISSes from existing log
+awk '{print $NF}' /var/log/nginx/access.log \
+    | grep -E "^(HIT|MISS|BYPASS|EXPIRED)" \
+    | sort | uniq -c
+
+# Check disk usage of cache
+du -sh /var/cache/nginx/
+
+# List largest cached files
+find /var/cache/nginx -type f -printf '%s %p\n' | sort -rn | head -20
 ```
 
-### 2. Inspect Cache Directory on Disk
-Display cached files and sizes:
-```bash
-ls -lhR /var/cache/nginx/ 2>/dev/null || true
+---
+
+## FinOps: How Caching Cuts Backend Costs
+
+A Node.js API instance on a `t3.medium` costs $0.0416/hour. If your product catalog endpoint is cacheable for 5 minutes and receives 1,000 req/min, without caching you need enough backend capacity to handle 1,000 req/min continuously. With a 5-minute cache, the backend handles 1 request per 5 minutes (0.2 req/min) for that endpoint — a 5,000× reduction in backend load for that endpoint.
+
+In practice, caching 30% of your endpoints with suitable TTLs typically allows a 40-60% reduction in backend instance count, saving hundreds to thousands of dollars monthly depending on scale.
+
+---
+
+## Troubleshooting Cache Problems
+
+**Cache never hitting (all responses show MISS)**
+
+Check that `proxy_cache_bypass` and `proxy_no_cache` are not accidentally always evaluating to a truthy value. Add temporary logging:
+
+```nginx
+add_header X-Cache-Bypass-Reason "$no_cache $bypass_on_write" always;
 ```
 
----
+Also verify the response does not contain `Cache-Control: no-store` or `Set-Cookie` headers from the backend. By default NGINX does not cache responses with `Set-Cookie` or `Cache-Control: private`.
 
-## 5. Detailed Sub-Components
+**Stale content being served after backend update**
 
-### Nginx Cache Manager Process
-* **Role & Function**: Background daemon monitoring cache disk usage and evicting LRU objects when max_size is reached.
-* **Inspection Command**:
-  ```bash
-  echo 'Cache manager active'
-  ```
+Your TTL is too long for your use case. Either lower `proxy_cache_valid`, add cache purging, or use ETags/Last-Modified with `proxy_cache_revalidate on` so NGINX sends conditional requests to the backend.
 
-### Nginx Cache Loader Process
-* **Role & Function**: Background daemon populating RAM keys_zone from on-disk cache files during Nginx startup.
-* **Inspection Command**:
-  ```bash
-  echo 'Cache loader active'
-  ```
+**`proxy_cache_use_stale` serving expired content indefinitely**
 
----
-
-## References
-
-### Official Documentation
-* [Nginx Caching Guide](https://docs.nginx.com/nginx/admin-guide/content-cache/content-caching/) - Official technical manual.
-* [Nginx Proxy Cache Directives](https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_cache) - Official technical manual.
-* [RFC 7234: Hypertext Transfer Protocol (HTTP/1.1): Caching](https://datatracker.ietf.org/doc/html/rfc7234) - Official technical manual.
-* [Nginx Microcaching Tutorial](https://www.nginx.com/blog/benefits-of-microcaching-nginx/) - Official technical manual.
-* [Linux man-pages: open(2) and POSIX fcntl locks](https://man7.org/linux/man-pages/man2/open.2.html) - Official technical manual.
-
-### Authoritative Engineering Blogs & Tutorials
-* [Andrew Alexeev: A Guide to Caching with NGINX](https://www.nginx.com/blog/nginx-caching-guide/) - Industry standard analysis.
-* [Julia Evans: HTTP Caching Explained](https://jvns.ca/) - Industry standard analysis.
-* [Brendan Gregg: NGINX Caching Performance](https://www.brendangregg.com/) - Industry standard analysis.
-* [Cloudflare: Edge Caching Architecture](https://blog.cloudflare.com/) - Industry standard analysis.
-* [Red Hat: High Performance Nginx Caching](https://www.redhat.com/sysadmin/) - Industry standard analysis.
-
----
-
-### FinOps & Infrastructure Resource Governance in Caching
-
-*Edge and reverse proxy caching slashes cloud database and compute spending.*
-
-#### 1. 90% Database and Compute Load Reduction
-Serving 90% of dynamic read traffic directly from Nginx microcache reduces required backend database replica counts (e.g. AWS Aurora PostgreSQL read replicas) from 4 instances to 1 instance, saving $1,500-$3,000 monthly per database cluster.
-
-#### 2. `proxy_cache_lock on;` Prevents Thundering Herd Spikes
-When a popular cache object expires, thousands of concurrent requests attempt to query the backend database simultaneously (Thundering Herd / Cache Stampede). `proxy_cache_lock on;` allows only **one** request to query the upstream backend while queuing remaining requests, preventing database CPU saturation and unexpected cloud auto-scaling spikes.
-
-#### 3. RAM-Disk (tmpfs) Caching for Extreme Throughput
-Mounting the Nginx cache directory on a Linux RAM disk (`mount -t tmpfs -o size=2G tmpfs /var/cache/nginx`) eliminates physical disk write wear, maximizes NVMe lifespan, and delivers sub-0.5ms response times with zero cloud IOPS charges.
+`proxy_cache_use_stale updating` serves stale content only when a background refresh is in progress. If the background refresh itself fails, content stops being served stale. Combine with `error timeout` to also serve stale when the backend is completely unreachable:
+```nginx
+proxy_cache_use_stale error timeout updating;
+```

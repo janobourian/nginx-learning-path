@@ -1,157 +1,309 @@
-# Module 08: Security Hardening: Security Headers, CORS, WAF & NAXSI
-**Category:** Web Security, Header Hardening & Web Application Firewalls
-**Status:** ✅ Completed
+# Module 08: Security Hardening, HTTP Headers, CORS & WAF with NAXSI
+
+**Track:** Enterprise NGINX  
+**Category:** Web Application Security
 
 ---
 
-## 1. High-Level Overview
-Hardening Nginx in enterprise production environments requires defense-in-depth across the HTTP layer: injecting OWASP-recommended security headers (HSTS, CSP, X-Frame-Options), handling Cross-Origin Resource Sharing (CORS) preflight requests deterministically, dropping server identification banners, and integrating Web Application Firewalls (ModSecurity / NAXSI).
+## Security at the HTTP Layer
 
-### 👔 Executive Summary (For Managers & Non-Technical Stakeholders)
-* **Business Purpose**: Locker-room security hardening that blocks cross-site scripting (XSS), clickjacking, and data injection attacks at the edge.
-* **How It Works**: Injects modern browser security headers and inspects incoming HTTP requests for malicious SQL injection and command payload signatures.
-* **Key Business Value & Use Cases**: Delivers compliance certification readiness (PCI-DSS, SOC 2, HIPAA) and protects corporate customer data from web-based exploits.
+NGINX sits at the boundary between the internet and your application. This position makes it the ideal place to enforce security policies that protect against the most common web attacks: clickjacking, MIME sniffing, cross-site scripting, cross-origin data theft, and injection attacks.
+
+Most of these defenses are implemented by adding or controlling **HTTP response headers**. Browsers read these headers and enforce restrictions on what the page can do.
 
 ---
 
-## 📌 Foundations, Notes & Original Snippets (Original Notes)
+## Essential Security Response Headers
 
-### Security Headers & Directives (Original Notes)
-* Server token hiding: `server_tokens off;`
-* Standard security headers:
 ```nginx
-add_header X-Frame-Options "SAMEORIGIN" always;
-add_header X-Content-Type-Options "nosniff" always;
-add_header X-XSS-Protection "1; mode=block" always;
-add_header Referrer-Policy "no-referrer-when-downgrade" always;
+server {
+    listen 443 ssl;
+    server_name example.com;
+
+    # ── Clickjacking Protection ────────────────────────────────────────────
+    # Prevents your page from being embedded in an <iframe> on another domain
+    # SAMEORIGIN: allow your own domain to iframe you; DENY: nobody can
+    add_header X-Frame-Options "SAMEORIGIN" always;
+
+    # ── MIME Sniffing Protection ───────────────────────────────────────────
+    # Prevents browsers from guessing the content type of a response.
+    # Without this, a browser might execute a text/plain file as JavaScript
+    # if it looks like JS — a common XSS vector.
+    add_header X-Content-Type-Options "nosniff" always;
+
+    # ── Referrer Policy ───────────────────────────────────────────────────
+    # Controls how much URL information is sent in the Referer header
+    # when a user navigates from your page to another site.
+    # strict-origin-when-cross-origin: full URL for same-origin,
+    #   only origin (no path/query) for cross-origin HTTPS → HTTPS,
+    #   nothing for HTTPS → HTTP transitions.
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    # ── Permissions Policy (formerly Feature Policy) ───────────────────────
+    # Disable browser features your app does not use.
+    # This prevents a compromised script from accessing geolocation, camera, etc.
+    add_header Permissions-Policy "geolocation=(), microphone=(), camera=(), payment=()" always;
+
+    # ── Content Security Policy ───────────────────────────────────────────
+    # The most powerful XSS defense. Declares exactly which sources are allowed
+    # to load scripts, styles, images, fonts, and connections.
+    # This policy is strict — adjust based on your actual CDN/font/analytics sources.
+    add_header Content-Security-Policy
+        "default-src 'self'; "
+        "script-src 'self' https://cdn.example.com; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+        "font-src 'self' https://fonts.gstatic.com; "
+        "img-src 'self' data: https:; "
+        "connect-src 'self' https://api.example.com; "
+        "frame-ancestors 'none'; "
+        "upgrade-insecure-requests;"
+        always;
+
+    # ── HSTS (HTTP Strict Transport Security) ─────────────────────────────
+    # Tells browsers to always use HTTPS for this domain for the next 2 years.
+    # includeSubDomains: applies to all subdomains too.
+    # preload: allows submission to browser HSTS preload lists.
+    add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
+
+    # ── Remove server version disclosure ──────────────────────────────────
+    # By default NGINX sends "Server: nginx/1.25.3" — a fingerprinting aid for attackers
+    server_tokens off;
+}
 ```
 
----
-
-## 2. Technical Deep Dive & Architecture
-
-### 1. Mandatory Enterprise Security Headers
-- `Strict-Transport-Security (HSTS)`: Forces browsers to communicate exclusively over HTTPS for the specified duration (`max-age=63072000; includeSubDomains; preload`).
-- `Content-Security-Policy (CSP)`: Restricts where scripts, images, and fonts can load from, completely mitigating Cross-Site Scripting (XSS).
-- `X-Frame-Options`: Prevents clickjacking by blocking rendering inside third-party `<iframe>` tags (`DENY` or `SAMEORIGIN`).
-- `Permissions-Policy`: Restricts browser hardware access (camera, microphone, geolocation).
-
-### 2. Deterministic CORS Preflight (`OPTIONS`) Handling
-Browsers send `OPTIONS` preflight requests before cross-origin API calls. Nginx handles preflights directly at the edge with HTTP 204 (No Content), eliminating backend server roundtrips.
+The `always` parameter ensures headers are added even for error responses (4xx, 5xx). Without it, headers are only added to 2xx responses, leaving error pages unprotected.
 
 ---
 
-## 3. Hands-On Step-by-Step Production Lab
+## CORS: Cross-Origin Resource Sharing
 
-### Step 1: Write a Hardened Security Header Configuration
-Create security headers configuration snippet:
+When your frontend at `app.example.com` makes an AJAX call to your API at `api.example.com`, the browser's **same-origin policy** blocks the request unless the API explicitly allows it via CORS headers.
+
 ```nginx
-# Hide Nginx version banner
-server_tokens off;
+# /etc/nginx/snippets/cors.conf
+
+# The origin is set dynamically so you can allow multiple specific origins
+# rather than using the wildcard * (which prevents cookies from being sent)
+map $http_origin $cors_origin {
+    default                    "";
+    "https://app.example.com"  "https://app.example.com";
+    "https://admin.example.com" "https://admin.example.com";
+    "http://localhost:3000"    "http://localhost:3000";  # Local development
+}
 
 server {
-    listen 443 ssl http2;
-    server_name secure.example.com;
+    listen 443 ssl;
+    server_name api.example.com;
 
-    ssl_certificate /etc/ssl/certs/example.crt;
-    ssl_certificate_key /etc/ssl/private/example.key;
-
-    # Security Headers
-    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
-    add_header X-Frame-Options "DENY" always;
-    add_header X-Content-Type-Options "nosniff" always;
-    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
-    add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline';" always;
-    add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
-
-    # CORS Handling
     location /api/ {
-        if ($request_method = 'OPTIONS') {
-            add_header 'Access-Control-Allow-Origin' 'https://app.example.com' always;
-            add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, DELETE, OPTIONS' always;
-            add_header 'Access-Control-Allow-Headers' 'Authorization, Content-Type, X-Requested-With' always;
-            add_header 'Access-Control-Max-Age' 86400;
-            add_header 'Content-Length' 0;
+        # Handle preflight OPTIONS request
+        if ($request_method = OPTIONS) {
+            add_header Access-Control-Allow-Origin  $cors_origin;
+            add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, PATCH, OPTIONS";
+            add_header Access-Control-Allow-Headers "Authorization, Content-Type, X-Requested-With, X-API-Key";
+            add_header Access-Control-Allow-Credentials "true";
+            add_header Access-Control-Max-Age 3600;  # Cache preflight for 1 hour
+            add_header Content-Length 0;
             return 204;
         }
 
-        add_header 'Access-Control-Allow-Origin' 'https://app.example.com' always;
-        proxy_pass http://127.0.0.1:8000;
-        proxy_http_version 1.1;
-        proxy_set_header Connection "";
+        # Add CORS headers to actual requests
+        add_header Access-Control-Allow-Origin      $cors_origin always;
+        add_header Access-Control-Allow-Credentials "true" always;
+        add_header Vary "Origin" always;  # Tell caches that responses vary by Origin
+
+        proxy_pass http://backend_api;
     }
 }
 ```
 
-### Step 2: Validate Syntax
-Test configuration:
-```bash
-nginx -t
+The `Vary: Origin` header is critical. Without it, a caching proxy might store the response with one origin's CORS headers and serve it to a request from a different origin — causing CORS failures for users or leaking credentials across origins.
+
+---
+
+## Hiding Sensitive Information
+
+```nginx
+server {
+    # Remove NGINX version from Server header
+    server_tokens off;
+
+    # Remove X-Powered-By if your backend sends it (Node.js, PHP)
+    proxy_hide_header X-Powered-By;
+
+    # Remove internal infrastructure headers the backend sends
+    proxy_hide_header X-Internal-Server;
+    proxy_hide_header X-Debug-Info;
+
+    # Rewrite Location headers from backend to use external hostname
+    # (Prevents internal IPs from leaking in 301/302 responses)
+    proxy_redirect http://10.0.0.1:3000 https://api.example.com;
+}
 ```
 
 ---
 
-## 4. Pure Escaped CLI Snippets (Production Operations)
+## WAF with NAXSI (NGINX Anti-XSS & SQL Injection)
 
-### 1. Audit HTTP Security Headers with cURL
-Verify presence of all security headers:
+NAXSI is an open-source WAF module for NGINX that blocks common attack patterns using a rule set. Unlike signature-based WAFs, NAXSI uses a **scoring system**: each rule adds to a score, and a request is blocked only when the total score crosses a threshold.
+
+Installation (from source with NAXSI):
+
 ```bash
-curl -I https://localhost/ 2>/dev/null || true
+# NAXSI must be compiled into NGINX
+apt-get install -y nginx-naxsi
+
+# Or compile from source with module
+./configure --add-module=/path/to/naxsi/naxsi_src --with-http_ssl_module
+make && make install
 ```
 
-### 2. Verify Server Banner Hiding
-Verify absence of Nginx version number in Server header:
-```bash
-curl -I http://localhost/ 2>/dev/null | grep -i server || true
+NAXSI configuration:
+
+```nginx
+# /etc/nginx/naxsi_core.rules
+# The core rules file from the NAXSI repository
+# Contains patterns for SQL injection, XSS, file inclusion, etc.
+
+# /etc/nginx/conf.d/naxsi.conf
+
+server {
+    listen 443 ssl;
+    server_name api.example.com;
+
+    location /api/ {
+        # Include NAXSI core rules
+        include /etc/nginx/naxsi_core.rules;
+
+        # Request exceeds this score → block with 403
+        DeniedUrl "/naxsi_blocked";
+
+        # Score thresholds per attack category
+        CheckRule "$SQL >= 8" BLOCK;
+        CheckRule "$RFI >= 8" BLOCK;
+        CheckRule "$TRAVERSAL >= 4" BLOCK;
+        CheckRule "$EVADE >= 4" BLOCK;
+        CheckRule "$XSS >= 8" BLOCK;
+
+        proxy_pass http://backend;
+    }
+
+    # Block response page
+    location /naxsi_blocked {
+        return 403 '{"error":"request_blocked","message":"Potentially malicious request detected."}';
+    }
+}
+```
+
+**NAXSI Learning Mode**: Before enabling blocking, run in learning mode (replace `BLOCK` with `LOG`) to identify false positives. NAXSI logs blocked requests to `error.log` with the matched rule IDs, which you whitelist.
+
+```nginx
+# Learning mode — logs but does not block
+LearningMode;
+SecRulesEnabled;
+DeniedUrl "/naxsi_blocked";
+CheckRule "$SQL >= 8" LOG;
 ```
 
 ---
 
-## 5. Detailed Sub-Components
+## ModSecurity WAF (Alternative to NAXSI)
 
-### OWASP Security Header Filter
-* **Role & Function**: Header injection pipeline appending strict policy enforcement tags to response streams.
-* **Inspection Command**:
-  ```bash
-  echo 'Header filter active'
-  ```
+ModSecurity with the OWASP Core Rule Set (CRS) is the most widely deployed open-source WAF:
 
-### ModSecurity / NAXSI WAF Engine
-* **Role & Function**: Rule-based web application firewall inspecting HTTP query parameters and POST bodies.
-* **Inspection Command**:
-  ```bash
-  echo 'WAF active'
-  ```
+```bash
+# Install ModSecurity NGINX connector
+apt-get install -y libmodsecurity3 libmodsecurity-dev
+
+# Download OWASP CRS
+git clone https://github.com/coreruleset/coreruleset.git /etc/modsecurity/crs
+cp /etc/modsecurity/crs/crs-setup.conf.example /etc/modsecurity/crs/crs-setup.conf
+```
+
+```nginx
+# /etc/nginx/modsec/modsecurity.conf (main config)
+SecRuleEngine On          # DetectionOnly to log without blocking
+SecRequestBodyAccess On
+SecResponseBodyAccess On
+SecResponseBodyMimeType text/plain text/html text/xml application/json
+
+# Include OWASP CRS rules
+Include /etc/modsecurity/crs/crs-setup.conf
+Include /etc/modsecurity/crs/rules/*.conf
+```
+
+```nginx
+server {
+    listen 443 ssl;
+    server_name api.example.com;
+
+    modsecurity on;
+    modsecurity_rules_file /etc/nginx/modsec/modsecurity.conf;
+
+    location / {
+        proxy_pass http://backend;
+    }
+}
+```
 
 ---
 
-## References
+## CLI: Checking Security Headers
 
-### Official Documentation
-* [Nginx Headers Module Reference](https://nginx.org/en/docs/http/ngx_http_headers_module.html) - Official technical manual.
-* [OWASP Secure Headers Project](https://owasp.org/www-project-secure-headers/) - Official technical manual.
-* [MDN: Content Security Policy (CSP)](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) - Official technical manual.
-* [W3C: Cross-Origin Resource Sharing (CORS)](https://www.w3.org/TR/cors/) - Official technical manual.
-* [ModSecurity Official Documentation](https://github.com/SpiderLabs/ModSecurity) - Official technical manual.
+```bash
+# Verify all security headers are present
+curl -I https://example.com | grep -E "X-Frame|X-Content|Strict-Transport|Content-Security|Referrer|Permissions"
 
-### Authoritative Engineering Blogs & Tutorials
-* [Scott Helme: Hardening Your HTTP Response Headers](https://scotthelme.co.uk/hardening-your-http-response-headers/) - Industry standard analysis.
-* [Ivan Ristic: ModSecurity Handbook](https://www.feistyduck.com/books/modsecurity-handbook/) - Industry standard analysis.
-* [Julia Evans: Understanding CORS and Preflight](https://jvns.ca/) - Industry standard analysis.
-* [Cloudflare: Web Application Firewalls Explained](https://blog.cloudflare.com/) - Industry standard analysis.
-* [Red Hat: Securing Web Workloads with Nginx](https://www.redhat.com/sysadmin/) - Industry standard analysis.
+# Automated security header grade
+# Use securityheaders.com API or scan locally
+curl -s "https://securityheaders.com/?q=https://example.com&followRedirects=on" | grep "Grade"
+
+# Check CORS preflight response
+curl -v \
+    -X OPTIONS \
+    -H "Origin: https://app.example.com" \
+    -H "Access-Control-Request-Method: POST" \
+    -H "Access-Control-Request-Headers: Authorization" \
+    https://api.example.com/api/users 2>&1 \
+    | grep -E "Access-Control|< HTTP"
+
+# Verify server_tokens off (should show "nginx" without version)
+curl -I https://example.com | grep Server
+```
 
 ---
 
-### FinOps & Infrastructure Resource Governance in Web Security
+## FinOps: Security Headers as Cost Avoidance
 
-*Edge CORS preflight handling eliminates backend server compute charges.*
+A successful XSS attack can result in session token theft at scale, requiring emergency incident response, customer notification, and potentially regulatory fines (GDPR Article 83 fines can reach €20M or 4% of global annual revenue). Implementing a strong CSP costs 2 hours of configuration time. The risk-adjusted cost of not implementing it is orders of magnitude higher.
 
-#### 1. Handling CORS OPTIONS Preflights at the Edge
-Web browsers make an `OPTIONS` preflight request before every single `POST`, `PUT`, and `DELETE` API call. Handling preflights directly inside Nginx with a cached `204 No Content` response prevents billions of preflight requests from touching backend application servers, saving 30-40% in backend server compute and cloud database connection pool usage.
+NAXSI/ModSecurity running in NGINX filters malicious requests before they reach your backend application servers, reducing wasted compute on attack traffic. For a public-facing API receiving 500,000 malicious bot requests/day, WAF filtering at the NGINX layer saves approximately 10-20% of backend CPU — eliminating one application server instance.
 
-#### 2. Blocking Vulnerability Scanners at the Edge
-Automated vulnerability bots scanning for `.env`, `wp-admin`, and `phpmyadmin` files consume backend CPU threads. Dropping these requests immediately at the Nginx edge (`location ~* /(\.env|wp-admin|phpmyadmin) { return 444; }`) terminates the TCP connection with zero byte transfer, reducing server bandwidth and compute spend.
+---
 
-#### 3. Compliance Cost Avoidance
-Implementing standard OWASP security headers satisfies automated SOC 2 and PCI-DSS compliance vulnerability audits, eliminating costly third-party compliance remediation consulting fees.
+## Troubleshooting
+
+**Legitimate API calls blocked by NAXSI**
+
+Check error.log for the blocked rule ID:
+```bash
+grep "NAXSI_FMT" /var/log/nginx/error.log | tail -20
+```
+The log shows which rule matched. Add a whitelist for that specific route and rule:
+```nginx
+location /api/search {
+    BasicRule wl:1010 "mz:ARGS";  # Whitelist rule 1010 for query parameters
+}
+```
+
+**CORS preflight works but actual request fails**
+
+The `add_header` directives inside the `if ($request_method = OPTIONS)` block only apply to the preflight. The actual request goes through the main location block, which needs its own `add_header Access-Control-Allow-Origin`. Ensure headers are present outside the `if` block.
+
+**CSP blocking legitimate scripts**
+
+Enable CSP in report-only mode first to identify violations without breaking the site:
+```nginx
+add_header Content-Security-Policy-Report-Only "default-src 'self'; report-uri /csp-report";
+```
+Collect violations, add legitimate sources to the policy, then switch to enforcing mode.

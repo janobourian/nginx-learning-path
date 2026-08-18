@@ -1,143 +1,286 @@
 # Module 04: Load Balancing Algorithms, Health Checks & Session Persistence
-**Category:** High Availability, Load Balancing & Traffic Distribution
-**Status:** ✅ Completed
+
+**Track:** Enterprise NGINX  
+**Category:** Traffic Distribution & Backend Reliability
 
 ---
 
-## 1. High-Level Overview
-Nginx provides enterprise-grade Layer 7 and Layer 4 load balancing across distributed server clusters. By supporting multiple traffic distribution algorithms—**Round Robin** (weighted), **Least Connections**, **IP Hash** (client affinity), and **Generic Hash** ($request_uri / custom key)—coupled with passive/active health checking, Nginx guarantees high availability.
+## What Is Load Balancing?
 
-### 👔 Executive Summary (For Managers & Non-Technical Stakeholders)
-* **Business Purpose**: Distributes incoming user traffic evenly across multiple backend servers to prevent any single server from becoming overwhelmed.
-* **How It Works**: Automatically detects crashing or slow servers and routes traffic only to healthy application instances.
-* **Key Business Value & Use Cases**: Delivers 99.999% high availability, eliminates single points of failure, and allows zero-downtime application upgrades.
+When your application needs to handle more traffic than a single server can process, you run multiple identical server instances and use NGINX to spread incoming requests across them. This is **load balancing**. NGINX decides which backend server gets each request based on an **algorithm** you configure.
+
+The goals are threefold: distribute work evenly, detect and avoid unhealthy servers automatically, and when required, route the same user to the same server consistently.
 
 ---
 
-## 📌 Foundations, Notes & Original Snippets (Original Notes)
+## The Five Built-In Load Balancing Algorithms
 
-### Load Balancing Algorithms (Original Notes)
-* Algorithms:
-  * Round Robin (default, weighted)
-  * Least Connections (`least_conn;`)
-  * IP Hash (`ip_hash;`)
-  * Generic Hash (`hash $request_uri consistent;`)
-* Server states: `weight=5`, `max_fails=3`, `fail_timeout=30s`, `backup`, `down`
+### 1. Round Robin (default)
 
----
+The simplest algorithm. Requests rotate through the server list in order: first request → server A, second → server B, third → server C, fourth → server A again.
 
-## 2. Technical Deep Dive & Architecture
-
-### 1. Algorithm Selection Guide
-- **Weighted Round Robin (Default)**: Requests distributed sequentially based on server `weight`. Best for homogeneous stateless APIs.
-- **Least Connections (`least_conn`)**: Directs requests to the backend with the lowest number of active connections. Best for workloads with variable processing times (e.g. video rendering, report generation).
-- **IP Hash (`ip_hash`)**: Hashes the first 3 octets of client IPv4 (or full IPv6) address to pin clients to the same backend server (session persistence without cookies).
-- **Consistent Hashing (`hash $key consistent`)**: Uses Ketama consistent hashing. When backend servers are added or removed, only a tiny fraction of keys are remapped (essential for upstream caching tiers).
-
----
-
-## 3. Hands-On Step-by-Step Production Lab
-
-### Step 1: Configure Multi-Tier Upstream with Fallback Backup
-Write load balancing upstream configuration:
 ```nginx
-upstream enterprise_api_cluster {
+upstream api_servers {
+    server 10.0.0.1:3000;
+    server 10.0.0.2:3000;
+    server 10.0.0.3:3000;
+    # No directive needed — round robin is the default
+}
+```
+
+Works well when: all servers have identical hardware and your requests take similar time to process.
+
+Fails when: some servers are slower or some requests are much heavier than others.
+
+### 2. Weighted Round Robin
+
+Assigns proportional traffic share. A server with `weight=3` receives three times as many requests as a server with `weight=1`. Use this when servers have different CPU/RAM.
+
+```nginx
+upstream api_servers {
+    server 10.0.0.1:3000 weight=5;   # c5.2xlarge — 8 vCPU
+    server 10.0.0.2:3000 weight=3;   # c5.xlarge  — 4 vCPU
+    server 10.0.0.3:3000 weight=2;   # t3.large   — 2 vCPU
+    # Traffic split: 50% / 30% / 20%
+}
+```
+
+### 3. Least Connections (`least_conn`)
+
+Sends each new request to whichever server currently has the fewest active connections. Automatically compensates for long-running requests piling up on one server.
+
+```nginx
+upstream api_servers {
     least_conn;
+    server 10.0.0.1:3000;
+    server 10.0.0.2:3000;
+    server 10.0.0.3:3000;
+}
+```
 
-    server 10.0.2.10:8080 weight=3 max_fails=2 fail_timeout=5s;
-    server 10.0.2.11:8080 weight=2 max_fails=2 fail_timeout=5s;
-    server 10.0.2.12:8080 weight=1 max_fails=2 fail_timeout=5s;
+Use this for: API gateways, database proxy tiers, or any workload where request processing time varies significantly.
 
-    # Standby disaster recovery backup node
-    server 10.0.2.99:8080 backup;
+### 4. IP Hash
 
-    keepalive 64;
+Generates a hash from the client's IP address and always routes that IP to the same backend server. This provides rudimentary session affinity without cookies.
+
+```nginx
+upstream api_servers {
+    ip_hash;
+    server 10.0.0.1:3000;
+    server 10.0.0.2:3000;
+    server 10.0.0.3:3000;
+}
+```
+
+Limitation: if a client is behind a corporate NAT, all employees share one IP and land on the same server. Use cookie-based persistence instead (NGINX Plus or via Lua).
+
+### 5. Hash (Generic, with `consistent` option)
+
+Hash any NGINX variable — request URI, custom header, cookie value. The `consistent` option uses a **consistent hash ring** so that adding or removing a server only remaps a fraction of keys (versus remapping everything on a standard hash).
+
+```nginx
+upstream cache_servers {
+    hash $request_uri consistent;
+    server 10.0.0.1:6379;
+    server 10.0.0.2:6379;
+    server 10.0.0.3:6379;
+}
+```
+
+This is how distributed caches are sharded: the same URL always hits the same cache node, maximizing hit rates.
+
+---
+
+## Server Parameters: weight, max_fails, fail_timeout, backup, down
+
+```nginx
+upstream api_servers {
+    server 10.0.0.1:3000 weight=3 max_fails=3 fail_timeout=30s;
+    server 10.0.0.2:3000 weight=3 max_fails=3 fail_timeout=30s;
+    server 10.0.0.3:3000 weight=1 max_fails=3 fail_timeout=30s;
+
+    # Only used when all primary servers are down
+    server 10.0.0.4:3000 backup;
+
+    # Permanently excluded from rotation (for maintenance)
+    server 10.0.0.5:3000 down;
+}
+```
+
+| Parameter | Meaning |
+|---|---|
+| `weight=N` | Relative traffic share (default: 1) |
+| `max_fails=N` | Failed connections before server is marked unavailable |
+| `fail_timeout=Xs` | How long a failed server stays out of rotation |
+| `backup` | Only receives traffic when all non-backup servers fail |
+| `down` | Permanently excluded; useful during rolling deploys |
+
+**How passive health checking works:** NGINX marks a server as failed after `max_fails` consecutive connection errors or non-2xx responses within a `fail_timeout` window. After `fail_timeout` seconds, it tries the server again with one probe request.
+
+---
+
+## Active Health Checks (NGINX Open Source via `nginx_upstream_check_module`)
+
+The standard NGINX open-source build performs only **passive** health checks (it discovers failures from real traffic). For **active** polling of backend `/health` endpoints, you need the third-party `nginx_upstream_check_module` or NGINX Plus.
+
+With `nginx_upstream_check_module` compiled in:
+
+```nginx
+upstream api_servers {
+    server 10.0.0.1:3000;
+    server 10.0.0.2:3000;
+    server 10.0.0.3:3000;
+
+    check interval=3000 rise=2 fall=3 timeout=1000 type=http;
+    check_http_send "GET /health HTTP/1.0\r\nHost: api\r\n\r\n";
+    check_http_expect_alive http_2xx http_3xx;
+}
+```
+
+| Parameter | Meaning |
+|---|---|
+| `interval=3000` | Poll every 3 seconds |
+| `rise=2` | Mark healthy after 2 consecutive successes |
+| `fall=3` | Mark unhealthy after 3 consecutive failures |
+| `timeout=1000` | Health check connection timeout in milliseconds |
+
+---
+
+## Session Persistence with a Sticky Cookie
+
+When your application stores session state in server memory (instead of Redis), every request from the same user must land on the same backend. The cleanest approach is setting a **sticky cookie** that encodes which server to use.
+
+NGINX open source does not have native sticky cookies. The simplest solution without NGINX Plus is to route based on an existing application-set cookie:
+
+```nginx
+upstream api_servers {
+    hash $cookie_session_id consistent;
+    server 10.0.0.1:3000;
+    server 10.0.0.2:3000;
+    server 10.0.0.3:3000;
 }
 
 server {
-    listen 80;
-    server_name api.enterprise.internal;
-
-    location / {
-        proxy_pass http://enterprise_api_cluster;
-        proxy_http_version 1.1;
-        proxy_set_header Connection "";
-        proxy_next_upstream error timeout http_502 http_503 http_504;
-        proxy_next_upstream_tries 3;
-        proxy_next_upstream_timeout 10s;
+    listen 443 ssl;
+    location /api/ {
+        proxy_pass http://api_servers;
+        proxy_set_header Host $host;
     }
 }
 ```
 
-### Step 2: Validate Syntax
-Test configuration:
-```bash
-nginx -t
+This hashes the value of the `session_id` cookie and consistently routes to the same server. When a server is removed, only sessions that were pinned to it get disrupted.
+
+---
+
+## Complete Production Load Balancer Configuration
+
+```nginx
+# /etc/nginx/conf.d/production-lb.conf
+
+upstream web_app {
+    least_conn;
+
+    server 10.0.0.1:8080 weight=2 max_fails=2 fail_timeout=20s;
+    server 10.0.0.2:8080 weight=2 max_fails=2 fail_timeout=20s;
+    server 10.0.0.3:8080 weight=1 max_fails=2 fail_timeout=20s;
+    server 10.0.0.4:8080 backup;
+
+    keepalive 64;
+    keepalive_timeout 60s;
+    keepalive_requests 2000;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name app.example.com;
+
+    ssl_certificate     /etc/ssl/certs/app.crt;
+    ssl_certificate_key /etc/ssl/private/app.key;
+    ssl_protocols       TLSv1.2 TLSv1.3;
+
+    location / {
+        proxy_pass         http://web_app;
+        proxy_http_version 1.1;
+        proxy_set_header   Connection "";
+        proxy_set_header   Host              $host;
+        proxy_set_header   X-Real-IP         $remote_addr;
+        proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto $scheme;
+
+        proxy_connect_timeout 3s;
+        proxy_read_timeout    30s;
+        proxy_send_timeout    10s;
+
+        # Retry on failure, but not on POST (would duplicate mutations)
+        proxy_next_upstream error timeout http_502 http_503;
+        proxy_next_upstream_tries 2;
+        proxy_next_upstream_timeout 5s;
+    }
+
+    # Real-time upstream state dashboard
+    location /upstream_status {
+        check_status;
+        access_log off;
+        allow 10.0.0.0/8;
+        deny  all;
+    }
+}
 ```
 
 ---
 
-## 4. Pure Escaped CLI Snippets (Production Operations)
+## CLI Reference
 
-### 1. Simulate Upstream Server Failure and Failover
-Test failover response using cURL:
 ```bash
-curl -I http://localhost/ 2>/dev/null || true
+# Test upstream connectivity from NGINX host
+curl -v http://10.0.0.1:8080/health
+
+# Watch live connection distribution across backends
+watch -n 1 'ss -tn | grep :8080 | awk "{print \$5}" | sort | uniq -c'
+
+# Reload NGINX after upstream changes (zero downtime)
+nginx -t && nginx -s reload
+
+# Temporarily remove a server for maintenance by marking it down
+# Edit nginx.conf, set server ... down;
+nginx -s reload
+
+# Confirm round-robin weight distribution from access log
+awk '{print $8}' /var/log/nginx/access.log | sort | uniq -c | sort -rn | head -5
 ```
 
-### 2. Benchmark Load Balanced Upstream Throughput
-Simulate 10,000 requests over 100 concurrent connections:
-```bash
-hey -n 10000 -c 100 http://localhost/ 2>/dev/null || true
+---
+
+## FinOps: Load Balancer Cost Optimization
+
+Running 3 application servers behind NGINX on EC2 instead of using an AWS Application Load Balancer (ALB) saves approximately $16-22/month per ALB. For a deployment with 10 environments (dev, staging, prod × 3 regions), eliminating managed load balancers saves around $200/month, while also removing per-LCU pricing that appears during traffic spikes.
+
+Configuring `keepalive 64` on the upstream pool eliminates the TCP handshake cost for every proxied request. At 5,000 req/sec, this reduces backend CPU utilization by 12-18%, allowing you to downsize backend instances by one tier (e.g., c5.xlarge → c5.large, saving $73/month per instance).
+
+---
+
+## Troubleshooting
+
+**Problem: 502 errors during deployment when rolling a backend**
+
+Root cause: NGINX probes the new instance before it finishes starting. The `max_fails=1 fail_timeout=5s` defaults are too aggressive for slow-starting JVM or Python applications.
+
+Fix: Give the application more time and more tolerance before marking it failed.
+```nginx
+server 10.0.0.1:8080 max_fails=5 fail_timeout=60s;
 ```
+Also use `proxy_next_upstream error timeout http_502 http_503;` so failing requests retry on a different server automatically.
 
----
+**Problem: One backend receives far more connections than others under `least_conn`**
 
-## 5. Detailed Sub-Components
+Root cause: That server has faster responses, so its connection count stays lower, attracting more new requests in a feedback loop.
 
-### Ketama Consistent Hash Ring
-* **Role & Function**: Continuum ring assigning keys to nodes with minimal cache invalidation upon cluster scaling.
-* **Inspection Command**:
-  ```bash
-  echo 'Ketama ring active'
-  ```
+Fix: Switch to weighted round robin. `least_conn` works best when request durations are uniformly distributed.
 
-### Passive Health Check State Tracker
-* **Role & Function**: Monitors HTTP error status codes and triggers automated node eviction.
-* **Inspection Command**:
-  ```bash
-  echo 'Health checker active'
-  ```
+**Problem: Session data lost when a backend fails**
 
----
+Root cause: IP hash or cookie hash was routing a user to a server that is now down. NGINX has no choice but to send that user to a different server which has no session data.
 
-## References
-
-### Official Documentation
-* [Nginx HTTP Upstream Module Reference](https://nginx.org/en/docs/http/ngx_http_upstream_module.html) - Official technical manual.
-* [Nginx Load Balancing Guide](https://docs.nginx.com/nginx/admin-guide/load-balancer/http-load-balancer/) - Official technical manual.
-* [Nginx Next Upstream Directive](https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_next_upstream) - Official technical manual.
-* [RFC 7230: HTTP Load Balancing Protocols](https://datatracker.ietf.org/doc/html/rfc7230) - Official technical manual.
-* [Linux man-pages: ip_hash algorithms](https://man7.org/linux/man-pages/man7/ip.7.html) - Official technical manual.
-
-### Authoritative Engineering Blogs & Tutorials
-* [Andrew Alexeev: Choosing the Right Load Balancing Algorithm](https://www.nginx.com/blog/) - Industry standard analysis.
-* [Julia Evans: How Load Balancers Work](https://jvns.ca/) - Industry standard analysis.
-* [Brendan Gregg: Load Balancer Latency Benchmarks](https://www.brendangregg.com/) - Industry standard analysis.
-* [Baeldung on Linux: Nginx Load Balancing Strategies](https://www.baeldung.com/linux/nginx-load-balancing) - Industry standard analysis.
-* [Cloudflare: Building Layer 7 Load Balancers](https://blog.cloudflare.com/) - Industry standard analysis.
-
----
-
-### FinOps & Infrastructure Resource Governance in Load Balancing
-
-*Intelligent traffic distribution prevents compute resource starvation.*
-
-#### 1. Least-Connections Prevents Head-of-Line Server Stalls
-On APIs with mixed workloads (fast 2ms health checks vs slow 5-second report queries), simple Round-Robin causes slow requests to pile up on random instances, causing CPU throttling. `least_conn` routes heavy requests to idle servers, keeping cluster CPU utilization perfectly balanced and preventing premature autoscaling.
-
-#### 2. Backup Node Configuration Cuts 24/7 Compute Spend
-Instead of provisioning 10 active servers to handle rare peak traffic bursts, provision 4 active servers and 1 standby `backup` server (or spot instance), reducing monthly baseline compute spend by 50%.
-
-#### 3. Automatic Next-Upstream Retry Eliminates Lost Transactions
-Configuring `proxy_next_upstream error timeout http_502 http_503;` ensures that if a backend node crashes during deployment, the user request is transparently retried on a healthy node in milliseconds, preventing customer transaction loss.
+Fix: Move session storage out of server memory into a shared store (Redis with `ioredis`, PostgreSQL sessions). Then session persistence directives become irrelevant — any server can serve any user.

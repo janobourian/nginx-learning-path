@@ -1,153 +1,282 @@
 # Module 07: Rate Limiting, Concurrency Controls & DDoS Mitigation
-**Category:** Traffic Shaping, Rate Limiting & DDoS Defense
-**Status:** ✅ Completed
+
+**Track:** Enterprise NGINX  
+**Category:** Traffic Control & Attack Mitigation
 
 ---
 
-## 1. High-Level Overview
-Nginx implements traffic shaping and denial-of-service mitigation using the **Leaky Bucket Algorithm** via the `ngx_http_limit_req_module` and concurrency connection limits via the `ngx_http_limit_conn_module`. These controls protect backend application servers against brute-force credential stuffing, API scraping, and Layer 7 DDoS attacks.
+## The Problem Rate Limiting Solves
 
-### 👔 Executive Summary (For Managers & Non-Technical Stakeholders)
-* **Business Purpose**: Protects web applications and login pages against brute-force password guessing, automated scraping bots, and denial-of-service (DDoS) attacks.
-* **How It Works**: Enforces strict rate limits (e.g. max 5 requests per second per IP) while allowing brief, natural traffic bursts without blocking real users.
-* **Key Business Value & Use Cases**: Prevents server outages during cyberattacks, ensures fair resource sharing, and maintains 100% service uptime for legitimate customers.
+Without rate limiting, a single client — whether a malfunctioning mobile app retrying aggressively, a scraper, or an attacker — can issue thousands of requests per second, consuming all your backend capacity and degrading service for everyone else. NGINX rate limiting enforces a maximum request rate per client before requests reach your backend.
+
+NGINX implements rate limiting using the **leaky bucket algorithm**: requests fill a virtual bucket at whatever rate they arrive. The bucket drains at a fixed rate (your configured limit). When the bucket overflows, NGINX either queues the excess or rejects it immediately with a 429 status.
 
 ---
 
-## 📌 Foundations, Notes & Original Snippets (Original Notes)
+## The `limit_req_zone` and `limit_req` Directives
 
-### Rate Limiting & Connection Limits (Original Notes)
-* Rate limit zone: `limit_req_zone $binary_remote_addr zone=api_limit:10m rate=10r/s;`
-* Application in location: `limit_req zone=api_limit burst=20 nodelay;`
-* Connection limit: `limit_conn_zone $binary_remote_addr zone=addr_limit:10m;`
-* Status codes: `limit_req_status 429;`
+Rate limiting requires two parts: defining the zone in `http {}`, then applying it in `location {}`.
 
----
-
-## 2. Technical Deep Dive & Architecture
-
-### 1. The Leaky Bucket Algorithm
-Nginx models rate limiting as a bucket with a fixed leakage rate:
-- Water (requests) enters at variable speed.
-- Water leaks out at a constant rate ($r$ requests/second).
-- If incoming requests exceed bucket capacity (**burst**), excess water overflows and Nginx rejects requests with HTTP 429 (Too Many Requests) or HTTP 503.
-
-### 2. The `burst` and `nodelay` Flags
-- `limit_req zone=api rate=5r/s;`: Strictly permits 1 request every 200ms. An HTML page loading 4 images simultaneously triggers 3 errors!
-- `limit_req zone=api burst=10;`: Permits up to 10 requests to queue in memory, delaying them so they execute at 5r/s.
-- `limit_req zone=api burst=10 nodelay;`: Processes all 10 burst requests **instantly** with zero delay, but rejects any subsequent 11th request until the bucket leaks!
-
----
-
-## 3. Hands-On Step-by-Step Production Lab
-
-### Step 1: Configure Layer 7 Rate Limiting and Brute-Force Protection
-Write rate limiting configuration:
 ```nginx
-# 10MB zone tracks ~160,000 distinct IP addresses in binary format
-limit_req_zone $binary_remote_addr zone=login_limit:10m rate=2r/s;
-limit_req_zone $binary_remote_addr zone=general_api:10m rate=20r/s;
-limit_conn_zone $binary_remote_addr zone=conn_limit:10m;
+http {
+    # Define a shared memory zone to track request rates
+    # Key: $binary_remote_addr — the client IP in compact 4-byte binary form
+    #      (more memory-efficient than $remote_addr which stores the string)
+    # zone=api_limit:10m — name "api_limit", 10MB of memory
+    #      10MB stores about 160,000 IPv4 addresses simultaneously
+    # rate=10r/s — allow 10 requests per second per IP address
+    limit_req_zone $binary_remote_addr zone=api_limit:10m rate=10r/s;
+
+    # A second zone for login endpoints — tighter limit
+    limit_req_zone $binary_remote_addr zone=login_limit:10m rate=5r/m;
+
+    # Zone keyed by API key from header, not IP
+    # Allows fair limiting per authenticated client, not per NAT exit point
+    limit_req_zone $http_x_api_key zone=apikey_limit:20m rate=100r/s;
+}
 
 server {
-    listen 80;
+    listen 443 ssl;
     server_name api.example.com;
 
-    limit_req_status 429;
-    limit_conn_status 429;
+    location /api/ {
+        # Apply the rate limit
+        # burst=20 — allow up to 20 excess requests to be queued
+        #            before returning 429
+        # nodelay — process queued burst requests immediately rather than
+        #           spreading them out over time (reduces latency for burst)
+        limit_req zone=api_limit burst=20 nodelay;
 
-    # Sensitive authentication route
-    location /api/auth/login {
-        limit_req zone=login_limit burst=5 nodelay;
-        limit_conn conn_limit 5; # Max 5 concurrent TCP connections per IP
-
-        proxy_pass http://127.0.0.1:8000;
-        proxy_http_version 1.1;
-        proxy_set_header Connection "";
+        proxy_pass http://backend;
     }
 
-    # General API route
-    location /api/ {
-        limit_req zone=general_api burst=40 nodelay;
-        proxy_pass http://127.0.0.1:8000;
-        proxy_http_version 1.1;
-        proxy_set_header Connection "";
+    location /auth/login {
+        # Login: 5 attempts per minute, no burst queue
+        limit_req zone=login_limit burst=2;
+
+        # Return 429 Too Many Requests (not the default 503)
+        limit_req_status 429;
+
+        proxy_pass http://auth_backend;
     }
 }
 ```
 
-### Step 2: Validate Syntax
-Test configuration:
-```bash
-nginx -t
+---
+
+## Understanding `burst` and `nodelay`
+
+The **leaky bucket** allows the rate to smooth out, but in practice APIs receive traffic in bursts. A mobile app might send 5 requests nearly simultaneously when the user opens a screen.
+
+Without `burst`: all excess requests beyond the rate are immediately rejected.
+
+With `burst=20`: up to 20 excess requests are queued and processed in order. If 25 requests arrive simultaneously at 10r/s, 10 are processed immediately, 20 are queued, and 5 are rejected with 429.
+
+With `nodelay`: queued burst requests are forwarded immediately rather than being drip-fed at the configured rate. This means a burst of 30 requests (within the burst allowance) all go to the backend quickly, but the tokens are consumed. A second burst within the refill window gets rejected.
+
+```
+Without nodelay:           With nodelay:
+Req 1  → processed         Req 1  → processed immediately
+Req 2  → queued (100ms)    Req 2  → processed immediately
+Req 3  → queued (200ms)    Req 3  → processed immediately
+...                         ...
+Req 11 → 429               Req 11 → 429
+```
+
+Use `nodelay` for interactive APIs. Use without it for background jobs where smoothing is acceptable.
+
+---
+
+## Connection Limiting with `limit_conn`
+
+`limit_req` limits request **rate**. `limit_conn` limits **simultaneous connections** from a single client — useful for preventing a single IP from opening hundreds of keepalive connections.
+
+```nginx
+http {
+    # Track simultaneous connections per IP
+    limit_conn_zone $binary_remote_addr zone=conn_limit:10m;
+}
+
+server {
+    location /api/ {
+        # Maximum 20 simultaneous connections from one IP
+        limit_conn conn_limit 20;
+
+        # Apply both connection and rate limits together
+        limit_req zone=api_limit burst=20 nodelay;
+
+        proxy_pass http://backend;
+    }
+}
 ```
 
 ---
 
-## 4. Pure Escaped CLI Snippets (Production Operations)
+## Blocking Bad Actors by IP, User-Agent, and Referrer
 
-### 1. Test Rate Limiter HTTP 429 Rejection with cURL
-Simulate rapid burst requests:
-```bash
-for i in {1..10}; do
-    curl -s -o /dev/null -w "%{http_code}
-" http://localhost/api/auth/login
-done 2>/dev/null || true
+```nginx
+# Block specific IP addresses or ranges
+geo $blocked_ip {
+    default 0;
+    10.0.0.50     1;        # Single IP
+    192.168.1.0/24 1;       # Entire subnet
+    2001:db8::/32  1;       # IPv6 range
+}
+
+# Block by User-Agent string
+map $http_user_agent $blocked_agent {
+    default         0;
+    "~*scrapy"      1;
+    "~*python-requests" 1;
+    "~*curl"        0;      # Allow curl (for your own health checks)
+}
+
+server {
+    if ($blocked_ip)    { return 444; }   # 444: close connection silently
+    if ($blocked_agent) { return 403; }
+
+    location /api/ {
+        limit_req zone=api_limit burst=20 nodelay;
+        proxy_pass http://backend;
+    }
+}
 ```
 
-### 2. Inspect Nginx Error Log for Rate Limit Drops
-Filter limiting log events:
-```bash
-grep "limiting requests" /var/log/nginx/error.log 2>/dev/null || true
+Return code 444 (NGINX-specific) closes the TCP connection without sending any response, conserving bandwidth against scanners.
+
+---
+
+## DDoS Mitigation Layers in NGINX
+
+NGINX cannot replace a true DDoS mitigation service (Cloudflare, AWS Shield) for volumetric attacks that saturate your network interface. What NGINX can do is defend against **application-layer (Layer 7) attacks** — floods of semantically valid HTTP requests.
+
+```nginx
+http {
+    # 1. Rate limit per IP
+    limit_req_zone $binary_remote_addr zone=per_ip:20m rate=30r/s;
+
+    # 2. Global rate limit across all clients combined
+    limit_req_zone $server_name zone=per_server:5m rate=10000r/s;
+
+    # 3. Limit request body size — prevents slow POST body attacks
+    client_max_body_size 1m;
+
+    # 4. Client header and body read timeouts — closes slow-read connections
+    client_header_timeout 10s;
+    client_body_timeout   15s;
+
+    # 5. Close connections where the client reads the response slowly
+    send_timeout 10s;
+
+    server {
+        # Apply both rate limits
+        limit_req zone=per_ip     burst=50  nodelay;
+        limit_req zone=per_server burst=500 nodelay;
+
+        location / {
+            proxy_pass http://backend;
+        }
+
+        # Return 444 (no response) for suspicious URIs
+        location ~* \.(php|asp|aspx|jsp)$ {
+            return 444;
+        }
+
+        # Block common scanner paths immediately
+        location ~* /(wp-admin|phpmyadmin|\.env|\.git) {
+            return 444;
+        }
+    }
+}
 ```
 
 ---
 
-## 5. Detailed Sub-Components
+## GeoIP-Based Rate Limiting and Blocking
 
-### Binary Remote Addr Storage ($binary_remote_addr)
-* **Role & Function**: Stores client IPv4 in 4 bytes (or IPv6 in 16 bytes) rather than 15-byte string, saving 75% RAM.
-* **Inspection Command**:
-  ```bash
-  echo 'Binary remote addr active'
-  ```
+With `ngx_http_geoip_module` and MaxMind GeoIP2 databases:
 
-### Leaky Bucket Shaper (ngx_http_limit_req_module)
-* **Role & Function**: High-performance lockless rate limiting engine in shared memory.
-* **Inspection Command**:
-  ```bash
-  echo 'Limit req active'
-  ```
+```nginx
+http {
+    geoip2 /etc/nginx/GeoLite2-Country.mmdb {
+        $geoip_country_code default=XX source=$remote_addr country iso_code;
+    }
 
----
+    map $geoip_country_code $allowed_country {
+        default 0;
+        US      1;
+        CA      1;
+        GB      1;
+        DE      1;
+    }
+}
 
-## References
-
-### Official Documentation
-* [Nginx Rate Limiting Module Reference](https://nginx.org/en/docs/http/ngx_http_limit_req_module.html) - Official technical manual.
-* [Nginx Connection Limiting Module Reference](https://nginx.org/en/docs/http/ngx_http_limit_conn_module.html) - Official technical manual.
-* [Nginx Blog: Rate Limiting with NGINX](https://www.nginx.com/blog/rate-limiting-nginx/) - Official technical manual.
-* [RFC 6585: Additional HTTP Status Codes (429 Too Many Requests)](https://datatracker.ietf.org/doc/html/rfc6585) - Official technical manual.
-* [OWASP Automated Threats to Web Applications](https://owasp.org/www-project-automated-threats-to-web-applications/) - Official technical manual.
-
-### Authoritative Engineering Blogs & Tutorials
-* [Andrew Alexeev: Mitigating DDoS Attacks with NGINX](https://www.nginx.com/blog/mitigating-ddos-attacks-with-nginx-and-nginx-plus/) - Industry standard analysis.
-* [Julia Evans: How Rate Limiting Works](https://jvns.ca/) - Industry standard analysis.
-* [Cloudflare: How Rate Limiting Protects APIs](https://blog.cloudflare.com/) - Industry standard analysis.
-* [Baeldung on Linux: Rate Limiting in Nginx](https://www.baeldung.com/linux/nginx-rate-limiting) - Industry standard analysis.
-* [Red Hat: Protecting Web Applications with Nginx Limits](https://www.redhat.com/sysadmin/) - Industry standard analysis.
+server {
+    location /api/ {
+        if ($allowed_country = 0) {
+            return 403 "Access restricted to supported regions.";
+        }
+        proxy_pass http://backend;
+    }
+}
+```
 
 ---
 
-### FinOps & Infrastructure Resource Governance in Traffic Shaping
+## CLI: Monitoring Rate Limit Events
 
-*Rate limiting protects cloud infrastructure budgets against billing attacks and scrapers.*
+```bash
+# Count rate limit rejections (503 or 429) in real time
+tail -f /var/log/nginx/access.log \
+    | awk '$9 == "429" || $9 == "503" {print $1, $9}'
 
-#### 1. Mitigating Economic Denial of Sustainability (EDoS) Attacks
-Malicious bots scraping un-rate-limited search or AI endpoints can trigger thousands of expensive backend cloud database queries and LLM API calls, running up thousands of dollars in billable cloud charges overnight. Strict rate limiting at the Nginx edge drops malicious traffic before it touches billable backend APIs.
+# Find top IP addresses being rate limited
+grep " 429 " /var/log/nginx/access.log \
+    | awk '{print $1}' \
+    | sort | uniq -c | sort -rn | head -20
 
-#### 2. Memory Footprint Optimization via `$binary_remote_addr`
-Using `$binary_remote_addr` instead of `$remote_addr` stores client IPs in 4 bytes (IPv4) or 16 bytes (IPv6) rather than 7-15 byte ASCII strings. A 10MB shared memory zone can track over 160,000 distinct concurrent client IP addresses, eliminating the need to purchase larger RAM server instances.
+# Watch error log for limit_req events
+tail -f /var/log/nginx/error.log \
+    | grep "limiting requests"
 
-#### 3. Graceful Load Shedding Under Peak Traffic
-During Black Friday or viral events, returning lightweight HTTP 429 responses from Nginx's shared memory consumes negligible CPU, preventing backend application crashes and eliminating emergency server over-provisioning.
+# Current connection counts per remote IP (from NGINX status)
+curl -s http://127.0.0.1:8080/nginx_status
+```
+
+---
+
+## FinOps: Rate Limiting Reduces Backend Over-Provisioning
+
+Without rate limiting, backend capacity must be sized for worst-case client misbehavior — a single script can trigger the need to scale out. With per-IP limits of 30r/s, a single client generating 10,000 req/s contributes only 30r/s to backend load. This means backend capacity can be sized for legitimate peak traffic only, reducing over-provisioning costs.
+
+For a Node.js API cluster on AWS, rate limiting at NGINX often allows running 3 backend instances during normal traffic instead of 8 instances sized for abuse scenarios — saving approximately $800/month on `t3.large` instances.
+
+---
+
+## Troubleshooting Rate Limiting
+
+**Legitimate users getting 429 errors**
+
+Your `rate` is too strict or your `burst` is too small for the actual usage pattern. Check what your legitimate clients actually do:
+
+```bash
+# Find max burst per IP in a 1-second window
+awk '{print $4, $1}' /var/log/nginx/access.log \
+    | awk '{gsub(/\[/,"",$1); print $1, $2}' \
+    | sort | uniq -c | sort -rn | head -30
+```
+
+Set `burst` to cover your 99th percentile legitimate burst size.
+
+**Rate limiting not working — attackers still getting through**
+
+If the attacker is using many different IP addresses (a botnet), per-IP rate limiting is insufficient. Add a global `per_server` zone as shown above, or use Cloudflare or AWS WAF to apply challenge pages and IP reputation filtering upstream.
+
+**`limit_req_zone` running out of memory**
+
+NGINX logs: `ngx_http_limit_req_module: zone "api_limit" ran out of memory`. Increase the zone size or reduce the `inactive` timeout for entries:
+
+```nginx
+# 10m holds ~160,000 IPs. 50m holds ~800,000 IPs.
+limit_req_zone $binary_remote_addr zone=api_limit:50m rate=10r/s;
+```
