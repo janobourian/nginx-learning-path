@@ -1,1527 +1,244 @@
-# Unit Testing with Angular TestBed & Jasmine
-Track 9: Angular Signals Platform & Ivy Architecture
-Category: Web Development Frameworks
+# Module 18: Unit Testing Standalone Components, Signals & `TestBed`
 
-## 1. Opening: Beginner to Expert Progression
-Welcome to Unit Testing with Angular TestBed & Jasmine. Angular is a modern web development platform and framework built by Google. At its core, Angular allows developers to build robust, scalable Single Page Applications (SPAs) using TypeScript, HTML, and CSS. A component in Angular is the fundamental building block of the UI—it encapsulates the template (HTML), the styles (CSS), and the logic (TypeScript).
+**Track:** Angular — Signals Platform & Ivy Architecture  
+**Category:** Testing Architecture, TestBed & Signal Verification
 
-Why TestBed & Jasmine matters: In enterprise environments, efficiency, maintainability, and performance are critical. By mastering TestBed & Jasmine, you unlock the ability to write scalable applications that handle complex data flows without memory leaks or UI jank.
+---
 
-```mermaid
-graph TD;
-    A[Root Component] --> B[Child Component 1];
-    A --> C[Child Component 2];
-    B --> D[Signal State];
-    C --> E[RxJS Stream];
-    D --> F[DOM Update];
-    E --> F;
-```
+## 1. Testing Standalone Components with `TestBed`
 
-## 2. Core API Dictionary
-| API | Signature | Description |
-|---|---|---|
-| `ng new` | `ng new <project> --standalone` | Generates a new Angular workspace. |
-| `signal()` | `signal<T>(initialValue: T)` | Creates a writable signal. |
-| `computed()` | `computed<T>(computation: () => T)` | Creates a declarative, memoized reactive value. |
-| `effect()` | `effect(effectFn: () => void)` | Schedules a side-effect to run when dependencies change. |
-| `input()` | `input<T>()` | Defines a reactive input for a component. |
-| `model()` | `model<T>()` | Defines a two-way bindable reactive input. |
-| `output()` | `output<T>()` | Defines an event emitter using signal-based APIs. |
-| `inject()` | `inject<T>(token: ProviderToken<T>)` | Injects a dependency contextually. |
-| `@Component` | `@Component({ standalone: true, ... })` | Decorator marking a class as an Angular component. |
-| `@Injectable`| `@Injectable({ providedIn: 'root' })` | Marks a class as available for dependency injection. |
-| `switchMap()`| `switchMap(project: (val) => Observable)` | RxJS operator: Maps to observable, cancels previous. |
-| `mergeMap()` | `mergeMap(project: (val) => Observable)` | RxJS operator: Maps to observable, merges concurrently. |
-| `catchError()`| `catchError(selector: (err) => Observable)` | RxJS operator: Catches errors on the observable sequence. |
-| `HttpClient` | `class HttpClient` | Performs HTTP requests. |
-| `FormGroup`  | `class FormGroup` | Tracks the value and validity state of a group of form controls. |
-| `viewChild()`| `viewChild(selector)` | Query a single child element as a signal. |
-| `ɵɵdefineComponent` | `ɵɵdefineComponent(...)` | Ivy AOT compiler instruction for defining components. |
-| `ApplicationRef.tick()` | `tick()` | Manually triggers change detection. |
-
-## 3. Technical Deep Dive
-Angular's Ivy compiler transforms components into a series of instructions that mutate the DOM. Instead of a monolithic Virtual DOM comparison, Ivy's instruction pipeline is highly granular.
-
-When combined with Signals (Angular 16+), the framework moves from a pull-based zone.js model to a push/pull hybrid DAG. A Signal is a wrapper around a value that can notify interested consumers when that value changes.
-
-## 4. Beginner Step-by-Step Tutorial
-Let's build our first component using TestBed & Jasmine.
+In modern Angular, configuring tests with `TestBed` is streamlined because components are standalone. You simply import the component directly under `imports: [...]` without configuring mock NgModules:
 
 ```typescript
-import { Component, signal } from '@angular/core';
+// src/app/features/users/user-card.component.spec.ts
+import { ComponentFixture, TestBed } from "@angular/core/testing";
+import { UserCardComponent } from "./user-card.component";
+import { By } from "@angular/platform-browser";
 
-@Component({
-  selector: 'app-hello',
-  standalone: true,
-  template: `
-    <div>
-      <h1>Hello, {{ name() }}!</h1>
-      <button (click)="updateName()">Change Name</button>
-    </div>
-  `
-})
-export class HelloComponent {
-  // 1. Define a signal
-  name = signal('World');
+describe("UserCardComponent", () => {
+  let component: UserCardComponent;
+  let fixture: ComponentFixture<UserCardComponent>;
 
-  // 2. Update the signal
-  updateName() {
-    this.name.set('Angular 17+');
-  }
-}
-```
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      // Import standalone component directly:
+      imports: [UserCardComponent],
+    }).compileComponents();
 
-## 5. Intermediate Lab
-In this lab, we connect TestBed & Jasmine to a realistic service.
-
-```typescript
-import { Component, inject, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { toSignal } from '@angular/core/rxjs-interop';
-
-@Component({
-  selector: 'app-data',
-  standalone: true,
-  template: `
-    @if (data()) {
-      <div>Data loaded: {{ data() | json }}</div>
-    } @else {
-      <p>Loading...</p>
-    }
-  `
-})
-export class DataComponent {
-  private http = inject(HttpClient);
-  // Convert RxJS to Signal
-  data = toSignal(this.http.get('/api/data'));
-}
-```
-
-## 6. Production Lab (Advanced)
-For enterprise applications, TestBed & Jasmine requires robust error handling and strict typing.
-
-```typescript
-import { ErrorHandler, Injectable } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class GlobalErrorHandler implements ErrorHandler {
-  handleError(error: any): void {
-    console.error('Production Error Intercepted:', error);
-    // Send to logging service
-  }
-}
-```
-
-## 7. CLI Reference
-- `ng new my-app --standalone`: Create a modern standalone app.
-- `ng generate component my-cmp`: Scaffolds a new component.
-- `ng build --configuration production`: Compiles the app with AOT and tree-shaking.
-- `ng test`: Runs Jasmine/Karma tests.
-
-## 8. FinOps & Cloud Cost Analysis
-Utilizing SSR (Server-Side Rendering) with hydration can reduce Time to Interactive (TTI), lowering bounce rates. However, Node.js SSR servers cost compute. By utilizing efficient Change Detection (Zoneless/Signals), CPU cycles on the server are reduced by roughly 15-20%, leading to smaller auto-scaling groups and lower AWS/GCP bills.
-
-## 9. Troubleshooting Guide
-1. **Anti-pattern**: Mutating signal objects directly.
-   **Symptom**: `computed` values don't update.
-   **Fix**: Always use `.update()` or `.set()` and create a new object reference.
-2. **Anti-pattern**: Nested `subscribe()` in RxJS.
-   **Symptom**: Callback hell, memory leaks.
-   **Fix**: Use operators like `switchMap`.
-3. **Anti-pattern**: Forgetting `track` in `@for`.
-   **Symptom**: DOM elements are destroyed and recreated instead of reused.
-   **Fix**: Add `@for (item of items; track item.id)`.
-
-## 10. References
-1. [Angular Official Docs: Signals](https://angular.dev/guide/signals)
-2. [Angular Official Docs: Standalone Components](https://angular.dev/guide/standalone-components)
-3. [Angular Official Docs: Control Flow](https://angular.dev/guide/control-flow)
-4. [Angular Official Docs: Dependency Injection](https://angular.dev/guide/di)
-5. [Angular Official Docs: HttpClient](https://angular.dev/guide/http)
-6. [Nrwl/Nx Engineering Blog](https://nx.dev/blog)
-7. [Google Developers Blog: Angular](https://developers.googleblog.com/search/label/Angular)
-8. [Auth0 Blog: Angular Authentication](https://auth0.com/blog/angular/)
-9. [Cypress Blog: Angular Component Testing](https://www.cypress.io/blog/)
-10. [Vercel Blog: Deploying Angular SSR](https://vercel.com/blog)
-
-
-### Deep Dive Segment 1: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 0
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager0 {
-  private state = signal({ active: true, count: 0 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
+    fixture = TestBed.createComponent(UserCardComponent);
+    component = fixture.componentInstance;
   });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
+
+  it("should create the component instance", () => {
+    expect(component).toBeTruthy();
+  });
+});
 ```
 
-### Deep Dive Segment 2: Advanced Concepts in TestBed & Jasmine
+---
 
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
+## 2. Testing Signal Inputs (`fixture.componentRef.setInput()`)
+
+When testing components that use `input()` or `input.required()`, use **`fixture.componentRef.setInput()`** to simulate parent input updates and trigger signal re-computation:
 
 ```typescript
-// Sample architecture code block 1
-import { Injectable, signal, computed } from '@angular/core';
+// src/app/shared/components/badge.component.spec.ts
+import { ComponentFixture, TestBed } from "@angular/core/testing";
+import { BadgeComponent } from "./badge.component";
 
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager1 {
-  private state = signal({ active: true, count: 1 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
+describe("BadgeComponent (Signal Inputs)", () => {
+  let fixture: ComponentFixture<BadgeComponent>;
+  let component: BadgeComponent;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [BadgeComponent],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(BadgeComponent);
+    component = fixture.componentInstance;
   });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
+
+  it("should calculate computed uppercase label when signal input changes", () => {
+    // 1. Set the signal input using setInput:
+    fixture.componentRef.setInput("label", "production-ready");
+    fixture.detectChanges();
+
+    // 2. Assert component computed signal:
+    expect(component.formattedLabel()).toBe("PRODUCTION-READY");
+
+    // 3. Assert rendered DOM text:
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector(".badge-text")?.textContent).toContain("PRODUCTION-READY");
+  });
+
+  it("should apply active CSS class when boolean input is true", () => {
+    fixture.componentRef.setInput("isActive", true);
+    fixture.detectChanges();
+
+    const badgeEl = fixture.nativeElement.querySelector(".badge");
+    expect(badgeEl.classList.contains("badge--active")).toBeTrue();
+  });
+});
 ```
 
-### Deep Dive Segment 3: Advanced Concepts in TestBed & Jasmine
+---
 
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
+## 3. Mocking HTTP Requests with `provideHttpClientTesting()`
+
+To test services and components that consume `HttpClient`, use the modern **`provideHttpClientTesting()`** provider:
 
 ```typescript
-// Sample architecture code block 2
-import { Injectable, signal, computed } from '@angular/core';
+// src/app/core/services/user.service.spec.ts
+import { TestBed } from "@angular/core/testing";
+import { provideHttpClient } from "@angular/common/http";
+import { provideHttpClientTesting, HttpTestingController } from "@angular/common/http/testing";
+import { UserService, User } from "./user.service";
 
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager2 {
-  private state = signal({ active: true, count: 2 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
+describe("UserService (HTTP Mocking)", () => {
+  let service: UserService;
+  let httpMock: HttpTestingController;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        UserService,
+        provideHttpClient(),
+        provideHttpClientTesting(), // ◄── Injects HttpTestingController!
+      ],
+    });
+
+    service = TestBed.inject(UserService);
+    httpMock = TestBed.inject(HttpTestingController);
   });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
+
+  afterEach(() => {
+    // Verify that there are no unhandled / outstanding HTTP requests:
+    httpMock.verify();
+  });
+
+  it("should fetch user by ID via GET request", () => {
+    const mockUser: User = { id: "u_101", name: "Alice Chen", email: "alice@acme.com" };
+
+    service.getUserById("u_101").subscribe((user) => {
+      expect(user).toEqual(mockUser);
+      expect(user.name).toBe("Alice Chen");
+    });
+
+    // Expect an outgoing request to /api/users/u_101:
+    const req = httpMock.expectOne("/api/users/u_101");
+    expect(req.request.method).toBe("GET");
+
+    // Flush the mock response:
+    req.flush(mockUser);
+  });
+
+  it("should handle HTTP 500 error gracefully", () => {
+    service.getUserById("u_999").subscribe({
+      next: () => fail("Expected an error, but received success response"),
+      error: (error) => {
+        expect(error.status).toBe(500);
+      },
+    });
+
+    const req = httpMock.expectOne("/api/users/u_999");
+    req.flush("Server Error", { status: 500, statusText: "Internal Server Error" });
+  });
+});
 ```
 
-### Deep Dive Segment 4: Advanced Concepts in TestBed & Jasmine
+---
 
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
+## 4. Testing Asynchronous Timers with `fakeAsync` & `tick()`
+
+When testing debounced search inputs, polling timers, or `setTimeout` delays:
 
 ```typescript
-// Sample architecture code block 3
-import { Injectable, signal, computed } from '@angular/core';
+// src/app/features/search/search-input.component.spec.ts
+import { fakeAsync, tick, TestBed } from "@angular/core/testing";
+import { SearchInputComponent } from "./search-input.component";
 
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager3 {
-  private state = signal({ active: true, count: 3 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
+describe("SearchInputComponent (fakeAsync)", () => {
+  it("should debounce search queries by 300ms", fakeAsync(() => {
+    const fixture = TestBed.createComponent(SearchInputComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    spyOn(component.searchSubmitted, "emit");
+
+    // Simulate typing:
+    component.onInputChange("angular signals");
+
+    // Advance virtual clock by 200ms (Debounce has NOT elapsed yet!):
+    tick(200);
+    expect(component.searchSubmitted.emit).not.toHaveBeenCalled();
+
+    // Advance clock by remaining 100ms (Total: 300ms):
+    tick(100);
+    expect(component.searchSubmitted.emit).toHaveBeenCalledWith("angular signals");
+  }));
+});
 ```
 
-### Deep Dive Segment 5: Advanced Concepts in TestBed & Jasmine
+---
 
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
+## 5. Testing Functional Guards in Isolation
+
+Functional route guards can be tested directly within `TestBed.runInInjectionContext()`:
 
 ```typescript
-// Sample architecture code block 4
-import { Injectable, signal, computed } from '@angular/core';
+// src/app/core/guards/auth.guard.spec.ts
+import { TestBed } from "@angular/core/testing";
+import { Router, ActivatedRouteSnapshot, RouterStateSnapshot } from "@angular/router";
+import { authGuard } from "./auth.guard";
+import { AuthService } from "../services/auth.service";
 
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager4 {
-  private state = signal({ active: true, count: 4 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
+describe("authGuard", () => {
+  let authServiceMock: jasmine.SpyObj<AuthService>;
+  let routerMock: jasmine.SpyObj<Router>;
+
+  beforeEach(() => {
+    authServiceMock = jasmine.createSpyObj("AuthService", ["isAuthenticated"]);
+    routerMock = jasmine.createSpyObj("Router", ["createUrlTree"]);
+
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: AuthService, useValue: authServiceMock },
+        { provide: Router, useValue: routerMock },
+      ],
+    });
   });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
+
+  it("should allow navigation when user is authenticated", () => {
+    authServiceMock.isAuthenticated.and.returnValue(true);
+
+    const result = TestBed.runInInjectionContext(() =>
+      authGuard({} as ActivatedRouteSnapshot, { url: "/dashboard" } as RouterStateSnapshot)
+    );
+
+    expect(result).toBeTrue();
+  });
+
+  it("should redirect to /login when user is not authenticated", () => {
+    authServiceMock.isAuthenticated.and.returnValue(false);
+
+    TestBed.runInInjectionContext(() =>
+      authGuard({} as ActivatedRouteSnapshot, { url: "/dashboard" } as RouterStateSnapshot)
+    );
+
+    expect(routerMock.createUrlTree).toHaveBeenCalledWith(["/login"], {
+      queryParams: { returnUrl: "/dashboard" },
+    });
+  });
+});
 ```
 
-### Deep Dive Segment 6: Advanced Concepts in TestBed & Jasmine
+---
 
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
+## Troubleshooting & Best Practices
 
-```typescript
-// Sample architecture code block 5
-import { Injectable, signal, computed } from '@angular/core';
+1. **`TestBed.runInInjectionContext()` for Functional Helpers**
+   Because functional guards, interceptors, and custom DI composables call `inject()`, always wrap their test execution in `TestBed.runInInjectionContext(() => fn())`.
 
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager5 {
-  private state = signal({ active: true, count: 5 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 7: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 6
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager6 {
-  private state = signal({ active: true, count: 6 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 8: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 7
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager7 {
-  private state = signal({ active: true, count: 7 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 9: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 8
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager8 {
-  private state = signal({ active: true, count: 8 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 10: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 9
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager9 {
-  private state = signal({ active: true, count: 9 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 11: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 10
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager10 {
-  private state = signal({ active: true, count: 10 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 12: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 11
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager11 {
-  private state = signal({ active: true, count: 11 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 13: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 12
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager12 {
-  private state = signal({ active: true, count: 12 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 14: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 13
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager13 {
-  private state = signal({ active: true, count: 13 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 15: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 14
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager14 {
-  private state = signal({ active: true, count: 14 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 16: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 15
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager15 {
-  private state = signal({ active: true, count: 15 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 17: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 16
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager16 {
-  private state = signal({ active: true, count: 16 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 18: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 17
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager17 {
-  private state = signal({ active: true, count: 17 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 19: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 18
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager18 {
-  private state = signal({ active: true, count: 18 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 20: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 19
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager19 {
-  private state = signal({ active: true, count: 19 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 21: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 20
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager20 {
-  private state = signal({ active: true, count: 20 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 22: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 21
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager21 {
-  private state = signal({ active: true, count: 21 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 23: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 22
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager22 {
-  private state = signal({ active: true, count: 22 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 24: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 23
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager23 {
-  private state = signal({ active: true, count: 23 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 25: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 24
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager24 {
-  private state = signal({ active: true, count: 24 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 26: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 25
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager25 {
-  private state = signal({ active: true, count: 25 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 27: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 26
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager26 {
-  private state = signal({ active: true, count: 26 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 28: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 27
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager27 {
-  private state = signal({ active: true, count: 27 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 29: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 28
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager28 {
-  private state = signal({ active: true, count: 28 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 30: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 29
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager29 {
-  private state = signal({ active: true, count: 29 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 31: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 30
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager30 {
-  private state = signal({ active: true, count: 30 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 32: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 31
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager31 {
-  private state = signal({ active: true, count: 31 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 33: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 32
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager32 {
-  private state = signal({ active: true, count: 32 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 34: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 33
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager33 {
-  private state = signal({ active: true, count: 33 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 35: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 34
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager34 {
-  private state = signal({ active: true, count: 34 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 36: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 35
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager35 {
-  private state = signal({ active: true, count: 35 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 37: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 36
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager36 {
-  private state = signal({ active: true, count: 36 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 38: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 37
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager37 {
-  private state = signal({ active: true, count: 37 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 39: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 38
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager38 {
-  private state = signal({ active: true, count: 38 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 40: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 39
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager39 {
-  private state = signal({ active: true, count: 39 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 41: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 40
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager40 {
-  private state = signal({ active: true, count: 40 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 42: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 41
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager41 {
-  private state = signal({ active: true, count: 41 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 43: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 42
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager42 {
-  private state = signal({ active: true, count: 42 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 44: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 43
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager43 {
-  private state = signal({ active: true, count: 43 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 45: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 44
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager44 {
-  private state = signal({ active: true, count: 44 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 46: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 45
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager45 {
-  private state = signal({ active: true, count: 45 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 47: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 46
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager46 {
-  private state = signal({ active: true, count: 46 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 48: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 47
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager47 {
-  private state = signal({ active: true, count: 47 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 49: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 48
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager48 {
-  private state = signal({ active: true, count: 48 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 50: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 49
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager49 {
-  private state = signal({ active: true, count: 49 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 51: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 50
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager50 {
-  private state = signal({ active: true, count: 50 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 52: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 51
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager51 {
-  private state = signal({ active: true, count: 51 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 53: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 52
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager52 {
-  private state = signal({ active: true, count: 52 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 54: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 53
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager53 {
-  private state = signal({ active: true, count: 53 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 55: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 54
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager54 {
-  private state = signal({ active: true, count: 54 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 56: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 55
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager55 {
-  private state = signal({ active: true, count: 55 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 57: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 56
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager56 {
-  private state = signal({ active: true, count: 56 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 58: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 57
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager57 {
-  private state = signal({ active: true, count: 57 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 59: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 58
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager58 {
-  private state = signal({ active: true, count: 58 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 60: Advanced Concepts in TestBed & Jasmine
-
-In modern web development, TestBed & Jasmine plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 59
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class TestBedJasmineManager59 {
-  private state = signal({ active: true, count: 59 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
+2. **Never Call Real HTTP Endpoints in Tests**
+   Always include `provideHttpClientTesting()` and call `httpMock.verify()` in `afterEach` to ensure tests remain fast, deterministic, and isolated.

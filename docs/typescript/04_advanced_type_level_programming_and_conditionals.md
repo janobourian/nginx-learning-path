@@ -1,743 +1,235 @@
-# Track 5, Module 5: Advanced Type Level Programming And Conditionals
+# Module 04: Advanced Type-Level Programming & Conditional Types
 
-## 1. Opening: Beginner to Expert Progression
+**Track:** TypeScript — Enterprise Type System  
+**Category:** Type-Level Metaprogramming & Type Computation
 
-Welcome to Module 5 of the TypeScript Enterprise Type System track. In this module, we explore **Advanced Type Level Programming And Conditionals**.
+---
 
-### What is this concept?
-At its core, TypeScript provides static typing to JavaScript. This means we can catch errors at compile time rather than runtime. At its core, TypeScript provides static typing to JavaScript. This means we can catch errors at compile time rather than runtime. At its core, TypeScript provides static typing to JavaScript. This means we can catch errors at compile time rather than runtime. 
+## 1. What Are Conditional Types?
 
-### Why does this matter in real production systems?
-In enterprise applications, maintaining a clear contract between modules, APIs, and microservices is paramount. In enterprise applications, maintaining a clear contract between modules, APIs, and microservices is paramount. In enterprise applications, maintaining a clear contract between modules, APIs, and microservices is paramount. 
+In JavaScript, ternary expressions (`condition ? a : b`) perform decision logic at runtime. In TypeScript, **Conditional Types** introduce this exact same branching mechanism directly into the **type system** at compile time:
 
-### Architecture Diagram
-```text
-+---------------------------------------------------+
-|                 TypeScript System                 |
-|                                                   |
-|   +-----------------+      +------------------+   |
-|   | Type Checker    | ---> | AST Transformers |   |
-|   +-----------------+      +------------------+   |
-|            ^                         |            |
-|            |                         v            |
-|   +-----------------+      +------------------+   |
-|   | Source files    |      | JavaScript Emitter|  |
-|   +-----------------+      +------------------+   |
-+---------------------------------------------------+
+```typescript
+type ConditionalType<T, U, X, Y> = T extends U ? X : Y;
 ```
 
-## 2. Core API Dictionary Table
+If the type `T` is assignable to type `U`, the resulting type resolves to `X`; otherwise, it resolves to `Y`.
 
-| API/Directive | Type | Description |
-| --- | --- | --- |
-| `string` | type | Represents string values like 'hello' |
-| `number` | type | Represents numeric values including floats and integers |
-| `boolean` | type | Represents true or false values |
-| `unknown` | type | Type-safe counterpart of any. Anything is assignable to unknown, but unknown isn't assignable to anything but itself and any without a type assertion or a control flow based narrowing. |
-| `any` | type | Bypasses type checking. Represents any JavaScript value. |
-| `never` | type | Represents the type of values that never occur. Used for exhaustive checks. |
-| `void` | type | Represents the absence of having any type at all. Commonly used as the return type of functions that do not return a value. |
-| `typeof` | operator | Obtains the type of a variable or property. |
-| `keyof` | operator | Takes an object type and produces a string or numeric literal union of its keys. |
-| `instanceof` | operator | Tests whether the prototype property of a constructor appears anywhere in the prototype chain of an object. |
-| `in` | operator | Used in mapped types to iterate over properties, and in type guards to check if a property exists. |
-| `as` | operator | Type assertion. Tells the compiler to treat a value as a specific type. |
-| `satisfies` | operator | Validates that an expression matches some type without changing the resulting type of that expression. |
-| `is` | operator | Used in user-defined type guard return types (e.g., `value is string`). |
-| `Partial<T>` | utility type | Constructs a type with all properties of T set to optional. |
-| `Required<T>` | utility type | Constructs a type consisting of all properties of T set to required. |
-| `Readonly<T>` | utility type | Constructs a type with all properties of T set to readonly, meaning the properties of the constructed type cannot be reassigned. |
-| `Pick<T, K>` | utility type | Constructs a type by picking the set of properties K from T. |
-| `Omit<T, K>` | utility type | Constructs a type by picking all properties from T and then removing K. |
-| `Record<K, T>` | utility type | Constructs an object type whose property keys are K and whose property values are T. |
+This unlocks Turing-complete type-level metaprogramming: calculating complex return types, extracting nested generic payloads, transforming data models, and constructing compile-time logic gates.
 
-## 3. Technical Deep Dive
+---
 
-### Internals and Memory Model
-When the TypeScript compiler processes these constructs, it creates an Abstract Syntax Tree (AST). The Type Checker then walks this AST, assigning symbol tables and evaluating type assignments based on variance rules (covariance, contravariance, and bivariance). Because TypeScript is entirely erased at compile time (type erasure), there is zero runtime memory overhead associated with these types. However, during the compilation phase, complex recursive generic types or deep conditional inferences can cause memory pressure within the `tsc` Node process. When the TypeScript compiler processes these constructs, it creates an Abstract Syntax Tree (AST). The Type Checker then walks this AST, assigning symbol tables and evaluating type assignments based on variance rules (covariance, contravariance, and bivariance). Because TypeScript is entirely erased at compile time (type erasure), there is zero runtime memory overhead associated with these types. However, during the compilation phase, complex recursive generic types or deep conditional inferences can cause memory pressure within the `tsc` Node process. When the TypeScript compiler processes these constructs, it creates an Abstract Syntax Tree (AST). The Type Checker then walks this AST, assigning symbol tables and evaluating type assignments based on variance rules (covariance, contravariance, and bivariance). Because TypeScript is entirely erased at compile time (type erasure), there is zero runtime memory overhead associated with these types. However, during the compilation phase, complex recursive generic types or deep conditional inferences can cause memory pressure within the `tsc` Node process. When the TypeScript compiler processes these constructs, it creates an Abstract Syntax Tree (AST). The Type Checker then walks this AST, assigning symbol tables and evaluating type assignments based on variance rules (covariance, contravariance, and bivariance). Because TypeScript is entirely erased at compile time (type erasure), there is zero runtime memory overhead associated with these types. However, during the compilation phase, complex recursive generic types or deep conditional inferences can cause memory pressure within the `tsc` Node process. When the TypeScript compiler processes these constructs, it creates an Abstract Syntax Tree (AST). The Type Checker then walks this AST, assigning symbol tables and evaluating type assignments based on variance rules (covariance, contravariance, and bivariance). Because TypeScript is entirely erased at compile time (type erasure), there is zero runtime memory overhead associated with these types. However, during the compilation phase, complex recursive generic types or deep conditional inferences can cause memory pressure within the `tsc` Node process. 
+## 2. Basic Conditional Types & Type Narrowing
 
-## 4. Beginner Step-by-Step Tutorial
-
-Let's start from the absolute basics. We will write a simple program demonstrating the core concepts of this module.
-
-### Step 1: Initializing the structure
 ```typescript
-// 1. First, we define a basic interface to represent our domain model.
-interface User {
-  id: string;
+// Example: Converting primitive types to their corresponding metadata label
+type TypeLabel<T> =
+  T extends string ? "string_type" :
+  T extends number ? "number_type" :
+  T extends boolean ? "boolean_type" :
+  T extends (...args: any[]) => any ? "function_type" :
+  "object_type";
+
+type A = TypeLabel<"hello">;   // "string_type"
+type B = TypeLabel<42>;        // "number_type"
+type C = TypeLabel<() => void>;// "function_type"
+```
+
+---
+
+## 3. Distributive Conditional Types (Union Distribution)
+
+When a conditional type operates on a **naked type parameter** `T`, and `T` is given a **Union Type** (`A | B | C`), the conditional type automatically **distributes over each member of the union**:
+
+$$\text{Type}<A \mid B \mid C> \iff \text{Type}<A> \mid \text{Type}<B> \mid \text{Type}<C>$$
+
+### Example: How `Exclude<T, U>` Works Internally
+
+The built-in utility type `Exclude<T, U>` is implemented with a single distributive conditional type:
+
+```typescript
+type CustomExclude<T, U> = T extends U ? never : T;
+
+type AvailableColors = "red" | "green" | "blue" | "yellow";
+type Filtered = CustomExclude<AvailableColors, "red" | "blue">;
+// Step-by-step distribution evaluation:
+// ("red" extends "red" | "blue" ? never : "red")      -> never
+// | ("green" extends "red" | "blue" ? never : "green")  -> "green"
+// | ("blue" extends "red" | "blue" ? never : "blue")    -> never
+// | ("yellow" extends "red" | "blue" ? never : "yellow")-> "yellow"
+// Result: never | "green" | never | "yellow" => "green" | "yellow"
+```
+
+Notice that `never` automatically dissolves in union types ($X \cup \emptyset = X$).
+
+---
+
+## 4. Preventing Union Distribution (Tuple Wrapping)
+
+Sometimes you want to test whether the **entire union as a whole** satisfies a constraint, rather than testing each member individually. 
+
+To turn off distribution, wrap both the type parameter and target type in square brackets `[T] extends [U]`:
+
+```typescript
+// Distributive:
+type ToArrayDistributive<T> = T extends any ? T[] : never;
+type TestDist = ToArrayDistributive<string | number>;
+// Result: string[] | number[]
+
+// Non-Distributive (Tuple Wrapped):
+type ToArrayNonDistributive<T> = [T] extends [any] ? T[] : never;
+type TestNonDist = ToArrayNonDistributive<string | number>;
+// Result: (string | number)[]
+```
+
+---
+
+## 5. Type-Level Logic Gates & Type Predicates
+
+We can implement pure boolean logic gates entirely at the type level:
+
+```typescript
+// ─── 1. Logic Gates ───
+export type If<TCond extends boolean, TThen, TElse> = TCond extends true ? TThen : TElse;
+export type Not<T extends boolean> = T extends true ? false : true;
+export type And<A extends boolean, B extends boolean> = A extends true ? (B extends true ? true : false) : false;
+export type Or<A extends boolean, B extends boolean> = A extends true ? true : (B extends true ? true : false);
+
+// ─── 2. Type Equality Check (Strict Type Comparison) ───
+// Relies on conditional type parameter assignability rules
+export type Equals<X, Y> =
+  (<T>() => T extends X ? 1 : 2) extends
+  (<T>() => T extends Y ? 1 : 2) ? true : false;
+
+// ─── 3. IsNever<T> Type Check ───
+// Must be non-distributive because never distributed produces never!
+export type IsNever<T> = [T] extends [never] ? true : false;
+
+// ─── 4. IsAny<T> Type Check ───
+// any is special: 0 extends (1 & any) is only true for any
+export type IsAny<T> = 0 extends (1 & T) ? true : false;
+
+// ─── 5. IsUnknown<T> Type Check ───
+export type IsUnknown<T> = IsAny<T> extends true ? false : [unknown] extends [T] ? true : false;
+```
+
+---
+
+## 6. Recursive Conditional Types
+
+Starting in TypeScript 4.1, conditional types can directly reference themselves recursively.
+
+### 1. `DeepReadonly<T>` (Immutable Deep Clone of Any Data Structure)
+
+```typescript
+export type DeepReadonly<T> = T extends Function | boolean | number | string | symbol | null | undefined
+  ? T
+  : T extends Array<infer U>
+  ? ReadonlyArray<DeepReadonly<U>>
+  : T extends Map<infer K, infer V>
+  ? ReadonlyMap<DeepReadonly<K>, DeepReadonly<V>>
+  : T extends Set<infer M>
+  ? ReadonlySet<DeepReadonly<M>>
+  : T extends object
+  ? { readonly [K in keyof T]: DeepReadonly<T[K]> }
+  : T;
+
+// Usage:
+interface UserProfile {
   name: string;
-  isActive: boolean;
+  metadata: {
+    permissions: string[];
+    settings: {
+      theme: string;
+    };
+  };
 }
 
-// 2. Next, we implement a simple function.
-function processUser(user: User): void {
-  console.log(`Processing user: ${user.name}`);
-}
+type ImmutableUser = DeepReadonly<UserProfile>;
+// Everything down to permissions[0] and settings.theme is deeply readonly!
 ```
 
-### Step 2: Expanding functionality
-Building on the previous step, we introduce more strict typing constraints and logic.
-```typescript
-// Step 2 Implementation Details
-function processStep2(data: unknown) {
-  // Narrowing the type
-  if (typeof data === 'string') {
-    return data.toUpperCase();
-  }
-  throw new Error('Invalid data type');
-}
-```
-
-### Step 3: Expanding functionality
-Building on the previous step, we introduce more strict typing constraints and logic.
-```typescript
-// Step 3 Implementation Details
-function processStep3(data: unknown) {
-  // Narrowing the type
-  if (typeof data === 'string') {
-    return data.toUpperCase();
-  }
-  throw new Error('Invalid data type');
-}
-```
-
-### Step 4: Expanding functionality
-Building on the previous step, we introduce more strict typing constraints and logic.
-```typescript
-// Step 4 Implementation Details
-function processStep4(data: unknown) {
-  // Narrowing the type
-  if (typeof data === 'string') {
-    return data.toUpperCase();
-  }
-  throw new Error('Invalid data type');
-}
-```
-
-### Step 5: Expanding functionality
-Building on the previous step, we introduce more strict typing constraints and logic.
-```typescript
-// Step 5 Implementation Details
-function processStep5(data: unknown) {
-  // Narrowing the type
-  if (typeof data === 'string') {
-    return data.toUpperCase();
-  }
-  throw new Error('Invalid data type');
-}
-```
-
-### Step 6: Expanding functionality
-Building on the previous step, we introduce more strict typing constraints and logic.
-```typescript
-// Step 6 Implementation Details
-function processStep6(data: unknown) {
-  // Narrowing the type
-  if (typeof data === 'string') {
-    return data.toUpperCase();
-  }
-  throw new Error('Invalid data type');
-}
-```
-
-### Step 7: Expanding functionality
-Building on the previous step, we introduce more strict typing constraints and logic.
-```typescript
-// Step 7 Implementation Details
-function processStep7(data: unknown) {
-  // Narrowing the type
-  if (typeof data === 'string') {
-    return data.toUpperCase();
-  }
-  throw new Error('Invalid data type');
-}
-```
-
-## 5. Intermediate Lab
-
-Now, let's explore a more complex real-world scenario that implements the concepts of this module.
+### 2. Flattening Nested Arrays (`Flatten<T>`)
 
 ```typescript
-import { z } from 'zod';
+export type Flatten<T> = T extends Array<infer Item>
+  ? Flatten<Item>
+  : T;
 
-// Simulating an intermediate production API response validation
-const ApiResponseSchema = z.object({
-  data: z.array(z.object({
-    id: z.string().uuid(),
-    payload: z.record(z.unknown()),
-    timestamp: z.number()
-  })),
-  status: z.union([z.literal('success'), z.literal('error')])
-});
-
-type ApiResponse = z.infer<typeof ApiResponseSchema>;
-
-export async function fetchAndValidate(url: string): Promise<ApiResponse> {
-  const response = await fetch(url);
-  const json = await response.json();
-  // Zod will throw if the schema doesn't match, providing type safety at runtime.
-  return ApiResponseSchema.parse(json);
-}
+type NestedNumbers = [1, [2, [3, [4, [5]]]]];
+type Flat = Flatten<NestedNumbers>; // Inferred as: 1 | 2 | 3 | 4 | 5
 ```
 
-This intermediate lab demonstrates how static type definitions intertwine with runtime validation. By utilizing Zod alongside TypeScript, we bridge the gap between compile-time checks and runtime guarantees, heavily reducing production incidents associated with malformed payloads. This intermediate lab demonstrates how static type definitions intertwine with runtime validation. By utilizing Zod alongside TypeScript, we bridge the gap between compile-time checks and runtime guarantees, heavily reducing production incidents associated with malformed payloads. This intermediate lab demonstrates how static type definitions intertwine with runtime validation. By utilizing Zod alongside TypeScript, we bridge the gap between compile-time checks and runtime guarantees, heavily reducing production incidents associated with malformed payloads. 
-
-## 6. Production Lab (Advanced)
-
-### Enterprise-Grade Implementation
-In large monorepos, you must handle highly generic, reusable structures. Here is an advanced implementation pattern.
+### 3. Strongly Typed JSON Schema Validator
 
 ```typescript
-// Advanced Generic State Manager with Event Bus
-type EventMap = Record<string, any>;
-type EventKey<T extends EventMap> = string & keyof T;
-type EventReceiver<T> = (params: T) => void;
+export type JsonPrimitive = string | number | boolean | null;
+export type JsonArray = JsonValue[];
+export type JsonObject = { [key: string]: JsonValue };
+export type JsonValue = JsonPrimitive | JsonObject | JsonArray;
 
-interface Emitter<T extends EventMap> {
-  on<K extends EventKey<T>>(eventName: K, fn: EventReceiver<T[K]>): void;
-  off<K extends EventKey<T>>(eventName: K, fn: EventReceiver<T[K]>): void;
-  emit<K extends EventKey<T>>(eventName: K, params: T[K]): void;
+// Validates that a given type is 100% JSON-serializable
+export type MustBeJson<T> = T extends JsonValue
+  ? T
+  : "Error: Type contains non-JSON serializable values (functions, undefined, symbols, bigints)";
+
+function sendJsonPayload<T>(payload: MustBeJson<T>): void {
+  fetch("/api/data", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
 }
 
-export class TypedEventEmitter<T extends EventMap> implements Emitter<T> {
-  private listeners: { [K in keyof T]?: Array<EventReceiver<T[K]>> } = {};
-
-  on<K extends EventKey<T>>(eventName: K, fn: EventReceiver<T[K]>) {
-    if (!this.listeners[eventName]) {
-      this.listeners[eventName] = [];
-    }
-    this.listeners[eventName]!.push(fn);
-  }
-
-  off<K extends EventKey<T>>(eventName: K, fn: EventReceiver<T[K]>) {
-    const eventListeners = this.listeners[eventName];
-    if (eventListeners) {
-      this.listeners[eventName] = eventListeners.filter(listener => listener !== fn);
-    }
-  }
-
-  emit<K extends EventKey<T>>(eventName: K, params: T[K]) {
-    const eventListeners = this.listeners[eventName];
-    if (eventListeners) {
-      eventListeners.forEach(fn => fn(params));
-    }
-  }
-}
+sendJsonPayload({ user: "Alice", active: true, scores: [10, 20] }); // ✅ Valid
+// sendJsonPayload({ user: "Bob", callback: () => {} }); // ❌ Compile Error: Type contains non-JSON serializable values
 ```
 
-By defining `EventMap` as a bound on our generic `T`, we ensure that any event emitted strictly conforms to the expected payload type. This eliminates a vast category of errors associated with traditional Node.js `EventEmitter` instances where event names and payloads are implicitly `any`. By defining `EventMap` as a bound on our generic `T`, we ensure that any event emitted strictly conforms to the expected payload type. This eliminates a vast category of errors associated with traditional Node.js `EventEmitter` instances where event names and payloads are implicitly `any`. By defining `EventMap` as a bound on our generic `T`, we ensure that any event emitted strictly conforms to the expected payload type. This eliminates a vast category of errors associated with traditional Node.js `EventEmitter` instances where event names and payloads are implicitly `any`. By defining `EventMap` as a bound on our generic `T`, we ensure that any event emitted strictly conforms to the expected payload type. This eliminates a vast category of errors associated with traditional Node.js `EventEmitter` instances where event names and payloads are implicitly `any`. By defining `EventMap` as a bound on our generic `T`, we ensure that any event emitted strictly conforms to the expected payload type. This eliminates a vast category of errors associated with traditional Node.js `EventEmitter` instances where event names and payloads are implicitly `any`. 
+---
 
-## 7. CLI Reference
-
-Mastering the TypeScript compiler CLI is essential for enterprise builds.
-
-```bash
-# Compile with strict checks and output modern JS
-npx tsc --strict --target ES2022 --module NodeNext --moduleResolution NodeNext
-
-# Emit declarations only (useful in monorepos where Babel/SWC does the emit)
-npx tsc --emitDeclarationOnly --declaration
-
-# Typecheck without emitting files, caching results for speed
-npx tsc --noEmit --incremental
-```
-
-### `tsconfig.json` Key Options
-- `"strict": true`: Enables all strict type checking options (e.g., `noImplicitAny`, `strictNullChecks`).
-- `"skipLibCheck": true`: Skips type checking of declaration files (`.d.ts`). Crucial for performance.
-- `"isolatedModules": true`: Ensures each file can be safely transpiled without relying on other files.
-
-## 8. FinOps & Cloud Cost Analysis
-
-### TypeScript Impact on Infrastructure Costs
-Adopting TypeScript at scale has distinct FinOps implications:
-
-1. **CI/CD Pipeline Costs**: Running `tsc --noEmit` on every PR requires compute. In a repository with 500,000+ lines of TypeScript code, a full typecheck might take 30-60 seconds. On GitHub Actions or AWS CodeBuild, this translates to roughly $150-$300/month for an active engineering team of 50.
-2. **Build Optimization**: By using `--incremental` or splitting builds across Turborepo, compute time can drop by 70%, translating to immediate savings.
-3. **Lambda / Edge Function Costs**: TypeScript itself is erased. However, better dead-code elimination (Tree Shaking) facilitated by typed ES modules means smaller bundle sizes. Smaller bundles reduce AWS Lambda cold start times and decrease egress data costs on Vercel/Netlify. We typically see a 5-15% reduction in artifact size when strictly typed modules are minified correctly by tools like `esbuild`.
-
-## 9. Troubleshooting Guide
-
-### Anti-Pattern 1: The `any` Contagion
-**Symptom**: You update a core type, but no errors are thrown, and then a production crash occurs.
-**Root Cause**: Usage of `any` disables the type checker. If a function accepts `any` and passes it downstream, the safety net is completely broken.
-**Concrete Fix**: Replace `any` with `unknown`, which forces the consumer to type-narrow using a type guard or `zod` validation before operating on the variable.
-
-### Anti-Pattern 2: Unintended Bivariance in Callbacks
-**Symptom**: You pass a function that expects a specific subtype into a higher-order function that provides a wider type, and TS doesn't complain.
-**Root Cause**: By default, TypeScript method signatures are bivariant for compatibility reasons.
-**Concrete Fix**: Enable `strictFunctionTypes` in your `tsconfig.json` and prefer property signature syntax `fn: (args: T) => void` over method syntax `fn(args: T): void` in interfaces.
-
-### Anti-Pattern 3: Massive Type Instantiation Depth Errors
-**Symptom**: `tsc` throws `Type instantiation is excessively deep and possibly infinite.`
-**Root Cause**: Complex recursive generic types, especially with mapped types and conditional types manipulating large objects.
-**Concrete Fix**: Break down the generic into smaller, non-recursive utility types, or use a depth counter mechanism within the type using arrays/tuples to manually cap recursion at 5-10 levels.
-
-## 10. References
-
-### Official Documentation
-1. [TypeScript Handbook: Everyday Types](https://www.typescriptlang.org/docs/handbook/2/everyday-types.html)
-2. [TypeScript Handbook: Generics](https://www.typescriptlang.org/docs/handbook/2/generics.html)
-3. [TypeScript Handbook: Utility Types](https://www.typescriptlang.org/docs/handbook/utility-types.html)
-4. [TypeScript Compiler Options](https://www.typescriptlang.org/tsconfig)
-5. [TypeScript GitHub Repository](https://github.com/microsoft/TypeScript)
-
-### Engineering Blogs & Standards
-6. [Netflix Tech Blog: Scaling TypeScript](https://netflixtechblog.com/)
-7. [Uber Engineering: Adopting TypeScript](https://www.uber.com/blog/engineering/)
-8. [Vercel Blog: Framework-defined Infrastructure](https://vercel.com/blog)
-9. [Matt Pocock's Total TypeScript](https://www.totaltypescript.com/)
-10. [Colin Hacks: Zod Documentation](https://zod.dev/)
-
-## Appendix: Comprehensive Concept Expansion
-
-### Detailed Scenario 1
-To truly master this domain, consider the implication of varying inputs across architectural boundaries. When a microservice written in Go sends JSON to a Node.js backend using TypeScript, the compile-time guarantees of the receiver do not inherently govern the runtime data. This boundary is where structural typing shines. Because TypeScript checks the shape of the object rather than its nominal lineage (as Java or C# might), developers can simply assert or parse incoming data into interfaces. 
+## 7. Real-World Architecture: Dynamic Database Query Builder Typing
 
 ```typescript
-// Example reinforcement of structural typing
-interface BoundaryEntity0 {
-  correlationId: string;
-  payload: Record<string, unknown>;
+interface DatabaseSchema {
+  users: { id: string; name: string; email: string; age: number };
+  posts: { id: string; userId: string; title: string; content: string; published: boolean };
+  comments: { id: string; postId: string; text: string };
 }
 
-function handleBoundaryEntity0(entity: BoundaryEntity0) {
-  // System logs correlation ID
-  console.log(`[Trace] Processing ${entity.correlationId}`);
+// Conditional extraction of valid table column names:
+type TableColumns<TTable extends keyof DatabaseSchema> = keyof DatabaseSchema[TTable];
+
+// Dynamic SQL SELECT Builder Return Type
+type QueryResult<
+  TTable extends keyof DatabaseSchema,
+  TColumns extends TableColumns<TTable>[]
+> = {
+  [K in TColumns[number]]: DatabaseSchema[TTable][K];
+};
+
+function selectFrom<
+  TTable extends keyof DatabaseSchema,
+  TColumns extends TableColumns<TTable>[]
+>(
+  table: TTable,
+  columns: TColumns
+): Promise<QueryResult<TTable, TColumns>[]> {
+  return fetch(`/api/db?table=${table}&cols=${columns.join(",")}`).then((r) => r.json());
 }
+
+// Consuming the Query Builder:
+const users = await selectFrom("users", ["id", "email"]);
+// Inferred Return Type: { id: string; email: string; }[]
+// Accessing users[0].age throws a compile error because 'age' was not selected!
 ```
 
-In legacy enterprise migrations, you'll often encounter `any` types applied broadly to boundary objects. Addressing this requires a tactical, file-by-file shift using tools like `ts-migrate` or strict bounds on `.eslintrc` configurations prohibiting `no-explicit-any`. Furthermore, the integration of CI/CD pipeline stops based on type coverage metrics guarantees that the overall type health of the repository moves monotonically upwards.
+---
 
-### Detailed Scenario 2
-To truly master this domain, consider the implication of varying inputs across architectural boundaries. When a microservice written in Go sends JSON to a Node.js backend using TypeScript, the compile-time guarantees of the receiver do not inherently govern the runtime data. This boundary is where structural typing shines. Because TypeScript checks the shape of the object rather than its nominal lineage (as Java or C# might), developers can simply assert or parse incoming data into interfaces. 
+## Troubleshooting & Compiler Limits
 
-```typescript
-// Example reinforcement of structural typing
-interface BoundaryEntity1 {
-  correlationId: string;
-  payload: Record<string, unknown>;
-}
+1. **`Type instantiation is excessively deep and possibly infinite (TS2589)`**
+   - TypeScript has a built-in recursion limit (~1,000 recursive steps) to prevent compiler hangs.
+   - For recursive types, always ensure there is a clear base case that resolves to non-recursive primitives.
 
-function handleBoundaryEntity1(entity: BoundaryEntity1) {
-  // System logs correlation ID
-  console.log(`[Trace] Processing ${entity.correlationId}`);
-}
-```
-
-In legacy enterprise migrations, you'll often encounter `any` types applied broadly to boundary objects. Addressing this requires a tactical, file-by-file shift using tools like `ts-migrate` or strict bounds on `.eslintrc` configurations prohibiting `no-explicit-any`. Furthermore, the integration of CI/CD pipeline stops based on type coverage metrics guarantees that the overall type health of the repository moves monotonically upwards.
-
-### Detailed Scenario 3
-To truly master this domain, consider the implication of varying inputs across architectural boundaries. When a microservice written in Go sends JSON to a Node.js backend using TypeScript, the compile-time guarantees of the receiver do not inherently govern the runtime data. This boundary is where structural typing shines. Because TypeScript checks the shape of the object rather than its nominal lineage (as Java or C# might), developers can simply assert or parse incoming data into interfaces. 
-
-```typescript
-// Example reinforcement of structural typing
-interface BoundaryEntity2 {
-  correlationId: string;
-  payload: Record<string, unknown>;
-}
-
-function handleBoundaryEntity2(entity: BoundaryEntity2) {
-  // System logs correlation ID
-  console.log(`[Trace] Processing ${entity.correlationId}`);
-}
-```
-
-In legacy enterprise migrations, you'll often encounter `any` types applied broadly to boundary objects. Addressing this requires a tactical, file-by-file shift using tools like `ts-migrate` or strict bounds on `.eslintrc` configurations prohibiting `no-explicit-any`. Furthermore, the integration of CI/CD pipeline stops based on type coverage metrics guarantees that the overall type health of the repository moves monotonically upwards.
-
-### Detailed Scenario 4
-To truly master this domain, consider the implication of varying inputs across architectural boundaries. When a microservice written in Go sends JSON to a Node.js backend using TypeScript, the compile-time guarantees of the receiver do not inherently govern the runtime data. This boundary is where structural typing shines. Because TypeScript checks the shape of the object rather than its nominal lineage (as Java or C# might), developers can simply assert or parse incoming data into interfaces. 
-
-```typescript
-// Example reinforcement of structural typing
-interface BoundaryEntity3 {
-  correlationId: string;
-  payload: Record<string, unknown>;
-}
-
-function handleBoundaryEntity3(entity: BoundaryEntity3) {
-  // System logs correlation ID
-  console.log(`[Trace] Processing ${entity.correlationId}`);
-}
-```
-
-In legacy enterprise migrations, you'll often encounter `any` types applied broadly to boundary objects. Addressing this requires a tactical, file-by-file shift using tools like `ts-migrate` or strict bounds on `.eslintrc` configurations prohibiting `no-explicit-any`. Furthermore, the integration of CI/CD pipeline stops based on type coverage metrics guarantees that the overall type health of the repository moves monotonically upwards.
-
-### Detailed Scenario 5
-To truly master this domain, consider the implication of varying inputs across architectural boundaries. When a microservice written in Go sends JSON to a Node.js backend using TypeScript, the compile-time guarantees of the receiver do not inherently govern the runtime data. This boundary is where structural typing shines. Because TypeScript checks the shape of the object rather than its nominal lineage (as Java or C# might), developers can simply assert or parse incoming data into interfaces. 
-
-```typescript
-// Example reinforcement of structural typing
-interface BoundaryEntity4 {
-  correlationId: string;
-  payload: Record<string, unknown>;
-}
-
-function handleBoundaryEntity4(entity: BoundaryEntity4) {
-  // System logs correlation ID
-  console.log(`[Trace] Processing ${entity.correlationId}`);
-}
-```
-
-In legacy enterprise migrations, you'll often encounter `any` types applied broadly to boundary objects. Addressing this requires a tactical, file-by-file shift using tools like `ts-migrate` or strict bounds on `.eslintrc` configurations prohibiting `no-explicit-any`. Furthermore, the integration of CI/CD pipeline stops based on type coverage metrics guarantees that the overall type health of the repository moves monotonically upwards.
-
-### Detailed Scenario 6
-To truly master this domain, consider the implication of varying inputs across architectural boundaries. When a microservice written in Go sends JSON to a Node.js backend using TypeScript, the compile-time guarantees of the receiver do not inherently govern the runtime data. This boundary is where structural typing shines. Because TypeScript checks the shape of the object rather than its nominal lineage (as Java or C# might), developers can simply assert or parse incoming data into interfaces. 
-
-```typescript
-// Example reinforcement of structural typing
-interface BoundaryEntity5 {
-  correlationId: string;
-  payload: Record<string, unknown>;
-}
-
-function handleBoundaryEntity5(entity: BoundaryEntity5) {
-  // System logs correlation ID
-  console.log(`[Trace] Processing ${entity.correlationId}`);
-}
-```
-
-In legacy enterprise migrations, you'll often encounter `any` types applied broadly to boundary objects. Addressing this requires a tactical, file-by-file shift using tools like `ts-migrate` or strict bounds on `.eslintrc` configurations prohibiting `no-explicit-any`. Furthermore, the integration of CI/CD pipeline stops based on type coverage metrics guarantees that the overall type health of the repository moves monotonically upwards.
-
-### Detailed Scenario 7
-To truly master this domain, consider the implication of varying inputs across architectural boundaries. When a microservice written in Go sends JSON to a Node.js backend using TypeScript, the compile-time guarantees of the receiver do not inherently govern the runtime data. This boundary is where structural typing shines. Because TypeScript checks the shape of the object rather than its nominal lineage (as Java or C# might), developers can simply assert or parse incoming data into interfaces. 
-
-```typescript
-// Example reinforcement of structural typing
-interface BoundaryEntity6 {
-  correlationId: string;
-  payload: Record<string, unknown>;
-}
-
-function handleBoundaryEntity6(entity: BoundaryEntity6) {
-  // System logs correlation ID
-  console.log(`[Trace] Processing ${entity.correlationId}`);
-}
-```
-
-In legacy enterprise migrations, you'll often encounter `any` types applied broadly to boundary objects. Addressing this requires a tactical, file-by-file shift using tools like `ts-migrate` or strict bounds on `.eslintrc` configurations prohibiting `no-explicit-any`. Furthermore, the integration of CI/CD pipeline stops based on type coverage metrics guarantees that the overall type health of the repository moves monotonically upwards.
-
-### Detailed Scenario 8
-To truly master this domain, consider the implication of varying inputs across architectural boundaries. When a microservice written in Go sends JSON to a Node.js backend using TypeScript, the compile-time guarantees of the receiver do not inherently govern the runtime data. This boundary is where structural typing shines. Because TypeScript checks the shape of the object rather than its nominal lineage (as Java or C# might), developers can simply assert or parse incoming data into interfaces. 
-
-```typescript
-// Example reinforcement of structural typing
-interface BoundaryEntity7 {
-  correlationId: string;
-  payload: Record<string, unknown>;
-}
-
-function handleBoundaryEntity7(entity: BoundaryEntity7) {
-  // System logs correlation ID
-  console.log(`[Trace] Processing ${entity.correlationId}`);
-}
-```
-
-In legacy enterprise migrations, you'll often encounter `any` types applied broadly to boundary objects. Addressing this requires a tactical, file-by-file shift using tools like `ts-migrate` or strict bounds on `.eslintrc` configurations prohibiting `no-explicit-any`. Furthermore, the integration of CI/CD pipeline stops based on type coverage metrics guarantees that the overall type health of the repository moves monotonically upwards.
-
-### Detailed Scenario 9
-To truly master this domain, consider the implication of varying inputs across architectural boundaries. When a microservice written in Go sends JSON to a Node.js backend using TypeScript, the compile-time guarantees of the receiver do not inherently govern the runtime data. This boundary is where structural typing shines. Because TypeScript checks the shape of the object rather than its nominal lineage (as Java or C# might), developers can simply assert or parse incoming data into interfaces. 
-
-```typescript
-// Example reinforcement of structural typing
-interface BoundaryEntity8 {
-  correlationId: string;
-  payload: Record<string, unknown>;
-}
-
-function handleBoundaryEntity8(entity: BoundaryEntity8) {
-  // System logs correlation ID
-  console.log(`[Trace] Processing ${entity.correlationId}`);
-}
-```
-
-In legacy enterprise migrations, you'll often encounter `any` types applied broadly to boundary objects. Addressing this requires a tactical, file-by-file shift using tools like `ts-migrate` or strict bounds on `.eslintrc` configurations prohibiting `no-explicit-any`. Furthermore, the integration of CI/CD pipeline stops based on type coverage metrics guarantees that the overall type health of the repository moves monotonically upwards.
-
-### Detailed Scenario 10
-To truly master this domain, consider the implication of varying inputs across architectural boundaries. When a microservice written in Go sends JSON to a Node.js backend using TypeScript, the compile-time guarantees of the receiver do not inherently govern the runtime data. This boundary is where structural typing shines. Because TypeScript checks the shape of the object rather than its nominal lineage (as Java or C# might), developers can simply assert or parse incoming data into interfaces. 
-
-```typescript
-// Example reinforcement of structural typing
-interface BoundaryEntity9 {
-  correlationId: string;
-  payload: Record<string, unknown>;
-}
-
-function handleBoundaryEntity9(entity: BoundaryEntity9) {
-  // System logs correlation ID
-  console.log(`[Trace] Processing ${entity.correlationId}`);
-}
-```
-
-In legacy enterprise migrations, you'll often encounter `any` types applied broadly to boundary objects. Addressing this requires a tactical, file-by-file shift using tools like `ts-migrate` or strict bounds on `.eslintrc` configurations prohibiting `no-explicit-any`. Furthermore, the integration of CI/CD pipeline stops based on type coverage metrics guarantees that the overall type health of the repository moves monotonically upwards.
-
-### Detailed Scenario 11
-To truly master this domain, consider the implication of varying inputs across architectural boundaries. When a microservice written in Go sends JSON to a Node.js backend using TypeScript, the compile-time guarantees of the receiver do not inherently govern the runtime data. This boundary is where structural typing shines. Because TypeScript checks the shape of the object rather than its nominal lineage (as Java or C# might), developers can simply assert or parse incoming data into interfaces. 
-
-```typescript
-// Example reinforcement of structural typing
-interface BoundaryEntity10 {
-  correlationId: string;
-  payload: Record<string, unknown>;
-}
-
-function handleBoundaryEntity10(entity: BoundaryEntity10) {
-  // System logs correlation ID
-  console.log(`[Trace] Processing ${entity.correlationId}`);
-}
-```
-
-In legacy enterprise migrations, you'll often encounter `any` types applied broadly to boundary objects. Addressing this requires a tactical, file-by-file shift using tools like `ts-migrate` or strict bounds on `.eslintrc` configurations prohibiting `no-explicit-any`. Furthermore, the integration of CI/CD pipeline stops based on type coverage metrics guarantees that the overall type health of the repository moves monotonically upwards.
-
-### Detailed Scenario 12
-To truly master this domain, consider the implication of varying inputs across architectural boundaries. When a microservice written in Go sends JSON to a Node.js backend using TypeScript, the compile-time guarantees of the receiver do not inherently govern the runtime data. This boundary is where structural typing shines. Because TypeScript checks the shape of the object rather than its nominal lineage (as Java or C# might), developers can simply assert or parse incoming data into interfaces. 
-
-```typescript
-// Example reinforcement of structural typing
-interface BoundaryEntity11 {
-  correlationId: string;
-  payload: Record<string, unknown>;
-}
-
-function handleBoundaryEntity11(entity: BoundaryEntity11) {
-  // System logs correlation ID
-  console.log(`[Trace] Processing ${entity.correlationId}`);
-}
-```
-
-In legacy enterprise migrations, you'll often encounter `any` types applied broadly to boundary objects. Addressing this requires a tactical, file-by-file shift using tools like `ts-migrate` or strict bounds on `.eslintrc` configurations prohibiting `no-explicit-any`. Furthermore, the integration of CI/CD pipeline stops based on type coverage metrics guarantees that the overall type health of the repository moves monotonically upwards.
-
-### Detailed Scenario 13
-To truly master this domain, consider the implication of varying inputs across architectural boundaries. When a microservice written in Go sends JSON to a Node.js backend using TypeScript, the compile-time guarantees of the receiver do not inherently govern the runtime data. This boundary is where structural typing shines. Because TypeScript checks the shape of the object rather than its nominal lineage (as Java or C# might), developers can simply assert or parse incoming data into interfaces. 
-
-```typescript
-// Example reinforcement of structural typing
-interface BoundaryEntity12 {
-  correlationId: string;
-  payload: Record<string, unknown>;
-}
-
-function handleBoundaryEntity12(entity: BoundaryEntity12) {
-  // System logs correlation ID
-  console.log(`[Trace] Processing ${entity.correlationId}`);
-}
-```
-
-In legacy enterprise migrations, you'll often encounter `any` types applied broadly to boundary objects. Addressing this requires a tactical, file-by-file shift using tools like `ts-migrate` or strict bounds on `.eslintrc` configurations prohibiting `no-explicit-any`. Furthermore, the integration of CI/CD pipeline stops based on type coverage metrics guarantees that the overall type health of the repository moves monotonically upwards.
-
-### Detailed Scenario 14
-To truly master this domain, consider the implication of varying inputs across architectural boundaries. When a microservice written in Go sends JSON to a Node.js backend using TypeScript, the compile-time guarantees of the receiver do not inherently govern the runtime data. This boundary is where structural typing shines. Because TypeScript checks the shape of the object rather than its nominal lineage (as Java or C# might), developers can simply assert or parse incoming data into interfaces. 
-
-```typescript
-// Example reinforcement of structural typing
-interface BoundaryEntity13 {
-  correlationId: string;
-  payload: Record<string, unknown>;
-}
-
-function handleBoundaryEntity13(entity: BoundaryEntity13) {
-  // System logs correlation ID
-  console.log(`[Trace] Processing ${entity.correlationId}`);
-}
-```
-
-In legacy enterprise migrations, you'll often encounter `any` types applied broadly to boundary objects. Addressing this requires a tactical, file-by-file shift using tools like `ts-migrate` or strict bounds on `.eslintrc` configurations prohibiting `no-explicit-any`. Furthermore, the integration of CI/CD pipeline stops based on type coverage metrics guarantees that the overall type health of the repository moves monotonically upwards.
-
-### Detailed Scenario 15
-To truly master this domain, consider the implication of varying inputs across architectural boundaries. When a microservice written in Go sends JSON to a Node.js backend using TypeScript, the compile-time guarantees of the receiver do not inherently govern the runtime data. This boundary is where structural typing shines. Because TypeScript checks the shape of the object rather than its nominal lineage (as Java or C# might), developers can simply assert or parse incoming data into interfaces. 
-
-```typescript
-// Example reinforcement of structural typing
-interface BoundaryEntity14 {
-  correlationId: string;
-  payload: Record<string, unknown>;
-}
-
-function handleBoundaryEntity14(entity: BoundaryEntity14) {
-  // System logs correlation ID
-  console.log(`[Trace] Processing ${entity.correlationId}`);
-}
-```
-
-In legacy enterprise migrations, you'll often encounter `any` types applied broadly to boundary objects. Addressing this requires a tactical, file-by-file shift using tools like `ts-migrate` or strict bounds on `.eslintrc` configurations prohibiting `no-explicit-any`. Furthermore, the integration of CI/CD pipeline stops based on type coverage metrics guarantees that the overall type health of the repository moves monotonically upwards.
-
-### Detailed Scenario 16
-To truly master this domain, consider the implication of varying inputs across architectural boundaries. When a microservice written in Go sends JSON to a Node.js backend using TypeScript, the compile-time guarantees of the receiver do not inherently govern the runtime data. This boundary is where structural typing shines. Because TypeScript checks the shape of the object rather than its nominal lineage (as Java or C# might), developers can simply assert or parse incoming data into interfaces. 
-
-```typescript
-// Example reinforcement of structural typing
-interface BoundaryEntity15 {
-  correlationId: string;
-  payload: Record<string, unknown>;
-}
-
-function handleBoundaryEntity15(entity: BoundaryEntity15) {
-  // System logs correlation ID
-  console.log(`[Trace] Processing ${entity.correlationId}`);
-}
-```
-
-In legacy enterprise migrations, you'll often encounter `any` types applied broadly to boundary objects. Addressing this requires a tactical, file-by-file shift using tools like `ts-migrate` or strict bounds on `.eslintrc` configurations prohibiting `no-explicit-any`. Furthermore, the integration of CI/CD pipeline stops based on type coverage metrics guarantees that the overall type health of the repository moves monotonically upwards.
-
-### Detailed Scenario 17
-To truly master this domain, consider the implication of varying inputs across architectural boundaries. When a microservice written in Go sends JSON to a Node.js backend using TypeScript, the compile-time guarantees of the receiver do not inherently govern the runtime data. This boundary is where structural typing shines. Because TypeScript checks the shape of the object rather than its nominal lineage (as Java or C# might), developers can simply assert or parse incoming data into interfaces. 
-
-```typescript
-// Example reinforcement of structural typing
-interface BoundaryEntity16 {
-  correlationId: string;
-  payload: Record<string, unknown>;
-}
-
-function handleBoundaryEntity16(entity: BoundaryEntity16) {
-  // System logs correlation ID
-  console.log(`[Trace] Processing ${entity.correlationId}`);
-}
-```
-
-In legacy enterprise migrations, you'll often encounter `any` types applied broadly to boundary objects. Addressing this requires a tactical, file-by-file shift using tools like `ts-migrate` or strict bounds on `.eslintrc` configurations prohibiting `no-explicit-any`. Furthermore, the integration of CI/CD pipeline stops based on type coverage metrics guarantees that the overall type health of the repository moves monotonically upwards.
-
-### Detailed Scenario 18
-To truly master this domain, consider the implication of varying inputs across architectural boundaries. When a microservice written in Go sends JSON to a Node.js backend using TypeScript, the compile-time guarantees of the receiver do not inherently govern the runtime data. This boundary is where structural typing shines. Because TypeScript checks the shape of the object rather than its nominal lineage (as Java or C# might), developers can simply assert or parse incoming data into interfaces. 
-
-```typescript
-// Example reinforcement of structural typing
-interface BoundaryEntity17 {
-  correlationId: string;
-  payload: Record<string, unknown>;
-}
-
-function handleBoundaryEntity17(entity: BoundaryEntity17) {
-  // System logs correlation ID
-  console.log(`[Trace] Processing ${entity.correlationId}`);
-}
-```
-
-In legacy enterprise migrations, you'll often encounter `any` types applied broadly to boundary objects. Addressing this requires a tactical, file-by-file shift using tools like `ts-migrate` or strict bounds on `.eslintrc` configurations prohibiting `no-explicit-any`. Furthermore, the integration of CI/CD pipeline stops based on type coverage metrics guarantees that the overall type health of the repository moves monotonically upwards.
-
-### Detailed Scenario 19
-To truly master this domain, consider the implication of varying inputs across architectural boundaries. When a microservice written in Go sends JSON to a Node.js backend using TypeScript, the compile-time guarantees of the receiver do not inherently govern the runtime data. This boundary is where structural typing shines. Because TypeScript checks the shape of the object rather than its nominal lineage (as Java or C# might), developers can simply assert or parse incoming data into interfaces. 
-
-```typescript
-// Example reinforcement of structural typing
-interface BoundaryEntity18 {
-  correlationId: string;
-  payload: Record<string, unknown>;
-}
-
-function handleBoundaryEntity18(entity: BoundaryEntity18) {
-  // System logs correlation ID
-  console.log(`[Trace] Processing ${entity.correlationId}`);
-}
-```
-
-In legacy enterprise migrations, you'll often encounter `any` types applied broadly to boundary objects. Addressing this requires a tactical, file-by-file shift using tools like `ts-migrate` or strict bounds on `.eslintrc` configurations prohibiting `no-explicit-any`. Furthermore, the integration of CI/CD pipeline stops based on type coverage metrics guarantees that the overall type health of the repository moves monotonically upwards.
-
-### Detailed Scenario 20
-To truly master this domain, consider the implication of varying inputs across architectural boundaries. When a microservice written in Go sends JSON to a Node.js backend using TypeScript, the compile-time guarantees of the receiver do not inherently govern the runtime data. This boundary is where structural typing shines. Because TypeScript checks the shape of the object rather than its nominal lineage (as Java or C# might), developers can simply assert or parse incoming data into interfaces. 
-
-```typescript
-// Example reinforcement of structural typing
-interface BoundaryEntity19 {
-  correlationId: string;
-  payload: Record<string, unknown>;
-}
-
-function handleBoundaryEntity19(entity: BoundaryEntity19) {
-  // System logs correlation ID
-  console.log(`[Trace] Processing ${entity.correlationId}`);
-}
-```
-
-In legacy enterprise migrations, you'll often encounter `any` types applied broadly to boundary objects. Addressing this requires a tactical, file-by-file shift using tools like `ts-migrate` or strict bounds on `.eslintrc` configurations prohibiting `no-explicit-any`. Furthermore, the integration of CI/CD pipeline stops based on type coverage metrics guarantees that the overall type health of the repository moves monotonically upwards.
-
-### Detailed Scenario 21
-To truly master this domain, consider the implication of varying inputs across architectural boundaries. When a microservice written in Go sends JSON to a Node.js backend using TypeScript, the compile-time guarantees of the receiver do not inherently govern the runtime data. This boundary is where structural typing shines. Because TypeScript checks the shape of the object rather than its nominal lineage (as Java or C# might), developers can simply assert or parse incoming data into interfaces. 
-
-```typescript
-// Example reinforcement of structural typing
-interface BoundaryEntity20 {
-  correlationId: string;
-  payload: Record<string, unknown>;
-}
-
-function handleBoundaryEntity20(entity: BoundaryEntity20) {
-  // System logs correlation ID
-  console.log(`[Trace] Processing ${entity.correlationId}`);
-}
-```
-
-In legacy enterprise migrations, you'll often encounter `any` types applied broadly to boundary objects. Addressing this requires a tactical, file-by-file shift using tools like `ts-migrate` or strict bounds on `.eslintrc` configurations prohibiting `no-explicit-any`. Furthermore, the integration of CI/CD pipeline stops based on type coverage metrics guarantees that the overall type health of the repository moves monotonically upwards.
-
-### Detailed Scenario 22
-To truly master this domain, consider the implication of varying inputs across architectural boundaries. When a microservice written in Go sends JSON to a Node.js backend using TypeScript, the compile-time guarantees of the receiver do not inherently govern the runtime data. This boundary is where structural typing shines. Because TypeScript checks the shape of the object rather than its nominal lineage (as Java or C# might), developers can simply assert or parse incoming data into interfaces. 
-
-```typescript
-// Example reinforcement of structural typing
-interface BoundaryEntity21 {
-  correlationId: string;
-  payload: Record<string, unknown>;
-}
-
-function handleBoundaryEntity21(entity: BoundaryEntity21) {
-  // System logs correlation ID
-  console.log(`[Trace] Processing ${entity.correlationId}`);
-}
-```
-
-In legacy enterprise migrations, you'll often encounter `any` types applied broadly to boundary objects. Addressing this requires a tactical, file-by-file shift using tools like `ts-migrate` or strict bounds on `.eslintrc` configurations prohibiting `no-explicit-any`. Furthermore, the integration of CI/CD pipeline stops based on type coverage metrics guarantees that the overall type health of the repository moves monotonically upwards.
-
-### Detailed Scenario 23
-To truly master this domain, consider the implication of varying inputs across architectural boundaries. When a microservice written in Go sends JSON to a Node.js backend using TypeScript, the compile-time guarantees of the receiver do not inherently govern the runtime data. This boundary is where structural typing shines. Because TypeScript checks the shape of the object rather than its nominal lineage (as Java or C# might), developers can simply assert or parse incoming data into interfaces. 
-
-```typescript
-// Example reinforcement of structural typing
-interface BoundaryEntity22 {
-  correlationId: string;
-  payload: Record<string, unknown>;
-}
-
-function handleBoundaryEntity22(entity: BoundaryEntity22) {
-  // System logs correlation ID
-  console.log(`[Trace] Processing ${entity.correlationId}`);
-}
-```
-
-In legacy enterprise migrations, you'll often encounter `any` types applied broadly to boundary objects. Addressing this requires a tactical, file-by-file shift using tools like `ts-migrate` or strict bounds on `.eslintrc` configurations prohibiting `no-explicit-any`. Furthermore, the integration of CI/CD pipeline stops based on type coverage metrics guarantees that the overall type health of the repository moves monotonically upwards.
-
-### Detailed Scenario 24
-To truly master this domain, consider the implication of varying inputs across architectural boundaries. When a microservice written in Go sends JSON to a Node.js backend using TypeScript, the compile-time guarantees of the receiver do not inherently govern the runtime data. This boundary is where structural typing shines. Because TypeScript checks the shape of the object rather than its nominal lineage (as Java or C# might), developers can simply assert or parse incoming data into interfaces. 
-
-```typescript
-// Example reinforcement of structural typing
-interface BoundaryEntity23 {
-  correlationId: string;
-  payload: Record<string, unknown>;
-}
-
-function handleBoundaryEntity23(entity: BoundaryEntity23) {
-  // System logs correlation ID
-  console.log(`[Trace] Processing ${entity.correlationId}`);
-}
-```
-
-In legacy enterprise migrations, you'll often encounter `any` types applied broadly to boundary objects. Addressing this requires a tactical, file-by-file shift using tools like `ts-migrate` or strict bounds on `.eslintrc` configurations prohibiting `no-explicit-any`. Furthermore, the integration of CI/CD pipeline stops based on type coverage metrics guarantees that the overall type health of the repository moves monotonically upwards.
-
-### Detailed Scenario 25
-To truly master this domain, consider the implication of varying inputs across architectural boundaries. When a microservice written in Go sends JSON to a Node.js backend using TypeScript, the compile-time guarantees of the receiver do not inherently govern the runtime data. This boundary is where structural typing shines. Because TypeScript checks the shape of the object rather than its nominal lineage (as Java or C# might), developers can simply assert or parse incoming data into interfaces. 
-
-```typescript
-// Example reinforcement of structural typing
-interface BoundaryEntity24 {
-  correlationId: string;
-  payload: Record<string, unknown>;
-}
-
-function handleBoundaryEntity24(entity: BoundaryEntity24) {
-  // System logs correlation ID
-  console.log(`[Trace] Processing ${entity.correlationId}`);
-}
-```
-
-In legacy enterprise migrations, you'll often encounter `any` types applied broadly to boundary objects. Addressing this requires a tactical, file-by-file shift using tools like `ts-migrate` or strict bounds on `.eslintrc` configurations prohibiting `no-explicit-any`. Furthermore, the integration of CI/CD pipeline stops based on type coverage metrics guarantees that the overall type health of the repository moves monotonically upwards.
-
+2. **Unexpected Union Distribution with `never`**
+   - If `T` in `T extends U ? X : Y` is passed `never`, the entire expression evaluates to `never` without reaching `Y` because distribution over the empty set produces the empty set. Use `[T] extends [never]` to detect `never`.

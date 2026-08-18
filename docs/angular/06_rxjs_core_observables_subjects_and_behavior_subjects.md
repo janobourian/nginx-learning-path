@@ -1,1527 +1,229 @@
-# RxJS Core: Observables, Subjects & BehaviorSubjects
-Track 9: Angular Signals Platform & Ivy Architecture
-Category: Web Development Frameworks
+# Module 06: RxJS Core — Observables, Subjects & Interoperability with Signals
 
-## 1. Opening: Beginner to Expert Progression
-Welcome to RxJS Core: Observables, Subjects & BehaviorSubjects. Angular is a modern web development platform and framework built by Google. At its core, Angular allows developers to build robust, scalable Single Page Applications (SPAs) using TypeScript, HTML, and CSS. A component in Angular is the fundamental building block of the UI—it encapsulates the template (HTML), the styles (CSS), and the logic (TypeScript).
+**Track:** Angular — Signals Platform & Ivy Architecture  
+**Category:** Reactive Streams, Multicasting & Signal Interop
 
-Why RxJS Core matters: In enterprise environments, efficiency, maintainability, and performance are critical. By mastering RxJS Core, you unlock the ability to write scalable applications that handle complex data flows without memory leaks or UI jank.
+---
 
-```mermaid
-graph TD;
-    A[Root Component] --> B[Child Component 1];
-    A --> C[Child Component 2];
-    B --> D[Signal State];
-    C --> E[RxJS Stream];
-    D --> F[DOM Update];
-    E --> F;
+## 1. What Is an RxJS Observable?
+
+An **Observable** is a declarative, push-based stream of data that can emit zero, one, or multiple values over time, synchronously or asynchronously.
+
+```
+Observable Lifecycle Stream:
+---(next: 1)---(next: 2)---(next: 3)---(error: X)  [Terminated with Error]
+---(next: "A")---(next: "B")---(next: "C")---|      [Terminated with Complete]
 ```
 
-## 2. Core API Dictionary
-| API | Signature | Description |
-|---|---|---|
-| `ng new` | `ng new <project> --standalone` | Generates a new Angular workspace. |
-| `signal()` | `signal<T>(initialValue: T)` | Creates a writable signal. |
-| `computed()` | `computed<T>(computation: () => T)` | Creates a declarative, memoized reactive value. |
-| `effect()` | `effect(effectFn: () => void)` | Schedules a side-effect to run when dependencies change. |
-| `input()` | `input<T>()` | Defines a reactive input for a component. |
-| `model()` | `model<T>()` | Defines a two-way bindable reactive input. |
-| `output()` | `output<T>()` | Defines an event emitter using signal-based APIs. |
-| `inject()` | `inject<T>(token: ProviderToken<T>)` | Injects a dependency contextually. |
-| `@Component` | `@Component({ standalone: true, ... })` | Decorator marking a class as an Angular component. |
-| `@Injectable`| `@Injectable({ providedIn: 'root' })` | Marks a class as available for dependency injection. |
-| `switchMap()`| `switchMap(project: (val) => Observable)` | RxJS operator: Maps to observable, cancels previous. |
-| `mergeMap()` | `mergeMap(project: (val) => Observable)` | RxJS operator: Maps to observable, merges concurrently. |
-| `catchError()`| `catchError(selector: (err) => Observable)` | RxJS operator: Catches errors on the observable sequence. |
-| `HttpClient` | `class HttpClient` | Performs HTTP requests. |
-| `FormGroup`  | `class FormGroup` | Tracks the value and validity state of a group of form controls. |
-| `viewChild()`| `viewChild(selector)` | Query a single child element as a signal. |
-| `ɵɵdefineComponent` | `ɵɵdefineComponent(...)` | Ivy AOT compiler instruction for defining components. |
-| `ApplicationRef.tick()` | `tick()` | Manually triggers change detection. |
+### The Observer Interface:
+When subscribing to an Observable, an **Observer** object handles three possible notifications:
+- **`next(value)`**: Invoked each time the Observable emits a value.
+- **`error(err)`**: Invoked if an unhandled exception occurs (terminates stream).
+- **`complete()`**: Invoked when the stream finishes emitting (terminates stream).
 
-## 3. Technical Deep Dive
-Angular's Ivy compiler transforms components into a series of instructions that mutate the DOM. Instead of a monolithic Virtual DOM comparison, Ivy's instruction pipeline is highly granular.
+---
 
-When combined with Signals (Angular 16+), the framework moves from a pull-based zone.js model to a push/pull hybrid DAG. A Signal is a wrapper around a value that can notify interested consumers when that value changes.
+## 2. Cold vs Hot Observables
 
-## 4. Beginner Step-by-Step Tutorial
-Let's build our first component using RxJS Core.
+Understanding the distinction between Cold and Hot Observables is critical for preventing duplicate network requests and managing event broadcasts:
+
+| Criterion | Cold Observable | Hot Observable |
+| :--- | :--- | :--- |
+| **Producer Location** | Created **inside** the Observable function | Created **outside** the Observable |
+| **Execution Trigger** | Producer starts **only when `.subscribe()` is called** | Producer is already running, regardless of subscribers |
+| **Multicasting** | **Unicast**: Each subscriber gets a separate, fresh stream | **Multicast**: All subscribers share the same live stream |
+| **Examples in Angular** | `HttpClient.get()`, `of()`, `from()`, `interval()` | `Subject`, `BehaviorSubject`, `fromEvent(window, 'click')` |
 
 ```typescript
-import { Component, signal } from '@angular/core';
+// COLD OBSERVABLE (HttpClient):
+// Subscribing twice makes TWO SEPARATE HTTP REQUESTS over the network!
+const coldHttp$ = http.get("/api/users");
+coldHttp$.subscribe(); // Request 1
+coldHttp$.subscribe(); // Request 2
+```
 
-@Component({
-  selector: 'app-hello',
-  standalone: true,
-  template: `
-    <div>
-      <h1>Hello, {{ name() }}!</h1>
-      <button (click)="updateName()">Change Name</button>
-    </div>
-  `
-})
-export class HelloComponent {
-  // 1. Define a signal
-  name = signal('World');
+---
 
-  // 2. Update the signal
-  updateName() {
-    this.name.set('Angular 17+');
+## 3. The Subject Family: Multicasting & State Management
+
+A **Subject** is both an **Observable** (can be subscribed to) and an **Observer** (has `.next()`, `.error()`, `.complete()` methods). Subjects are the primary mechanism for multicasting in RxJS.
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                       The Subject Family                    │
+├────────────────────┬────────────────────────────────────────┤
+│ **Subject**        │ Pure event bus. Emits only events that │
+│                    │ occur *after* subscription.            │
+├────────────────────┼────────────────────────────────────────┤
+│ **BehaviorSubject**│ State container. Requires initial value│
+│                    │ and replays current `.value` to new    │
+│                    │ subscribers immediately.               │
+├────────────────────┼────────────────────────────────────────┤
+│ **ReplaySubject**  │ Replays the last `N` emitted values    │
+│                    │ (buffer window) to new subscribers.    │
+├────────────────────┼────────────────────────────────────────┤
+│ **AsyncSubject**   │ Emits ONLY the final value when the    │
+│                    │ stream calls `.complete()`.            │
+└────────────────────┴────────────────────────────────────────┘
+```
+
+### 1. `BehaviorSubject` (Classic State Holder Pattern)
+
+```typescript
+import { Injectable } from "@angular/core";
+import { BehaviorSubject, map } from "rxjs";
+
+export interface UserSession {
+  token: string;
+  name: string;
+}
+
+@Injectable({ providedIn: "root" })
+export class SessionService {
+  // 1. Private BehaviorSubject holding current state with initial null:
+  private sessionSubject$ = new BehaviorSubject<UserSession | null>(null);
+
+  // 2. Public Observable stream exposed to components:
+  public session$ = this.sessionSubject$.asObservable();
+
+  // 3. Derived stream:
+  public isAuthenticated$ = this.session$.pipe(
+    map((session) => Boolean(session?.token))
+  );
+
+  // Synchronous snapshot getter:
+  public get currentSession(): UserSession | null {
+    return this.sessionSubject$.getValue();
+  }
+
+  public setSession(session: UserSession): void {
+    this.sessionSubject$.next(session);
+  }
+
+  public clearSession(): void {
+    this.sessionSubject$.next(null);
   }
 }
 ```
 
-## 5. Intermediate Lab
-In this lab, we connect RxJS Core to a realistic service.
+---
+
+## 4. Preventing Memory Leaks with `takeUntilDestroyed` (Angular 16+)
+
+In older Angular versions, developers had to manage subscriptions manually with `ngOnDestroy` and `takeUntil(this.destroy$)` to avoid memory leaks.
+
+Modern Angular provides **`takeUntilDestroyed()`**:
 
 ```typescript
-import { Component, inject, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { Component, inject } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import { interval } from "rxjs";
 
 @Component({
-  selector: 'app-data',
+  selector: "app-auto-poller",
+  standalone: true,
+  template: `<p>Auto Polling Active</p>`,
+})
+export class AutoPollerComponent {
+  constructor() {
+    // Automatically unsubscribes when AutoPollerComponent is destroyed!
+    interval(1000)
+      .pipe(takeUntilDestroyed())
+      .subscribe((val) => {
+        console.log(`Polling tick: ${val}`);
+      });
+  }
+}
+```
+
+---
+
+## 5. Signal and RxJS Interoperability (`@angular/core/rxjs-interop`)
+
+Angular provides high-performance bridge functions to convert between RxJS Observables and Signals seamlessly:
+
+### 1. `toSignal()` (Observable -> Signal)
+
+Converts an Observable into a Signal. Automatically manages the underlying subscription and unsubscription when the component unmounts:
+
+```typescript
+import { Component, inject } from "@angular/core";
+import { HttpClient } from "@angular/common/http";
+import { toSignal } from "@angular/core/rxjs-interop";
+
+export interface SystemMetric {
+  cpu: number;
+  memory: number;
+}
+
+@Component({
+  selector: "app-metrics-viewer",
   standalone: true,
   template: `
-    @if (data()) {
-      <div>Data loaded: {{ data() | json }}</div>
+    @if (metrics(); as m) {
+      <p>CPU: {{ m.cpu }}% | Memory: {{ m.memory }}MB</p>
     } @else {
-      <p>Loading...</p>
+      <p>Loading telemetry...</p>
     }
-  `
+  `,
 })
-export class DataComponent {
+export class MetricsViewerComponent {
   private http = inject(HttpClient);
-  // Convert RxJS to Signal
-  data = toSignal(this.http.get('/api/data'));
-}
-```
 
-## 6. Production Lab (Advanced)
-For enterprise applications, RxJS Core requires robust error handling and strict typing.
-
-```typescript
-import { ErrorHandler, Injectable } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class GlobalErrorHandler implements ErrorHandler {
-  handleError(error: any): void {
-    console.error('Production Error Intercepted:', error);
-    // Send to logging service
-  }
-}
-```
-
-## 7. CLI Reference
-- `ng new my-app --standalone`: Create a modern standalone app.
-- `ng generate component my-cmp`: Scaffolds a new component.
-- `ng build --configuration production`: Compiles the app with AOT and tree-shaking.
-- `ng test`: Runs Jasmine/Karma tests.
-
-## 8. FinOps & Cloud Cost Analysis
-Utilizing SSR (Server-Side Rendering) with hydration can reduce Time to Interactive (TTI), lowering bounce rates. However, Node.js SSR servers cost compute. By utilizing efficient Change Detection (Zoneless/Signals), CPU cycles on the server are reduced by roughly 15-20%, leading to smaller auto-scaling groups and lower AWS/GCP bills.
-
-## 9. Troubleshooting Guide
-1. **Anti-pattern**: Mutating signal objects directly.
-   **Symptom**: `computed` values don't update.
-   **Fix**: Always use `.update()` or `.set()` and create a new object reference.
-2. **Anti-pattern**: Nested `subscribe()` in RxJS.
-   **Symptom**: Callback hell, memory leaks.
-   **Fix**: Use operators like `switchMap`.
-3. **Anti-pattern**: Forgetting `track` in `@for`.
-   **Symptom**: DOM elements are destroyed and recreated instead of reused.
-   **Fix**: Add `@for (item of items; track item.id)`.
-
-## 10. References
-1. [Angular Official Docs: Signals](https://angular.dev/guide/signals)
-2. [Angular Official Docs: Standalone Components](https://angular.dev/guide/standalone-components)
-3. [Angular Official Docs: Control Flow](https://angular.dev/guide/control-flow)
-4. [Angular Official Docs: Dependency Injection](https://angular.dev/guide/di)
-5. [Angular Official Docs: HttpClient](https://angular.dev/guide/http)
-6. [Nrwl/Nx Engineering Blog](https://nx.dev/blog)
-7. [Google Developers Blog: Angular](https://developers.googleblog.com/search/label/Angular)
-8. [Auth0 Blog: Angular Authentication](https://auth0.com/blog/angular/)
-9. [Cypress Blog: Angular Component Testing](https://www.cypress.io/blog/)
-10. [Vercel Blog: Deploying Angular SSR](https://vercel.com/blog)
-
-
-### Deep Dive Segment 1: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 0
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager0 {
-  private state = signal({ active: true, count: 0 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
+  // Convert HttpClient Observable directly to a reactive Signal!
+  public metrics = toSignal(this.http.get<SystemMetric>("/api/telemetry"), {
+    initialValue: null,
   });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
 }
 ```
 
-### Deep Dive Segment 2: Advanced Concepts in RxJS Core
+### 2. `toObservable()` (Signal -> Observable)
 
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
+Converts a Signal into an RxJS Observable to use operators like `debounceTime`, `switchMap`, or `distinctUntilChanged`:
 
 ```typescript
-// Sample architecture code block 1
-import { Injectable, signal, computed } from '@angular/core';
+import { Component, signal, inject } from "@angular/core";
+import { toObservable } from "@angular/core/rxjs-interop";
+import { debounceTime, distinctUntilChanged, switchMap } from "rxjs";
+import { HttpClient } from "@angular/common/http";
 
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager1 {
-  private state = signal({ active: true, count: 1 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
+@Component({
+  selector: "app-search-box",
+  standalone: true,
+  template: `
+    <input
+      [value]="searchTerm()"
+      (input)="updateSearch($event)"
+      placeholder="Search..."
+    />
+  `,
+})
+export class SearchBoxComponent {
+  private http = inject(HttpClient);
+
+  public searchTerm = signal<string>("");
+
+  // Convert Signal to Observable to leverage RxJS debounce operators:
+  public searchResults$ = toObservable(this.searchTerm).pipe(
+    debounceTime(300),
+    distinctUntilChanged(),
+    switchMap((query) => this.http.get(`/api/search?q=${query}`))
+  );
+
+  public updateSearch(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.searchTerm.set(value);
   }
 }
 ```
 
-### Deep Dive Segment 3: Advanced Concepts in RxJS Core
+---
 
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
+## Troubleshooting & Best Practices
 
-```typescript
-// Sample architecture code block 2
-import { Injectable, signal, computed } from '@angular/core';
+1. **`toSignal()` Subscription Timing**
+   `toSignal()` subscribes to the Observable **immediately** upon creation (in the injection context), not lazily like the `async` pipe.
 
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager2 {
-  private state = signal({ active: true, count: 2 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 4: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 3
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager3 {
-  private state = signal({ active: true, count: 3 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 5: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 4
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager4 {
-  private state = signal({ active: true, count: 4 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 6: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 5
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager5 {
-  private state = signal({ active: true, count: 5 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 7: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 6
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager6 {
-  private state = signal({ active: true, count: 6 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 8: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 7
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager7 {
-  private state = signal({ active: true, count: 7 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 9: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 8
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager8 {
-  private state = signal({ active: true, count: 8 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 10: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 9
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager9 {
-  private state = signal({ active: true, count: 9 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 11: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 10
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager10 {
-  private state = signal({ active: true, count: 10 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 12: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 11
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager11 {
-  private state = signal({ active: true, count: 11 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 13: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 12
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager12 {
-  private state = signal({ active: true, count: 12 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 14: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 13
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager13 {
-  private state = signal({ active: true, count: 13 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 15: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 14
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager14 {
-  private state = signal({ active: true, count: 14 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 16: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 15
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager15 {
-  private state = signal({ active: true, count: 15 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 17: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 16
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager16 {
-  private state = signal({ active: true, count: 16 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 18: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 17
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager17 {
-  private state = signal({ active: true, count: 17 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 19: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 18
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager18 {
-  private state = signal({ active: true, count: 18 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 20: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 19
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager19 {
-  private state = signal({ active: true, count: 19 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 21: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 20
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager20 {
-  private state = signal({ active: true, count: 20 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 22: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 21
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager21 {
-  private state = signal({ active: true, count: 21 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 23: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 22
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager22 {
-  private state = signal({ active: true, count: 22 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 24: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 23
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager23 {
-  private state = signal({ active: true, count: 23 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 25: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 24
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager24 {
-  private state = signal({ active: true, count: 24 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 26: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 25
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager25 {
-  private state = signal({ active: true, count: 25 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 27: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 26
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager26 {
-  private state = signal({ active: true, count: 26 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 28: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 27
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager27 {
-  private state = signal({ active: true, count: 27 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 29: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 28
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager28 {
-  private state = signal({ active: true, count: 28 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 30: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 29
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager29 {
-  private state = signal({ active: true, count: 29 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 31: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 30
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager30 {
-  private state = signal({ active: true, count: 30 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 32: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 31
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager31 {
-  private state = signal({ active: true, count: 31 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 33: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 32
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager32 {
-  private state = signal({ active: true, count: 32 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 34: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 33
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager33 {
-  private state = signal({ active: true, count: 33 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 35: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 34
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager34 {
-  private state = signal({ active: true, count: 34 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 36: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 35
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager35 {
-  private state = signal({ active: true, count: 35 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 37: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 36
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager36 {
-  private state = signal({ active: true, count: 36 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 38: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 37
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager37 {
-  private state = signal({ active: true, count: 37 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 39: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 38
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager38 {
-  private state = signal({ active: true, count: 38 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 40: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 39
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager39 {
-  private state = signal({ active: true, count: 39 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 41: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 40
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager40 {
-  private state = signal({ active: true, count: 40 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 42: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 41
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager41 {
-  private state = signal({ active: true, count: 41 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 43: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 42
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager42 {
-  private state = signal({ active: true, count: 42 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 44: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 43
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager43 {
-  private state = signal({ active: true, count: 43 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 45: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 44
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager44 {
-  private state = signal({ active: true, count: 44 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 46: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 45
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager45 {
-  private state = signal({ active: true, count: 45 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 47: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 46
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager46 {
-  private state = signal({ active: true, count: 46 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 48: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 47
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager47 {
-  private state = signal({ active: true, count: 47 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 49: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 48
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager48 {
-  private state = signal({ active: true, count: 48 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 50: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 49
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager49 {
-  private state = signal({ active: true, count: 49 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 51: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 50
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager50 {
-  private state = signal({ active: true, count: 50 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 52: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 51
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager51 {
-  private state = signal({ active: true, count: 51 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 53: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 52
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager52 {
-  private state = signal({ active: true, count: 52 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 54: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 53
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager53 {
-  private state = signal({ active: true, count: 53 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 55: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 54
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager54 {
-  private state = signal({ active: true, count: 54 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 56: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 55
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager55 {
-  private state = signal({ active: true, count: 55 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 57: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 56
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager56 {
-  private state = signal({ active: true, count: 56 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 58: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 57
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager57 {
-  private state = signal({ active: true, count: 57 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 59: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 58
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager58 {
-  private state = signal({ active: true, count: 58 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 60: Advanced Concepts in RxJS Core
-
-In modern web development, RxJS Core plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 59
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RxJSCoreManager59 {
-  private state = signal({ active: true, count: 59 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
+2. **Signals vs Observables Decision Framework**
+   - Use **Signals** for synchronous UI state, component inputs, and template calculations.
+   - Use **RxJS** for asynchronous streaming, event throttling/debouncing, WebSockets, and complex API compositions.

@@ -1,1527 +1,223 @@
-# Content Projection & ngTemplateOutlets
-Track 9: Angular Signals Platform & Ivy Architecture
-Category: Web Development Frameworks
+# Module 13: Content Projection & Dynamic Templates (`ngTemplateOutlet`)
 
-## 1. Opening: Beginner to Expert Progression
-Welcome to Content Projection & ngTemplateOutlets. Angular is a modern web development platform and framework built by Google. At its core, Angular allows developers to build robust, scalable Single Page Applications (SPAs) using TypeScript, HTML, and CSS. A component in Angular is the fundamental building block of the UI—it encapsulates the template (HTML), the styles (CSS), and the logic (TypeScript).
+**Track:** Angular — Signals Platform & Ivy Architecture  
+**Category:** Component Composition, Transclusion & Headless UI
 
-Why Content Projection matters: In enterprise environments, efficiency, maintainability, and performance are critical. By mastering Content Projection, you unlock the ability to write scalable applications that handle complex data flows without memory leaks or UI jank.
+---
 
-```mermaid
-graph TD;
-    A[Root Component] --> B[Child Component 1];
-    A --> C[Child Component 2];
-    B --> D[Signal State];
-    C --> E[RxJS Stream];
-    D --> F[DOM Update];
-    E --> F;
-```
+## 1. What Is Content Projection?
 
-## 2. Core API Dictionary
-| API | Signature | Description |
-|---|---|---|
-| `ng new` | `ng new <project> --standalone` | Generates a new Angular workspace. |
-| `signal()` | `signal<T>(initialValue: T)` | Creates a writable signal. |
-| `computed()` | `computed<T>(computation: () => T)` | Creates a declarative, memoized reactive value. |
-| `effect()` | `effect(effectFn: () => void)` | Schedules a side-effect to run when dependencies change. |
-| `input()` | `input<T>()` | Defines a reactive input for a component. |
-| `model()` | `model<T>()` | Defines a two-way bindable reactive input. |
-| `output()` | `output<T>()` | Defines an event emitter using signal-based APIs. |
-| `inject()` | `inject<T>(token: ProviderToken<T>)` | Injects a dependency contextually. |
-| `@Component` | `@Component({ standalone: true, ... })` | Decorator marking a class as an Angular component. |
-| `@Injectable`| `@Injectable({ providedIn: 'root' })` | Marks a class as available for dependency injection. |
-| `switchMap()`| `switchMap(project: (val) => Observable)` | RxJS operator: Maps to observable, cancels previous. |
-| `mergeMap()` | `mergeMap(project: (val) => Observable)` | RxJS operator: Maps to observable, merges concurrently. |
-| `catchError()`| `catchError(selector: (err) => Observable)` | RxJS operator: Catches errors on the observable sequence. |
-| `HttpClient` | `class HttpClient` | Performs HTTP requests. |
-| `FormGroup`  | `class FormGroup` | Tracks the value and validity state of a group of form controls. |
-| `viewChild()`| `viewChild(selector)` | Query a single child element as a signal. |
-| `ɵɵdefineComponent` | `ɵɵdefineComponent(...)` | Ivy AOT compiler instruction for defining components. |
-| `ApplicationRef.tick()` | `tick()` | Manually triggers change detection. |
+**Content Projection** (also known as transclusion or slot-based rendering) allows a parent component to inject custom HTML, directives, or other components into designated placeholder slots inside a child component's template.
 
-## 3. Technical Deep Dive
-Angular's Ivy compiler transforms components into a series of instructions that mutate the DOM. Instead of a monolithic Virtual DOM comparison, Ivy's instruction pipeline is highly granular.
+---
 
-When combined with Signals (Angular 16+), the framework moves from a pull-based zone.js model to a push/pull hybrid DAG. A Signal is a wrapper around a value that can notify interested consumers when that value changes.
+## 2. Multi-Slot Content Projection with Selectors
 
-## 4. Beginner Step-by-Step Tutorial
-Let's build our first component using Content Projection.
+Child components can declare multiple distinct insertion slots using CSS selectors in the `select` attribute of `<ng-content>`:
 
 ```typescript
-import { Component, signal } from '@angular/core';
+// src/app/shared/components/modal.component.ts
+import { Component, input, output } from "@angular/core";
 
 @Component({
-  selector: 'app-hello',
+  selector: "app-modal-dialog",
   standalone: true,
   template: `
-    <div>
-      <h1>Hello, {{ name() }}!</h1>
-      <button (click)="updateName()">Change Name</button>
+    <div class="modal-backdrop" (click)="close.emit()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        
+        <!-- Slot 1: Modal Header (Matches elements with [modal-header] attribute) -->
+        <header class="modal-header">
+          <ng-content select="[modal-header]">
+            <!-- Angular 18+ Default Fallback Content if slot is empty! -->
+            <h3>Default Dialog Title</h3>
+          </ng-content>
+        </header>
+
+        <!-- Slot 2: Main Body (Catch-all for unselected elements) -->
+        <div class="modal-body">
+          <ng-content />
+        </div>
+
+        <!-- Slot 3: Actions Footer (Matches elements with [modal-actions] attribute) -->
+        <footer class="modal-footer">
+          <ng-content select="[modal-actions]">
+            <button (click)="close.emit()">Close</button>
+          </ng-content>
+        </footer>
+
+      </div>
     </div>
-  `
+  `,
 })
-export class HelloComponent {
-  // 1. Define a signal
-  name = signal('World');
-
-  // 2. Update the signal
-  updateName() {
-    this.name.set('Angular 17+');
-  }
+export class ModalDialogComponent {
+  public close = output<void>();
 }
 ```
 
-## 5. Intermediate Lab
-In this lab, we connect Content Projection to a realistic service.
+### Consuming the Multi-Slot Component:
+
+```html
+<app-modal-dialog (close)="isModalOpen.set(false)">
+  <!-- Projected into Slot 1: -->
+  <h2 modal-header class="text-xl font-bold text-indigo-400">
+    Confirm Data Deletion
+  </h2>
+
+  <!-- Projected into Slot 2 (Catch-All Body): -->
+  <p>Are you sure you want to permanently delete record #42?</p>
+
+  <!-- Projected into Slot 3: -->
+  <div modal-actions class="flex gap-2">
+    <button (click)="isModalOpen.set(false)">Cancel</button>
+    <button (click)="confirmDelete()" class="btn-danger">Delete</button>
+  </div>
+</app-modal-dialog>
+```
+
+---
+
+## 3. Dynamic Templates with `ngTemplateOutlet`
+
+While `<ng-content>` projects static content at compile time, **`ngTemplateOutlet`** enables **dynamic, programmatic template rendering with custom contextual data** (essential for data tables, virtual lists, and headless UI libraries).
+
+```
+ngTemplateOutlet Pipeline:
+[Parent Template: <ng-template let-user="user">]
+                        │
+                        ▼ (Pass TemplateRef as Input Prop)
+[Child DataTableComponent]
+        │
+        ▼ (Renders template for each row with { $implicit: rowData })
+[DOM Output: Custom row markup rendered for 1,000 rows dynamically!]
+```
+
+---
+
+## 4. Production Master Example: Headless Typed Data Table
+
+Let's build a highly customizable, reusable Data Table component where consumers can provide custom template templates for table cells:
 
 ```typescript
-import { Component, inject, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { toSignal } from '@angular/core/rxjs-interop';
+// src/app/shared/components/data-table/data-table.component.ts
+import { Component, input, TemplateRef } from "@angular/core";
+import { CommonModule } from "@angular/common";
+
+export interface TableColumn<T> {
+  key: keyof T & string;
+  header: string;
+  // Optional custom cell template passed by parent:
+  cellTemplate?: TemplateRef<{ $implicit: T[keyof T]; row: T; index: number }>;
+}
 
 @Component({
-  selector: 'app-data',
+  selector: "app-data-table",
   standalone: true,
+  imports: [CommonModule],
   template: `
-    @if (data()) {
-      <div>Data loaded: {{ data() | json }}</div>
-    } @else {
-      <p>Loading...</p>
-    }
-  `
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            @for (col of columns(); track col.key) {
+              <th>{{ col.header }}</th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of data(); track $index; let rowIndex = $index) {
+            <tr>
+              @for (col of columns(); track col.key) {
+                <td>
+                  <!-- If a custom cell template was provided, render it with context! -->
+                  @if (col.cellTemplate) {
+                    <ng-container
+                      *ngTemplateOutlet="
+                        col.cellTemplate;
+                        context: { $implicit: row[col.key], row: row, index: rowIndex }
+                      "
+                    />
+                  } @else {
+                    <!-- Default fallback: render raw value -->
+                    {{ row[col.key] }}
+                  }
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  `,
+  styleUrls: ["./data-table.component.css"],
 })
-export class DataComponent {
-  private http = inject(HttpClient);
-  // Convert RxJS to Signal
-  data = toSignal(this.http.get('/api/data'));
+export class DataTableComponent<T> {
+  public data = input.required<T[]>();
+  public columns = input.required<TableColumn<T>[]>();
 }
 ```
 
-## 6. Production Lab (Advanced)
-For enterprise applications, Content Projection requires robust error handling and strict typing.
+---
+
+## 5. Consuming the Data Table with Custom Cell Templates
 
 ```typescript
-import { ErrorHandler, Injectable } from '@angular/core';
+// src/app/features/users/user-list.component.ts
+import { Component, viewChild, TemplateRef, signal } from "@angular/core";
+import { DataTableComponent, type TableColumn } from "@/shared/components/data-table/data-table.component";
 
-@Injectable({ providedIn: 'root' })
-export class GlobalErrorHandler implements ErrorHandler {
-  handleError(error: any): void {
-    console.error('Production Error Intercepted:', error);
-    // Send to logging service
+interface UserRecord {
+  id: string;
+  name: string;
+  email: string;
+  status: "active" | "suspended";
+}
+
+@Component({
+  selector: "app-user-list",
+  standalone: true,
+  imports: [DataTableComponent],
+  template: `
+    <h2>Enterprise User Directory</h2>
+
+    <!-- Custom Cell Template for Status column: -->
+    <ng-template #statusCell let-status let-user="row">
+      <span
+        class="badge"
+        [class.badge--green]="status === 'active'"
+        [class.badge--red]="status === 'suspended'"
+      >
+        {{ status | uppercase }} (ID: {{ user.id }})
+      </span>
+    </ng-template>
+
+    <app-data-table [data]="users()" [columns]="tableColumns" />
+  `,
+})
+export class UserListComponent {
+  private statusTemplate = viewChild.required<TemplateRef<any>>("statusCell");
+
+  public users = signal<UserRecord[]>([
+    { id: "u_1", name: "Alice Chen", email: "alice@acme.com", status: "active" },
+    { id: "u_2", name: "Bob Smith", email: "bob@acme.com", status: "suspended" },
+  ]);
+
+  public get tableColumns(): TableColumn<UserRecord>[] {
+    return [
+      { key: "name", header: "Full Name" },
+      { key: "email", header: "Email Address" },
+      { key: "status", header: "Account Status", cellTemplate: this.statusTemplate() },
+    ];
   }
 }
 ```
 
-## 7. CLI Reference
-- `ng new my-app --standalone`: Create a modern standalone app.
-- `ng generate component my-cmp`: Scaffolds a new component.
-- `ng build --configuration production`: Compiles the app with AOT and tree-shaking.
-- `ng test`: Runs Jasmine/Karma tests.
+---
 
-## 8. FinOps & Cloud Cost Analysis
-Utilizing SSR (Server-Side Rendering) with hydration can reduce Time to Interactive (TTI), lowering bounce rates. However, Node.js SSR servers cost compute. By utilizing efficient Change Detection (Zoneless/Signals), CPU cycles on the server are reduced by roughly 15-20%, leading to smaller auto-scaling groups and lower AWS/GCP bills.
+## Troubleshooting & Best Practices
 
-## 9. Troubleshooting Guide
-1. **Anti-pattern**: Mutating signal objects directly.
-   **Symptom**: `computed` values don't update.
-   **Fix**: Always use `.update()` or `.set()` and create a new object reference.
-2. **Anti-pattern**: Nested `subscribe()` in RxJS.
-   **Symptom**: Callback hell, memory leaks.
-   **Fix**: Use operators like `switchMap`.
-3. **Anti-pattern**: Forgetting `track` in `@for`.
-   **Symptom**: DOM elements are destroyed and recreated instead of reused.
-   **Fix**: Add `@for (item of items; track item.id)`.
+1. **The `$implicit` Context Property**
+   In `context: { $implicit: value }`, `$implicit` maps to the default variable assigned when the consumer writes `<ng-template let-val>`. Named properties require explicit binding: `<ng-template let-customName="propertyName">`.
 
-## 10. References
-1. [Angular Official Docs: Signals](https://angular.dev/guide/signals)
-2. [Angular Official Docs: Standalone Components](https://angular.dev/guide/standalone-components)
-3. [Angular Official Docs: Control Flow](https://angular.dev/guide/control-flow)
-4. [Angular Official Docs: Dependency Injection](https://angular.dev/guide/di)
-5. [Angular Official Docs: HttpClient](https://angular.dev/guide/http)
-6. [Nrwl/Nx Engineering Blog](https://nx.dev/blog)
-7. [Google Developers Blog: Angular](https://developers.googleblog.com/search/label/Angular)
-8. [Auth0 Blog: Angular Authentication](https://auth0.com/blog/angular/)
-9. [Cypress Blog: Angular Component Testing](https://www.cypress.io/blog/)
-10. [Vercel Blog: Deploying Angular SSR](https://vercel.com/blog)
-
-
-### Deep Dive Segment 1: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 0
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager0 {
-  private state = signal({ active: true, count: 0 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 2: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 1
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager1 {
-  private state = signal({ active: true, count: 1 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 3: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 2
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager2 {
-  private state = signal({ active: true, count: 2 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 4: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 3
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager3 {
-  private state = signal({ active: true, count: 3 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 5: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 4
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager4 {
-  private state = signal({ active: true, count: 4 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 6: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 5
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager5 {
-  private state = signal({ active: true, count: 5 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 7: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 6
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager6 {
-  private state = signal({ active: true, count: 6 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 8: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 7
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager7 {
-  private state = signal({ active: true, count: 7 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 9: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 8
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager8 {
-  private state = signal({ active: true, count: 8 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 10: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 9
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager9 {
-  private state = signal({ active: true, count: 9 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 11: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 10
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager10 {
-  private state = signal({ active: true, count: 10 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 12: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 11
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager11 {
-  private state = signal({ active: true, count: 11 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 13: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 12
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager12 {
-  private state = signal({ active: true, count: 12 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 14: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 13
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager13 {
-  private state = signal({ active: true, count: 13 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 15: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 14
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager14 {
-  private state = signal({ active: true, count: 14 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 16: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 15
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager15 {
-  private state = signal({ active: true, count: 15 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 17: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 16
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager16 {
-  private state = signal({ active: true, count: 16 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 18: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 17
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager17 {
-  private state = signal({ active: true, count: 17 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 19: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 18
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager18 {
-  private state = signal({ active: true, count: 18 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 20: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 19
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager19 {
-  private state = signal({ active: true, count: 19 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 21: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 20
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager20 {
-  private state = signal({ active: true, count: 20 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 22: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 21
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager21 {
-  private state = signal({ active: true, count: 21 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 23: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 22
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager22 {
-  private state = signal({ active: true, count: 22 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 24: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 23
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager23 {
-  private state = signal({ active: true, count: 23 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 25: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 24
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager24 {
-  private state = signal({ active: true, count: 24 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 26: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 25
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager25 {
-  private state = signal({ active: true, count: 25 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 27: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 26
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager26 {
-  private state = signal({ active: true, count: 26 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 28: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 27
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager27 {
-  private state = signal({ active: true, count: 27 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 29: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 28
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager28 {
-  private state = signal({ active: true, count: 28 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 30: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 29
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager29 {
-  private state = signal({ active: true, count: 29 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 31: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 30
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager30 {
-  private state = signal({ active: true, count: 30 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 32: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 31
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager31 {
-  private state = signal({ active: true, count: 31 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 33: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 32
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager32 {
-  private state = signal({ active: true, count: 32 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 34: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 33
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager33 {
-  private state = signal({ active: true, count: 33 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 35: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 34
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager34 {
-  private state = signal({ active: true, count: 34 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 36: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 35
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager35 {
-  private state = signal({ active: true, count: 35 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 37: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 36
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager36 {
-  private state = signal({ active: true, count: 36 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 38: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 37
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager37 {
-  private state = signal({ active: true, count: 37 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 39: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 38
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager38 {
-  private state = signal({ active: true, count: 38 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 40: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 39
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager39 {
-  private state = signal({ active: true, count: 39 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 41: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 40
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager40 {
-  private state = signal({ active: true, count: 40 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 42: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 41
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager41 {
-  private state = signal({ active: true, count: 41 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 43: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 42
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager42 {
-  private state = signal({ active: true, count: 42 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 44: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 43
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager43 {
-  private state = signal({ active: true, count: 43 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 45: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 44
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager44 {
-  private state = signal({ active: true, count: 44 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 46: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 45
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager45 {
-  private state = signal({ active: true, count: 45 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 47: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 46
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager46 {
-  private state = signal({ active: true, count: 46 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 48: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 47
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager47 {
-  private state = signal({ active: true, count: 47 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 49: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 48
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager48 {
-  private state = signal({ active: true, count: 48 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 50: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 49
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager49 {
-  private state = signal({ active: true, count: 49 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 51: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 50
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager50 {
-  private state = signal({ active: true, count: 50 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 52: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 51
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager51 {
-  private state = signal({ active: true, count: 51 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 53: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 52
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager52 {
-  private state = signal({ active: true, count: 52 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 54: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 53
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager53 {
-  private state = signal({ active: true, count: 53 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 55: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 54
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager54 {
-  private state = signal({ active: true, count: 54 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 56: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 55
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager55 {
-  private state = signal({ active: true, count: 55 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 57: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 56
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager56 {
-  private state = signal({ active: true, count: 56 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 58: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 57
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager57 {
-  private state = signal({ active: true, count: 57 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 59: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 58
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager58 {
-  private state = signal({ active: true, count: 58 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 60: Advanced Concepts in Content Projection
-
-In modern web development, Content Projection plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 59
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ContentProjectionManager59 {
-  private state = signal({ active: true, count: 59 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
+2. **`<ng-content>` is NOT Conditionally Created**
+   `<ng-content>` **always** instantiates its projected components, even if wrapped in `@if (false)`. If you need conditional instantiation to avoid computing heavy DOM nodes when hidden, use `<ng-template>` and `*ngTemplateOutlet`.

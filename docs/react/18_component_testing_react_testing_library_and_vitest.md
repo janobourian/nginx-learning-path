@@ -1,913 +1,253 @@
-# Track 6: React Modern UI & Fiber Architecture - Component Testing: React Testing Library & Vitest
+# Module 18: Component Testing — React Testing Library, Vitest & MSW
 
-## 1. Opening: Beginner's Conceptual Guide
-Welcome to Component Testing: React Testing Library & Vitest. If you are just starting, think of React as a highly optimized system for converting raw data into a user interface using a declarative paradigm.
+**Track:** React — Modern UI & Fiber Architecture  
+**Category:** Automated Testing, Accessibility Queries & Network Mocking
 
-### Why this matters in production
-In large-scale applications, manual DOM manipulation becomes unmaintainable. React introduces the Virtual DOM and Fiber Architecture to efficiently calculate UI diffs and apply them in batches.
+---
 
-### ASCII Architecture Diagram
-```text
-  [Data/State] -----> [React Component (JSX)]
-                            |
-                            v
-                 [Virtual DOM / Fiber Tree - Component Testing: React Testing Library & Vitest]
-                            | (Reconciliation)
-                            v
-                     [Actual DOM]
+## 1. The React Testing Library (RTL) Philosophy
+
+Historically, tools like Enzyme tested component implementation details (inspecting internal `state`, private methods, or shallow child tree properties). When developers refactored a component (e.g. converting `useState` to `useReducer`), all unit tests broke even though the UI behaved identically for the user.
+
+**React Testing Library (RTL)** enforces testing **behavior from the user's perspective**:
+
+> *"The more your tests resemble the way your software is used, the more confidence they can give you."* — Kent C. Dodds
+
+```
+Implementation Testing (Enzyme / Fragile):
+expect(wrapper.state('count')).toBe(1);  ◄── Breaks on refactor
+
+User-Centric Testing (React Testing Library / Resilient):
+await userEvent.click(screen.getByRole('button', { name: /increment/i }));
+expect(screen.getByText(/count: 1/i)).toBeInTheDocument();
 ```
 
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 0 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 1 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 2 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 3 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 4 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 5 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 6 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 7 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 8 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 9 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 10 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 11 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 12 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 13 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 14 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 15 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 16 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 17 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 18 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 19 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 20 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 21 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 22 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 23 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 24 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 25 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 26 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 27 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 28 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 29 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 30 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 31 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 32 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 33 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 34 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 35 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 36 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 37 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 38 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 39 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 40 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 41 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 42 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 43 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 44 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 45 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 46 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 47 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 48 of Component Testing: React Testing Library & Vitest demonstrates this.
-React's declarative nature allows developers to focus on business logic rather than DOM traversal. By relying on a predictable state machine, React components become easier to test, debug, and reuse across complex codebases. Feature iteration 49 of Component Testing: React Testing Library & Vitest demonstrates this.
+---
 
-## 2. Core API Dictionary Table
-| API / Function | Signature | Semantic Explanation |
-|---|---|---|
-| `render` | `function render(...)` | Core primitive for component testing: react testing library & vitest management. |
-| `screen` | `function screen(...)` | Core primitive for component testing: react testing library & vitest management. |
-| `fireEvent` | `function fireEvent(...)` | Core primitive for component testing: react testing library & vitest management. |
-| `waitFor` | `function waitFor(...)` | Core primitive for component testing: react testing library & vitest management. |
-| `React.internal_api_component_testing:_react_testing_library_&_vitest_0` | `type T = typeof API` | Advanced API for specific concurrent rendering optimizations or lifecycle hooks in Component Testing: React Testing Library & Vitest. |
-| `React.internal_api_component_testing:_react_testing_library_&_vitest_1` | `type T = typeof API` | Advanced API for specific concurrent rendering optimizations or lifecycle hooks in Component Testing: React Testing Library & Vitest. |
-| `React.internal_api_component_testing:_react_testing_library_&_vitest_2` | `type T = typeof API` | Advanced API for specific concurrent rendering optimizations or lifecycle hooks in Component Testing: React Testing Library & Vitest. |
-| `React.internal_api_component_testing:_react_testing_library_&_vitest_3` | `type T = typeof API` | Advanced API for specific concurrent rendering optimizations or lifecycle hooks in Component Testing: React Testing Library & Vitest. |
-| `React.internal_api_component_testing:_react_testing_library_&_vitest_4` | `type T = typeof API` | Advanced API for specific concurrent rendering optimizations or lifecycle hooks in Component Testing: React Testing Library & Vitest. |
-| `React.internal_api_component_testing:_react_testing_library_&_vitest_5` | `type T = typeof API` | Advanced API for specific concurrent rendering optimizations or lifecycle hooks in Component Testing: React Testing Library & Vitest. |
-| `React.internal_api_component_testing:_react_testing_library_&_vitest_6` | `type T = typeof API` | Advanced API for specific concurrent rendering optimizations or lifecycle hooks in Component Testing: React Testing Library & Vitest. |
-| `React.internal_api_component_testing:_react_testing_library_&_vitest_7` | `type T = typeof API` | Advanced API for specific concurrent rendering optimizations or lifecycle hooks in Component Testing: React Testing Library & Vitest. |
-| `React.internal_api_component_testing:_react_testing_library_&_vitest_8` | `type T = typeof API` | Advanced API for specific concurrent rendering optimizations or lifecycle hooks in Component Testing: React Testing Library & Vitest. |
-| `React.internal_api_component_testing:_react_testing_library_&_vitest_9` | `type T = typeof API` | Advanced API for specific concurrent rendering optimizations or lifecycle hooks in Component Testing: React Testing Library & Vitest. |
-| `React.internal_api_component_testing:_react_testing_library_&_vitest_10` | `type T = typeof API` | Advanced API for specific concurrent rendering optimizations or lifecycle hooks in Component Testing: React Testing Library & Vitest. |
-| `React.internal_api_component_testing:_react_testing_library_&_vitest_11` | `type T = typeof API` | Advanced API for specific concurrent rendering optimizations or lifecycle hooks in Component Testing: React Testing Library & Vitest. |
-| `React.internal_api_component_testing:_react_testing_library_&_vitest_12` | `type T = typeof API` | Advanced API for specific concurrent rendering optimizations or lifecycle hooks in Component Testing: React Testing Library & Vitest. |
-| `React.internal_api_component_testing:_react_testing_library_&_vitest_13` | `type T = typeof API` | Advanced API for specific concurrent rendering optimizations or lifecycle hooks in Component Testing: React Testing Library & Vitest. |
-| `React.internal_api_component_testing:_react_testing_library_&_vitest_14` | `type T = typeof API` | Advanced API for specific concurrent rendering optimizations or lifecycle hooks in Component Testing: React Testing Library & Vitest. |
-| `React.internal_api_component_testing:_react_testing_library_&_vitest_15` | `type T = typeof API` | Advanced API for specific concurrent rendering optimizations or lifecycle hooks in Component Testing: React Testing Library & Vitest. |
-| `React.internal_api_component_testing:_react_testing_library_&_vitest_16` | `type T = typeof API` | Advanced API for specific concurrent rendering optimizations or lifecycle hooks in Component Testing: React Testing Library & Vitest. |
-| `React.internal_api_component_testing:_react_testing_library_&_vitest_17` | `type T = typeof API` | Advanced API for specific concurrent rendering optimizations or lifecycle hooks in Component Testing: React Testing Library & Vitest. |
-| `React.internal_api_component_testing:_react_testing_library_&_vitest_18` | `type T = typeof API` | Advanced API for specific concurrent rendering optimizations or lifecycle hooks in Component Testing: React Testing Library & Vitest. |
-| `React.internal_api_component_testing:_react_testing_library_&_vitest_19` | `type T = typeof API` | Advanced API for specific concurrent rendering optimizations or lifecycle hooks in Component Testing: React Testing Library & Vitest. |
-| `React.internal_api_component_testing:_react_testing_library_&_vitest_20` | `type T = typeof API` | Advanced API for specific concurrent rendering optimizations or lifecycle hooks in Component Testing: React Testing Library & Vitest. |
-| `React.internal_api_component_testing:_react_testing_library_&_vitest_21` | `type T = typeof API` | Advanced API for specific concurrent rendering optimizations or lifecycle hooks in Component Testing: React Testing Library & Vitest. |
-| `React.internal_api_component_testing:_react_testing_library_&_vitest_22` | `type T = typeof API` | Advanced API for specific concurrent rendering optimizations or lifecycle hooks in Component Testing: React Testing Library & Vitest. |
-| `React.internal_api_component_testing:_react_testing_library_&_vitest_23` | `type T = typeof API` | Advanced API for specific concurrent rendering optimizations or lifecycle hooks in Component Testing: React Testing Library & Vitest. |
-| `React.internal_api_component_testing:_react_testing_library_&_vitest_24` | `type T = typeof API` | Advanced API for specific concurrent rendering optimizations or lifecycle hooks in Component Testing: React Testing Library & Vitest. |
+## 2. Setting Up Vitest & React Testing Library
 
-## 3. Technical Deep Dive: Internals & Fiber
-React's internal reconciliation engine, known as Fiber, represents a profound shift in how rendering work is scheduled.
-
-### Memory Model & Double Buffering
-React uses a double-buffering technique. There is a 'current' tree representing what is on the screen, and a 'work-in-progress' tree where the next state is built.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 0 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 1 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 2 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 3 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 4 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 5 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 6 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 7 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 8 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 9 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 10 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 11 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 12 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 13 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 14 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 15 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 16 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 17 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 18 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 19 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 20 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 21 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 22 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 23 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 24 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 25 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 26 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 27 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 28 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 29 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 30 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 31 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 32 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 33 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 34 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 35 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 36 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 37 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 38 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 39 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 40 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 41 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 42 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 43 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 44 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 45 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 46 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 47 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 48 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 49 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 50 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 51 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 52 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 53 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 54 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 55 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 56 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 57 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 58 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 59 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 60 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 61 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 62 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 63 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 64 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 65 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 66 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 67 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 68 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 69 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 70 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 71 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 72 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 73 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 74 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 75 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 76 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 77 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 78 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 79 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 80 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 81 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 82 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 83 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 84 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 85 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 86 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 87 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 88 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 89 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 90 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 91 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 92 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 93 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 94 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 95 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 96 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 97 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 98 of the rendering loop ensures that intermediate states are never painted to the DOM.
-This specific technique mitigates layout thrashing and tearing in Component Testing: React Testing Library & Vitest. Iteration 99 of the rendering loop ensures that intermediate states are never painted to the DOM.
-
-## 4. Beginner Step-by-Step Tutorial
-Let's build your first functional block using this concept.
-```tsx
-import React from "react";
-
-interface TutorialProps {
-  title: string;
-}
-
-export const BeginnerComponentComponentTestingReactTestingLibraryVitest: React.FC<TutorialProps> = ({ title }) => {
-  // Step 2.0: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 0 for', title);
-  // Step 2.1: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 1 for', title);
-  // Step 2.2: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 2 for', title);
-  // Step 2.3: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 3 for', title);
-  // Step 2.4: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 4 for', title);
-  // Step 2.5: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 5 for', title);
-  // Step 2.6: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 6 for', title);
-  // Step 2.7: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 7 for', title);
-  // Step 2.8: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 8 for', title);
-  // Step 2.9: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 9 for', title);
-  // Step 2.10: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 10 for', title);
-  // Step 2.11: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 11 for', title);
-  // Step 2.12: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 12 for', title);
-  // Step 2.13: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 13 for', title);
-  // Step 2.14: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 14 for', title);
-  // Step 2.15: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 15 for', title);
-  // Step 2.16: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 16 for', title);
-  // Step 2.17: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 17 for', title);
-  // Step 2.18: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 18 for', title);
-  // Step 2.19: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 19 for', title);
-  // Step 2.20: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 20 for', title);
-  // Step 2.21: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 21 for', title);
-  // Step 2.22: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 22 for', title);
-  // Step 2.23: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 23 for', title);
-  // Step 2.24: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 24 for', title);
-  // Step 2.25: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 25 for', title);
-  // Step 2.26: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 26 for', title);
-  // Step 2.27: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 27 for', title);
-  // Step 2.28: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 28 for', title);
-  // Step 2.29: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 29 for', title);
-  // Step 2.30: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 30 for', title);
-  // Step 2.31: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 31 for', title);
-  // Step 2.32: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 32 for', title);
-  // Step 2.33: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 33 for', title);
-  // Step 2.34: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 34 for', title);
-  // Step 2.35: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 35 for', title);
-  // Step 2.36: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 36 for', title);
-  // Step 2.37: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 37 for', title);
-  // Step 2.38: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 38 for', title);
-  // Step 2.39: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 39 for', title);
-  // Step 2.40: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 40 for', title);
-  // Step 2.41: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 41 for', title);
-  // Step 2.42: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 42 for', title);
-  // Step 2.43: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 43 for', title);
-  // Step 2.44: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 44 for', title);
-  // Step 2.45: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 45 for', title);
-  // Step 2.46: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 46 for', title);
-  // Step 2.47: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 47 for', title);
-  // Step 2.48: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 48 for', title);
-  // Step 2.49: Initializing internal state or logging for Component Testing: React Testing Library & Vitest
-  console.log('Rendering step 49 for', title);
-  return (
-    <div>
-      <h1>{title}</h1>
-    </div>
-  );
-};
+```bash
+npm install -D vitest @testing-library/react @testing-library/user-event @testing-library/jest-dom happy-dom msw
 ```
-Notice how Step 2.0 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.1 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.2 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.3 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.4 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.5 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.6 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.7 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.8 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.9 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.10 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.11 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.12 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.13 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.14 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.15 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.16 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.17 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.18 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.19 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.20 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.21 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.22 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.23 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.24 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.25 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.26 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.27 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.28 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.29 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.30 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.31 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.32 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.33 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.34 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.35 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.36 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.37 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.38 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.39 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.40 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.41 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.42 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.43 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.44 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.45 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.46 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.47 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.48 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
-Notice how Step 2.49 demonstrates the predictable, top-down data flow essential for stable components in Component Testing: React Testing Library & Vitest.
 
-## 5. Intermediate Lab: Real-World Scenario
-```tsx
-import React, { useState, useEffect } from 'react';
+```typescript
+// vitest.config.ts
+import { defineConfig } from "vitest/config";
+import react from "@vitejs/plugin-react";
 
-export function IntermediateLabComponentTestingReactTestingLibraryVitest() {
-  const [data, setData] = useState<string | null>(null);
-  const [error, setError] = useState<Error | null>(null);
-
-  useEffect(() => {
-    let isMounted = true;
-    async function fetchLabData() {
-      try {
-        const response = await new Promise<string>(resolve => setTimeout(() => resolve('Lab Data Loaded'), 1000));
-        if (isMounted) setData(response);
-      } catch (err) {
-        if (isMounted) setError(err as Error);
-      }
-    }
-    fetchLabData();
-    return () => { isMounted = false; };
-  }, []);
-
-  // Business logic block 0 specific to Component Testing: React Testing Library & Vitest
-  const processedData0 = data ? data + ' - processed 0' : null;
-  // Business logic block 1 specific to Component Testing: React Testing Library & Vitest
-  const processedData1 = data ? data + ' - processed 1' : null;
-  // Business logic block 2 specific to Component Testing: React Testing Library & Vitest
-  const processedData2 = data ? data + ' - processed 2' : null;
-  // Business logic block 3 specific to Component Testing: React Testing Library & Vitest
-  const processedData3 = data ? data + ' - processed 3' : null;
-  // Business logic block 4 specific to Component Testing: React Testing Library & Vitest
-  const processedData4 = data ? data + ' - processed 4' : null;
-  // Business logic block 5 specific to Component Testing: React Testing Library & Vitest
-  const processedData5 = data ? data + ' - processed 5' : null;
-  // Business logic block 6 specific to Component Testing: React Testing Library & Vitest
-  const processedData6 = data ? data + ' - processed 6' : null;
-  // Business logic block 7 specific to Component Testing: React Testing Library & Vitest
-  const processedData7 = data ? data + ' - processed 7' : null;
-  // Business logic block 8 specific to Component Testing: React Testing Library & Vitest
-  const processedData8 = data ? data + ' - processed 8' : null;
-  // Business logic block 9 specific to Component Testing: React Testing Library & Vitest
-  const processedData9 = data ? data + ' - processed 9' : null;
-  // Business logic block 10 specific to Component Testing: React Testing Library & Vitest
-  const processedData10 = data ? data + ' - processed 10' : null;
-  // Business logic block 11 specific to Component Testing: React Testing Library & Vitest
-  const processedData11 = data ? data + ' - processed 11' : null;
-  // Business logic block 12 specific to Component Testing: React Testing Library & Vitest
-  const processedData12 = data ? data + ' - processed 12' : null;
-  // Business logic block 13 specific to Component Testing: React Testing Library & Vitest
-  const processedData13 = data ? data + ' - processed 13' : null;
-  // Business logic block 14 specific to Component Testing: React Testing Library & Vitest
-  const processedData14 = data ? data + ' - processed 14' : null;
-  // Business logic block 15 specific to Component Testing: React Testing Library & Vitest
-  const processedData15 = data ? data + ' - processed 15' : null;
-  // Business logic block 16 specific to Component Testing: React Testing Library & Vitest
-  const processedData16 = data ? data + ' - processed 16' : null;
-  // Business logic block 17 specific to Component Testing: React Testing Library & Vitest
-  const processedData17 = data ? data + ' - processed 17' : null;
-  // Business logic block 18 specific to Component Testing: React Testing Library & Vitest
-  const processedData18 = data ? data + ' - processed 18' : null;
-  // Business logic block 19 specific to Component Testing: React Testing Library & Vitest
-  const processedData19 = data ? data + ' - processed 19' : null;
-  // Business logic block 20 specific to Component Testing: React Testing Library & Vitest
-  const processedData20 = data ? data + ' - processed 20' : null;
-  // Business logic block 21 specific to Component Testing: React Testing Library & Vitest
-  const processedData21 = data ? data + ' - processed 21' : null;
-  // Business logic block 22 specific to Component Testing: React Testing Library & Vitest
-  const processedData22 = data ? data + ' - processed 22' : null;
-  // Business logic block 23 specific to Component Testing: React Testing Library & Vitest
-  const processedData23 = data ? data + ' - processed 23' : null;
-  // Business logic block 24 specific to Component Testing: React Testing Library & Vitest
-  const processedData24 = data ? data + ' - processed 24' : null;
-  // Business logic block 25 specific to Component Testing: React Testing Library & Vitest
-  const processedData25 = data ? data + ' - processed 25' : null;
-  // Business logic block 26 specific to Component Testing: React Testing Library & Vitest
-  const processedData26 = data ? data + ' - processed 26' : null;
-  // Business logic block 27 specific to Component Testing: React Testing Library & Vitest
-  const processedData27 = data ? data + ' - processed 27' : null;
-  // Business logic block 28 specific to Component Testing: React Testing Library & Vitest
-  const processedData28 = data ? data + ' - processed 28' : null;
-  // Business logic block 29 specific to Component Testing: React Testing Library & Vitest
-  const processedData29 = data ? data + ' - processed 29' : null;
-  // Business logic block 30 specific to Component Testing: React Testing Library & Vitest
-  const processedData30 = data ? data + ' - processed 30' : null;
-  // Business logic block 31 specific to Component Testing: React Testing Library & Vitest
-  const processedData31 = data ? data + ' - processed 31' : null;
-  // Business logic block 32 specific to Component Testing: React Testing Library & Vitest
-  const processedData32 = data ? data + ' - processed 32' : null;
-  // Business logic block 33 specific to Component Testing: React Testing Library & Vitest
-  const processedData33 = data ? data + ' - processed 33' : null;
-  // Business logic block 34 specific to Component Testing: React Testing Library & Vitest
-  const processedData34 = data ? data + ' - processed 34' : null;
-  // Business logic block 35 specific to Component Testing: React Testing Library & Vitest
-  const processedData35 = data ? data + ' - processed 35' : null;
-  // Business logic block 36 specific to Component Testing: React Testing Library & Vitest
-  const processedData36 = data ? data + ' - processed 36' : null;
-  // Business logic block 37 specific to Component Testing: React Testing Library & Vitest
-  const processedData37 = data ? data + ' - processed 37' : null;
-  // Business logic block 38 specific to Component Testing: React Testing Library & Vitest
-  const processedData38 = data ? data + ' - processed 38' : null;
-  // Business logic block 39 specific to Component Testing: React Testing Library & Vitest
-  const processedData39 = data ? data + ' - processed 39' : null;
-  // Business logic block 40 specific to Component Testing: React Testing Library & Vitest
-  const processedData40 = data ? data + ' - processed 40' : null;
-  // Business logic block 41 specific to Component Testing: React Testing Library & Vitest
-  const processedData41 = data ? data + ' - processed 41' : null;
-  // Business logic block 42 specific to Component Testing: React Testing Library & Vitest
-  const processedData42 = data ? data + ' - processed 42' : null;
-  // Business logic block 43 specific to Component Testing: React Testing Library & Vitest
-  const processedData43 = data ? data + ' - processed 43' : null;
-  // Business logic block 44 specific to Component Testing: React Testing Library & Vitest
-  const processedData44 = data ? data + ' - processed 44' : null;
-  // Business logic block 45 specific to Component Testing: React Testing Library & Vitest
-  const processedData45 = data ? data + ' - processed 45' : null;
-  // Business logic block 46 specific to Component Testing: React Testing Library & Vitest
-  const processedData46 = data ? data + ' - processed 46' : null;
-  // Business logic block 47 specific to Component Testing: React Testing Library & Vitest
-  const processedData47 = data ? data + ' - processed 47' : null;
-  // Business logic block 48 specific to Component Testing: React Testing Library & Vitest
-  const processedData48 = data ? data + ' - processed 48' : null;
-  // Business logic block 49 specific to Component Testing: React Testing Library & Vitest
-  const processedData49 = data ? data + ' - processed 49' : null;
-
-  if (error) return <div>Error: {error.message}</div>;
-  if (!data) return <div>Loading...</div>;
-  return <div>{data}</div>;
-}
-```
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 0).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 1).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 2).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 3).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 4).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 5).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 6).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 7).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 8).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 9).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 10).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 11).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 12).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 13).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 14).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 15).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 16).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 17).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 18).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 19).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 20).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 21).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 22).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 23).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 24).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 25).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 26).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 27).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 28).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 29).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 30).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 31).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 32).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 33).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 34).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 35).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 36).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 37).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 38).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 39).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 40).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 41).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 42).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 43).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 44).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 45).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 46).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 47).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 48).
-This pattern ensures we don't set state on an unmounted component for Component Testing: React Testing Library & Vitest, avoiding a common React memory leak warning (warning 49).
-
-## 6. Production Lab (Advanced)
-```tsx
-import React, { useMemo, useCallback } from 'react';
-
-interface ProductionProps {
-  items: { id: string; val: number }[];
-}
-
-export const ProductionComponentComponentTestingReactTestingLibraryVitest = React.memo(({ items }: ProductionProps) => {
-  const total = useMemo(() => {
-    return items.reduce((acc, item) => acc + item.val, 0);
-  }, [items]);
-
-  const handleAction = useCallback((id: string) => {
-    console.log('Action on', id);
-  }, []);
-
-  return (
-    <div className='production-container'>
-      <h3>Total: {total}</h3>
-      <ul>
-        {/* Renders statically structured items for demonstration 0 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 1 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 2 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 3 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 4 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 5 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 6 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 7 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 8 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 9 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 10 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 11 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 12 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 13 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 14 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 15 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 16 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 17 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 18 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 19 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 20 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 21 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 22 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 23 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 24 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 25 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 26 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 27 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 28 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 29 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 30 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 31 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 32 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 33 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 34 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 35 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 36 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 37 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 38 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 39 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 40 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 41 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 42 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 43 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 44 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 45 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 46 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 47 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 48 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 49 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 50 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 51 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 52 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 53 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 54 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 55 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 56 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 57 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 58 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 59 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 60 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 61 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 62 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 63 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 64 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 65 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 66 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 67 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 68 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 69 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 70 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 71 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 72 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 73 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 74 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 75 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 76 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 77 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 78 in Component Testing: React Testing Library & Vitest */}
-        {/* Renders statically structured items for demonstration 79 in Component Testing: React Testing Library & Vitest */}
-        {items.map(item => (
-          <li key={item.id} onClick={() => handleAction(item.id)}>{item.val}</li>
-        ))}
-      </ul>
-    </div>
-  );
+export default defineConfig({
+  plugins: [react()],
+  test: {
+    globals: true,
+    environment: "happy-dom",
+    setupFiles: ["./test/setup.ts"],
+  },
 });
 ```
-By wrapping the component in `React.memo` (optimization 0), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 1), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 2), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 3), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 4), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 5), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 6), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 7), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 8), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 9), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 10), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 11), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 12), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 13), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 14), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 15), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 16), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 17), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 18), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 19), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 20), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 21), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 22), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 23), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 24), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 25), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 26), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 27), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 28), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 29), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 30), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 31), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 32), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 33), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 34), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 35), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 36), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 37), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 38), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 39), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 40), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 41), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 42), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 43), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 44), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 45), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 46), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 47), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 48), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
-By wrapping the component in `React.memo` (optimization 49), we ensure that the parent can re-render without forcing this complex tree to re-evaluate for Component Testing: React Testing Library & Vitest.
 
-## 7. CLI Reference
-```bash
-npm create vite@latest my-app -- --template react-ts
-npm run dev
-npm run build
+```typescript
+// test/setup.ts
+import "@testing-library/jest-dom/vitest";
+import { cleanup } from "@testing-library/react";
+import { afterEach } from "vitest";
+
+// Clean up DOM after each test
+afterEach(() => {
+  cleanup();
+});
 ```
-Using `--template react-ts` (flag use-case 0 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 1 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 2 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 3 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 4 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 5 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 6 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 7 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 8 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 9 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 10 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 11 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 12 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 13 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 14 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 15 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 16 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 17 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 18 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 19 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 20 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 21 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 22 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 23 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 24 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 25 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 26 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 27 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 28 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 29 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 30 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 31 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 32 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 33 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 34 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 35 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 36 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 37 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 38 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 39 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 40 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 41 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 42 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 43 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 44 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 45 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 46 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 47 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 48 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
-Using `--template react-ts` (flag use-case 49 in Component Testing: React Testing Library & Vitest) ensures strict TypeScript compilation.
 
-## 8. FinOps & Cloud Cost Analysis
-- **Optimization 0 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 1 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 2 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 3 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 4 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 5 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 6 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 7 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 8 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 9 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 10 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 11 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 12 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 13 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 14 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 15 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 16 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 17 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 18 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 19 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 20 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 21 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 22 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 23 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 24 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 25 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 26 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 27 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 28 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 29 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 30 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 31 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 32 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 33 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 34 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 35 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 36 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 37 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 38 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 39 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 40 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 41 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 42 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 43 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 44 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 45 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 46 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 47 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 48 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
-- **Optimization 49 for Component Testing: React Testing Library & Vitest:** Splitting bundles reduces initial load, decreasing CDN egress costs by preventing users from downloading unused code routes.
+---
 
-## 9. Troubleshooting Guide
-### Anti-Pattern 0: Error in Component Testing: React Testing Library & Vitest
-**Symptom:** UI does not update or renders poorly.
-**Fix:** Use Context API, Zustand, or component composition.
-### Anti-Pattern 1: Error in Component Testing: React Testing Library & Vitest
-**Symptom:** UI does not update or renders poorly.
-**Fix:** Use Context API, Zustand, or component composition.
-### Anti-Pattern 2: Error in Component Testing: React Testing Library & Vitest
-**Symptom:** UI does not update or renders poorly.
-**Fix:** Use Context API, Zustand, or component composition.
-### Anti-Pattern 3: Error in Component Testing: React Testing Library & Vitest
-**Symptom:** UI does not update or renders poorly.
-**Fix:** Use Context API, Zustand, or component composition.
-### Anti-Pattern 4: Error in Component Testing: React Testing Library & Vitest
-**Symptom:** UI does not update or renders poorly.
-**Fix:** Use Context API, Zustand, or component composition.
-### Anti-Pattern 5: Error in Component Testing: React Testing Library & Vitest
-**Symptom:** UI does not update or renders poorly.
-**Fix:** Use Context API, Zustand, or component composition.
-### Anti-Pattern 6: Error in Component Testing: React Testing Library & Vitest
-**Symptom:** UI does not update or renders poorly.
-**Fix:** Use Context API, Zustand, or component composition.
-### Anti-Pattern 7: Error in Component Testing: React Testing Library & Vitest
-**Symptom:** UI does not update or renders poorly.
-**Fix:** Use Context API, Zustand, or component composition.
-### Anti-Pattern 8: Error in Component Testing: React Testing Library & Vitest
-**Symptom:** UI does not update or renders poorly.
-**Fix:** Use Context API, Zustand, or component composition.
-### Anti-Pattern 9: Error in Component Testing: React Testing Library & Vitest
-**Symptom:** UI does not update or renders poorly.
-**Fix:** Use Context API, Zustand, or component composition.
-### Anti-Pattern 10: Error in Component Testing: React Testing Library & Vitest
-**Symptom:** UI does not update or renders poorly.
-**Fix:** Use Context API, Zustand, or component composition.
-### Anti-Pattern 11: Error in Component Testing: React Testing Library & Vitest
-**Symptom:** UI does not update or renders poorly.
-**Fix:** Use Context API, Zustand, or component composition.
-### Anti-Pattern 12: Error in Component Testing: React Testing Library & Vitest
-**Symptom:** UI does not update or renders poorly.
-**Fix:** Use Context API, Zustand, or component composition.
-### Anti-Pattern 13: Error in Component Testing: React Testing Library & Vitest
-**Symptom:** UI does not update or renders poorly.
-**Fix:** Use Context API, Zustand, or component composition.
-### Anti-Pattern 14: Error in Component Testing: React Testing Library & Vitest
-**Symptom:** UI does not update or renders poorly.
-**Fix:** Use Context API, Zustand, or component composition.
-### Anti-Pattern 15: Error in Component Testing: React Testing Library & Vitest
-**Symptom:** UI does not update or renders poorly.
-**Fix:** Use Context API, Zustand, or component composition.
-### Anti-Pattern 16: Error in Component Testing: React Testing Library & Vitest
-**Symptom:** UI does not update or renders poorly.
-**Fix:** Use Context API, Zustand, or component composition.
-### Anti-Pattern 17: Error in Component Testing: React Testing Library & Vitest
-**Symptom:** UI does not update or renders poorly.
-**Fix:** Use Context API, Zustand, or component composition.
-### Anti-Pattern 18: Error in Component Testing: React Testing Library & Vitest
-**Symptom:** UI does not update or renders poorly.
-**Fix:** Use Context API, Zustand, or component composition.
-### Anti-Pattern 19: Error in Component Testing: React Testing Library & Vitest
-**Symptom:** UI does not update or renders poorly.
-**Fix:** Use Context API, Zustand, or component composition.
-### Anti-Pattern 20: Error in Component Testing: React Testing Library & Vitest
-**Symptom:** UI does not update or renders poorly.
-**Fix:** Use Context API, Zustand, or component composition.
-### Anti-Pattern 21: Error in Component Testing: React Testing Library & Vitest
-**Symptom:** UI does not update or renders poorly.
-**Fix:** Use Context API, Zustand, or component composition.
-### Anti-Pattern 22: Error in Component Testing: React Testing Library & Vitest
-**Symptom:** UI does not update or renders poorly.
-**Fix:** Use Context API, Zustand, or component composition.
-### Anti-Pattern 23: Error in Component Testing: React Testing Library & Vitest
-**Symptom:** UI does not update or renders poorly.
-**Fix:** Use Context API, Zustand, or component composition.
-### Anti-Pattern 24: Error in Component Testing: React Testing Library & Vitest
-**Symptom:** UI does not update or renders poorly.
-**Fix:** Use Context API, Zustand, or component composition.
+## 3. RTL Query Priority Cheat Sheet
 
-## 10. References
-1. [Official React Documentation for Component Testing: React Testing Library & Vitest Part 1](https://react.dev/reference/react)
-2. [Official React Documentation for Component Testing: React Testing Library & Vitest Part 2](https://react.dev/reference/react)
-3. [Official React Documentation for Component Testing: React Testing Library & Vitest Part 3](https://react.dev/reference/react)
-4. [Official React Documentation for Component Testing: React Testing Library & Vitest Part 4](https://react.dev/reference/react)
-5. [Official React Documentation for Component Testing: React Testing Library & Vitest Part 5](https://react.dev/reference/react)
-6. [Official React Documentation for Component Testing: React Testing Library & Vitest Part 6](https://react.dev/reference/react)
-7. [Official React Documentation for Component Testing: React Testing Library & Vitest Part 7](https://react.dev/reference/react)
-8. [Official React Documentation for Component Testing: React Testing Library & Vitest Part 8](https://react.dev/reference/react)
-9. [Official React Documentation for Component Testing: React Testing Library & Vitest Part 9](https://react.dev/reference/react)
-10. [Official React Documentation for Component Testing: React Testing Library & Vitest Part 10](https://react.dev/reference/react)
+Always use the highest priority query that applies:
+
+1. **`getByRole` / `findByRole`**: Queries by accessible ARIA role (`button`, `heading`, `textbox`, `checkbox`, `dialog`). **Preferred 90% of the time.**
+2. **`getByLabelText`**: Queries form inputs linked to `<label>` elements.
+3. **`getByPlaceholderText`**: Queries inputs by placeholder text.
+4. **`getByText`**: Queries non-interactive text content (paragraphs, spans).
+5. **`getByTestId`**: Last resort for non-standard elements (`data-testid="custom-widget"`).
+
+| Query Variant | No Match | 1 Match | 1+ Matches | Async (Awaits DOM) |
+| :--- | :--- | :--- | :--- | :--- |
+| **`getBy...`** | **Throws Error** | Returns Element | Throws Error | No |
+| **`queryBy...`** | **Returns `null`** (Use to assert element is NOT present) | Returns Element | Throws Error | No |
+| **`findBy...`** | **Throws Error** (after timeout) | Returns Element | Throws Error | **Yes (Promise)** |
+
+---
+
+## 4. Comprehensive Component Test Suite with `userEvent`
+
+Let's test an interactive login form:
+
+```tsx
+// src/components/LoginForm.tsx
+import { useState } from "react";
+
+export function LoginForm({ onLogin }: { onLogin: (email: string) => Promise<void> }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!email || !password) {
+      setError("All fields are required");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError(null);
+    try {
+      await onLogin(email);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} aria-label="Login Form">
+      {error && <div role="alert" className="error">{error}</div>}
+
+      <div>
+        <label htmlFor="email">Email Address</label>
+        <input
+          id="email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+      </div>
+
+      <div>
+        <label htmlFor="password">Password</label>
+        <input
+          id="password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+      </div>
+
+      <button type="submit" disabled={isSubmitting}>
+        {isSubmitting ? "Authenticating..." : "Sign In"}
+      </button>
+    </form>
+  );
+}
+```
+
+```typescript
+// test/components/LoginForm.spec.tsx
+import { describe, it, expect, vi } from "vitest";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { LoginForm } from "@/components/LoginForm";
+
+describe("LoginForm Component", () => {
+  it("renders form controls with accessible labels", () => {
+    render(<LoginForm onLogin={vi.fn()} />);
+
+    expect(screen.getByRole("form", { name: /login form/i })).toBeInTheDocument();
+    expect(screen.getByLabelText(/email address/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /sign in/i })).toBeInTheDocument();
+  });
+
+  it("displays validation error when submitted empty", async () => {
+    const user = userEvent.setup();
+    render(<LoginForm onLogin={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: /sign in/i }));
+
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent(/all fields are required/i);
+  });
+
+  it("calls onLogin with input values on valid submission", async () => {
+    const user = userEvent.setup();
+    const handleLoginMock = vi.fn().mockResolvedValue(undefined);
+
+    render(<LoginForm onLogin={handleLoginMock} />);
+
+    // Simulate real keyboard typing:
+    await user.type(screen.getByLabelText(/email address/i), "alice@example.com");
+    await user.type(screen.getByLabelText(/password/i), "SecureP@ss123");
+
+    // Click submit button:
+    await user.click(screen.getByRole("button", { name: /sign in/i }));
+
+    expect(handleLoginMock).toHaveBeenCalledTimes(1);
+    expect(handleLoginMock).toHaveBeenCalledWith("alice@example.com");
+  });
+});
+```
+
+---
+
+## 5. Mocking Network Requests with Mock Service Worker (MSW)
+
+Instead of mocking `fetch` manually, **MSW (Mock Service Worker)** intercepts real network requests at the HTTP layer:
+
+```typescript
+// test/mocks/handlers.ts
+import { http, HttpResponse } from "msw";
+
+export const handlers = [
+  http.get("https://api.example.com/v1/user", () => {
+    return HttpResponse.json({
+      id: "u_123",
+      name: "Alice Chen",
+      email: "alice@example.com",
+    });
+  }),
+];
+```
+
+```typescript
+// test/mocks/server.ts
+import { setupServer } from "msw/node";
+import { handlers } from "./handlers";
+
+export const server = setupServer(...handlers);
+```
+
+---
+
+## 6. Testing Custom Hooks with `renderHook`
+
+```typescript
+// test/hooks/useCounter.spec.ts
+import { describe, it, expect } from "vitest";
+import { renderHook, act } from "@testing-library/react";
+import { useCounter } from "@/hooks/useCounter";
+
+describe("useCounter Hook", () => {
+  it("initializes with default value and increments state", () => {
+    const { result } = renderHook(() => useCounter(10));
+
+    expect(result.current.count).toBe(10);
+
+    // State mutations must be wrapped in act():
+    act(() => {
+      result.current.increment();
+    });
+
+    expect(result.current.count).toBe(11);
+  });
+});
+```
+
+---
+
+## Troubleshooting & Best Practices
+
+1. **`act(...)` Warnings**
+   If you encounter `Warning: An update to Component inside a test was not wrapped in act(...)`, it means an asynchronous state update resolved *after* your test completed. Use `await screen.findByRole(...)` or `await waitFor(...)` to await the DOM resolution.
+
+2. **Prefer `userEvent` over `fireEvent`**
+   `fireEvent.click()` simply dispatches a single raw DOM event. `userEvent.click()` simulates full user interaction behavior (hovering, focusing, pressing down, releasing, and firing click events).

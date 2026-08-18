@@ -1,1527 +1,209 @@
-# Enterprise Production Builds & CI/CD
-Track 9: Angular Signals Platform & Ivy Architecture
-Category: Web Development Frameworks
+# Module 19: Enterprise Production Builds, Docker & CI/CD Pipelines
 
-## 1. Opening: Beginner to Expert Progression
-Welcome to Enterprise Production Builds & CI/CD. Angular is a modern web development platform and framework built by Google. At its core, Angular allows developers to build robust, scalable Single Page Applications (SPAs) using TypeScript, HTML, and CSS. A component in Angular is the fundamental building block of the UI—it encapsulates the template (HTML), the styles (CSS), and the logic (TypeScript).
+**Track:** Angular — Signals Platform & Ivy Architecture  
+**Category:** DevOps, Build Optimization & Enterprise Production Deployment
 
-Why Production Builds matters: In enterprise environments, efficiency, maintainability, and performance are critical. By mastering Production Builds, you unlock the ability to write scalable applications that handle complex data flows without memory leaks or UI jank.
+---
 
-```mermaid
-graph TD;
-    A[Root Component] --> B[Child Component 1];
-    A --> C[Child Component 2];
-    B --> D[Signal State];
-    C --> E[RxJS Stream];
-    D --> F[DOM Update];
-    E --> F;
+## 1. The Modern Angular Application Builder (`@angular-devkit/build-angular:application`)
+
+In Angular 17+, the legacy Webpack build pipeline is replaced by the unified **`application` builder**:
+- Powered by **esbuild** for ultra-fast bundling and tree-shaking.
+- Powered by **Vite** for local development server and Hot Module Replacement (HMR).
+- Simultaneously generates the **Browser Client Bundle**, **Server SSR Node Bundle**, and **Prerendered HTML files** in a single execution pass!
+
+```bash
+# Execute production optimized build:
+ng build --configuration production
 ```
 
-## 2. Core API Dictionary
-| API | Signature | Description |
-|---|---|---|
-| `ng new` | `ng new <project> --standalone` | Generates a new Angular workspace. |
-| `signal()` | `signal<T>(initialValue: T)` | Creates a writable signal. |
-| `computed()` | `computed<T>(computation: () => T)` | Creates a declarative, memoized reactive value. |
-| `effect()` | `effect(effectFn: () => void)` | Schedules a side-effect to run when dependencies change. |
-| `input()` | `input<T>()` | Defines a reactive input for a component. |
-| `model()` | `model<T>()` | Defines a two-way bindable reactive input. |
-| `output()` | `output<T>()` | Defines an event emitter using signal-based APIs. |
-| `inject()` | `inject<T>(token: ProviderToken<T>)` | Injects a dependency contextually. |
-| `@Component` | `@Component({ standalone: true, ... })` | Decorator marking a class as an Angular component. |
-| `@Injectable`| `@Injectable({ providedIn: 'root' })` | Marks a class as available for dependency injection. |
-| `switchMap()`| `switchMap(project: (val) => Observable)` | RxJS operator: Maps to observable, cancels previous. |
-| `mergeMap()` | `mergeMap(project: (val) => Observable)` | RxJS operator: Maps to observable, merges concurrently. |
-| `catchError()`| `catchError(selector: (err) => Observable)` | RxJS operator: Catches errors on the observable sequence. |
-| `HttpClient` | `class HttpClient` | Performs HTTP requests. |
-| `FormGroup`  | `class FormGroup` | Tracks the value and validity state of a group of form controls. |
-| `viewChild()`| `viewChild(selector)` | Query a single child element as a signal. |
-| `ɵɵdefineComponent` | `ɵɵdefineComponent(...)` | Ivy AOT compiler instruction for defining components. |
-| `ApplicationRef.tick()` | `tick()` | Manually triggers change detection. |
+---
 
-## 3. Technical Deep Dive
-Angular's Ivy compiler transforms components into a series of instructions that mutate the DOM. Instead of a monolithic Virtual DOM comparison, Ivy's instruction pipeline is highly granular.
+## 2. Bundle Budgets in `angular.json`
 
-When combined with Signals (Angular 16+), the framework moves from a pull-based zone.js model to a push/pull hybrid DAG. A Signal is a wrapper around a value that can notify interested consumers when that value changes.
+Enterprise repositories enforce **Bundle Budgets** in `angular.json` to automatically fail CI/CD pull requests if a new npm dependency bloats the application bundle:
 
-## 4. Beginner Step-by-Step Tutorial
-Let's build our first component using Production Builds.
-
-```typescript
-import { Component, signal } from '@angular/core';
-
-@Component({
-  selector: 'app-hello',
-  standalone: true,
-  template: `
-    <div>
-      <h1>Hello, {{ name() }}!</h1>
-      <button (click)="updateName()">Change Name</button>
-    </div>
-  `
-})
-export class HelloComponent {
-  // 1. Define a signal
-  name = signal('World');
-
-  // 2. Update the signal
-  updateName() {
-    this.name.set('Angular 17+');
+```json
+// angular.json
+"configurations": {
+  "production": {
+    "budgets": [
+      {
+        "type": "initial",
+        "maximumWarning": "500kB",
+        "maximumError": "1MB"
+      },
+      {
+        "type": "anyComponentStyle",
+        "maximumWarning": "4kB",
+        "maximumError": "8kB"
+      }
+    ],
+    "outputHashing": "all",
+    "sourceMap": false,
+    "optimization": true
   }
 }
 ```
 
-## 5. Intermediate Lab
-In this lab, we connect Production Builds to a realistic service.
+---
 
-```typescript
-import { Component, inject, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { toSignal } from '@angular/core/rxjs-interop';
+## 3. Multi-Stage Production Dockerfile (SPA with NGINX)
 
-@Component({
-  selector: 'app-data',
-  standalone: true,
-  template: `
-    @if (data()) {
-      <div>Data loaded: {{ data() | json }}</div>
-    } @else {
-      <p>Loading...</p>
+For pure client-side SPA Angular applications, this multi-stage Docker build produces a hardened, sub-30MB container served by NGINX:
+
+```dockerfile
+# ─── Stage 1: Build Angular Application ───
+FROM node:20-alpine AS builder
+WORKDIR /app
+
+# Install pnpm & dependencies
+RUN corepack enable && corepack prepare pnpm@latest --activate
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
+
+# Copy application source and build production bundle
+COPY . .
+RUN pnpm run build --configuration=production
+
+# ─── Stage 2: Hardened NGINX Runtime ───
+FROM nginx:alpine-slim AS runner
+
+# Remove default NGINX website
+RUN rm -rf /usr/share/nginx/html/*
+
+# Copy custom NGINX configuration
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Copy compiled Angular browser assets
+COPY --from=builder /app/dist/my-angular-app/browser /usr/share/nginx/html
+
+# Expose HTTP port
+EXPOSE 80
+
+# Run NGINX in foreground
+CMD ["nginx", "-g", "daemon off;"]
+```
+
+---
+
+## 4. Production NGINX Configuration for Angular (`nginx.conf`)
+
+Angular uses HTML5 PushState routing. If a user directly visits `/dashboard/projects` or refreshes the browser, NGINX must fallback to `index.html`:
+
+```nginx
+# nginx.conf
+server {
+    listen 80;
+    server_name localhost;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # Security Headers
+    add_header X-Frame-Options "DENY" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:;" always;
+
+    # Gzip Compression
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_proxied expired no-cache no-store private auth;
+    gzip_types text/plain text/css text/xml text/javascript application/javascript application/x-javascript application/json application/xml;
+
+    # 1. Static Hashed Chunks: Cache for 1 Year (Immutable)
+    location ~* \.(?:js|css|woff2|png|jpg|jpeg|gif|ico|svg)$ {
+        expires 1y;
+        add_header Cache-Control "public, max-age=31536000, immutable";
+        access_log off;
     }
-  `
-})
-export class DataComponent {
-  private http = inject(HttpClient);
-  // Convert RxJS to Signal
-  data = toSignal(this.http.get('/api/data'));
+
+    # 2. HTML5 PushState Routing Fallback:
+    location / {
+        try_files $uri $uri/ /index.html =404;
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
+    }
+
+    # 3. Healthcheck Probe for Kubernetes
+    location = /healthz {
+        access_log off;
+        return 200 "healthy\n";
+    }
 }
 ```
 
-## 6. Production Lab (Advanced)
-For enterprise applications, Production Builds requires robust error handling and strict typing.
+---
 
-```typescript
-import { ErrorHandler, Injectable } from '@angular/core';
+## 5. Enterprise GitHub Actions CI/CD Pipeline (`.github/workflows/ci.yml`)
 
-@Injectable({ providedIn: 'root' })
-export class GlobalErrorHandler implements ErrorHandler {
-  handleError(error: any): void {
-    console.error('Production Error Intercepted:', error);
-    // Send to logging service
-  }
-}
+```yaml
+name: Enterprise Angular CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run ESLint & Angular Template Checks
+        run: npm run lint
+
+      - name: Run TypeScript Typecheck
+        run: npx tsc --noEmit
+
+      - name: Run Unit Tests (Headless Chrome)
+        run: npm run test -- --no-watch --no-progress --browsers=ChromeHeadless
+
+      - name: Compile Production Build & Verify Budgets
+        run: npm run build -- --configuration=production
+
+  build-and-push-docker:
+    needs: validate-and-test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Push Production Container
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ghcr.io/${{ github.repository }}/angular-app:latest,ghcr.io/${{ github.repository }}/angular-app:${{ github.sha }}
 ```
 
-## 7. CLI Reference
-- `ng new my-app --standalone`: Create a modern standalone app.
-- `ng generate component my-cmp`: Scaffolds a new component.
-- `ng build --configuration production`: Compiles the app with AOT and tree-shaking.
-- `ng test`: Runs Jasmine/Karma tests.
-
-## 8. FinOps & Cloud Cost Analysis
-Utilizing SSR (Server-Side Rendering) with hydration can reduce Time to Interactive (TTI), lowering bounce rates. However, Node.js SSR servers cost compute. By utilizing efficient Change Detection (Zoneless/Signals), CPU cycles on the server are reduced by roughly 15-20%, leading to smaller auto-scaling groups and lower AWS/GCP bills.
-
-## 9. Troubleshooting Guide
-1. **Anti-pattern**: Mutating signal objects directly.
-   **Symptom**: `computed` values don't update.
-   **Fix**: Always use `.update()` or `.set()` and create a new object reference.
-2. **Anti-pattern**: Nested `subscribe()` in RxJS.
-   **Symptom**: Callback hell, memory leaks.
-   **Fix**: Use operators like `switchMap`.
-3. **Anti-pattern**: Forgetting `track` in `@for`.
-   **Symptom**: DOM elements are destroyed and recreated instead of reused.
-   **Fix**: Add `@for (item of items; track item.id)`.
-
-## 10. References
-1. [Angular Official Docs: Signals](https://angular.dev/guide/signals)
-2. [Angular Official Docs: Standalone Components](https://angular.dev/guide/standalone-components)
-3. [Angular Official Docs: Control Flow](https://angular.dev/guide/control-flow)
-4. [Angular Official Docs: Dependency Injection](https://angular.dev/guide/di)
-5. [Angular Official Docs: HttpClient](https://angular.dev/guide/http)
-6. [Nrwl/Nx Engineering Blog](https://nx.dev/blog)
-7. [Google Developers Blog: Angular](https://developers.googleblog.com/search/label/Angular)
-8. [Auth0 Blog: Angular Authentication](https://auth0.com/blog/angular/)
-9. [Cypress Blog: Angular Component Testing](https://www.cypress.io/blog/)
-10. [Vercel Blog: Deploying Angular SSR](https://vercel.com/blog)
-
-
-### Deep Dive Segment 1: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 0
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager0 {
-  private state = signal({ active: true, count: 0 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 2: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 1
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager1 {
-  private state = signal({ active: true, count: 1 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 3: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 2
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager2 {
-  private state = signal({ active: true, count: 2 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 4: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 3
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager3 {
-  private state = signal({ active: true, count: 3 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 5: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 4
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager4 {
-  private state = signal({ active: true, count: 4 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 6: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 5
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager5 {
-  private state = signal({ active: true, count: 5 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 7: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 6
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager6 {
-  private state = signal({ active: true, count: 6 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 8: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 7
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager7 {
-  private state = signal({ active: true, count: 7 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 9: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 8
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager8 {
-  private state = signal({ active: true, count: 8 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 10: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 9
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager9 {
-  private state = signal({ active: true, count: 9 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 11: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 10
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager10 {
-  private state = signal({ active: true, count: 10 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 12: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 11
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager11 {
-  private state = signal({ active: true, count: 11 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 13: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 12
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager12 {
-  private state = signal({ active: true, count: 12 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 14: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 13
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager13 {
-  private state = signal({ active: true, count: 13 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 15: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 14
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager14 {
-  private state = signal({ active: true, count: 14 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 16: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 15
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager15 {
-  private state = signal({ active: true, count: 15 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 17: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 16
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager16 {
-  private state = signal({ active: true, count: 16 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 18: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 17
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager17 {
-  private state = signal({ active: true, count: 17 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 19: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 18
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager18 {
-  private state = signal({ active: true, count: 18 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 20: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 19
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager19 {
-  private state = signal({ active: true, count: 19 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 21: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 20
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager20 {
-  private state = signal({ active: true, count: 20 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 22: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 21
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager21 {
-  private state = signal({ active: true, count: 21 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 23: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 22
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager22 {
-  private state = signal({ active: true, count: 22 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 24: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 23
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager23 {
-  private state = signal({ active: true, count: 23 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 25: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 24
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager24 {
-  private state = signal({ active: true, count: 24 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 26: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 25
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager25 {
-  private state = signal({ active: true, count: 25 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 27: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 26
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager26 {
-  private state = signal({ active: true, count: 26 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 28: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 27
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager27 {
-  private state = signal({ active: true, count: 27 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 29: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 28
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager28 {
-  private state = signal({ active: true, count: 28 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 30: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 29
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager29 {
-  private state = signal({ active: true, count: 29 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 31: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 30
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager30 {
-  private state = signal({ active: true, count: 30 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 32: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 31
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager31 {
-  private state = signal({ active: true, count: 31 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 33: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 32
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager32 {
-  private state = signal({ active: true, count: 32 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 34: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 33
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager33 {
-  private state = signal({ active: true, count: 33 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 35: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 34
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager34 {
-  private state = signal({ active: true, count: 34 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 36: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 35
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager35 {
-  private state = signal({ active: true, count: 35 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 37: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 36
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager36 {
-  private state = signal({ active: true, count: 36 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 38: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 37
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager37 {
-  private state = signal({ active: true, count: 37 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 39: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 38
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager38 {
-  private state = signal({ active: true, count: 38 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 40: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 39
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager39 {
-  private state = signal({ active: true, count: 39 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 41: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 40
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager40 {
-  private state = signal({ active: true, count: 40 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 42: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 41
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager41 {
-  private state = signal({ active: true, count: 41 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 43: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 42
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager42 {
-  private state = signal({ active: true, count: 42 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 44: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 43
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager43 {
-  private state = signal({ active: true, count: 43 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 45: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 44
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager44 {
-  private state = signal({ active: true, count: 44 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 46: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 45
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager45 {
-  private state = signal({ active: true, count: 45 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 47: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 46
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager46 {
-  private state = signal({ active: true, count: 46 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 48: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 47
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager47 {
-  private state = signal({ active: true, count: 47 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 49: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 48
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager48 {
-  private state = signal({ active: true, count: 48 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 50: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 49
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager49 {
-  private state = signal({ active: true, count: 49 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 51: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 50
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager50 {
-  private state = signal({ active: true, count: 50 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 52: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 51
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager51 {
-  private state = signal({ active: true, count: 51 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 53: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 52
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager52 {
-  private state = signal({ active: true, count: 52 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 54: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 53
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager53 {
-  private state = signal({ active: true, count: 53 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 55: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 54
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager54 {
-  private state = signal({ active: true, count: 54 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 56: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 55
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager55 {
-  private state = signal({ active: true, count: 55 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 57: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 56
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager56 {
-  private state = signal({ active: true, count: 56 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 58: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 57
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager57 {
-  private state = signal({ active: true, count: 57 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 59: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 58
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager58 {
-  private state = signal({ active: true, count: 58 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 60: Advanced Concepts in Production Builds
-
-In modern web development, Production Builds plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 59
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class ProductionBuildsManager59 {
-  private state = signal({ active: true, count: 59 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
+---
+
+## Enterprise Production Deployment Checklist
+
+- [ ] **Zoneless / OnPush Verification**: Ensure components use `OnPush` change detection to maximize frame rates.
+- [ ] **Bundle Budget Enforcement**: Configure strict initial and component style budgets in `angular.json`.
+- [ ] **NGINX PushState Routing**: Verify `try_files $uri $uri/ /index.html` is configured to prevent 404s on browser refresh.
+- [ ] **Security Headers**: Inject CSP, HSTS, and X-Content-Type-Options headers in production web servers.
+- [ ] **Image & Font Optimization**: Preconnect to font domains and serve WebP/AVIF assets with long-term immutable caching headers.

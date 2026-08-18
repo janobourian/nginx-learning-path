@@ -1,866 +1,215 @@
-# Track 10: Dart Language & VM Architecture - Sockets, HTTP Networking & WebSockets
+# Module 17: Sockets, HTTP Networking, WebSockets & Shelf Microservices
 
-## 1. Opening: Sockets, HTTP Networking & WebSockets
-Welcome to the definitive guide on Sockets, HTTP Networking & WebSockets. This module explores the foundational and advanced concepts of Dart 3. Dart is a client-optimized language for fast apps on any platform. In this module, we break down exactly why this matters in modern software engineering, moving from beginner fundamentals to expert-level architecture.
+**Track:** Dart — Language & VM Architecture  
+**Category:** Network Engineering, TCP Sockets, WebSockets & HTTP Microservices
 
-### Why this matters in production
-In real production systems, understanding Sockets, HTTP Networking & WebSockets allows developers to build robust, memory-safe, and highly concurrent applications. Whether you are building Flutter apps or backend services, mastering this ensures optimal performance and maintainability.
+---
 
-### Architecture Diagram
-```ascii
-+-------------------------------------------------+
-| Dart 3 System Overview                          |
-|                                                 |
-|  [ Dart Source ] -> [ Front-End Compiler ]      |
-|                             |                   |
-|                      [ Kernel AST ]             |
-|                             |                   |
-|        +--------------------+-----------------+ |
-|        |                                      | |
-| [ JIT Compiler ]                       [ AOT Compiler ]
-|  (Dev/Hot Reload)                       (Prod/Fast Sync)
-+-------------------------------------------------+
-```
+## 1. Low-Level TCP Sockets with `dart:io`
 
-## 2. Core API Dictionary Table
+Dart provides direct access to native OS TCP sockets via **`ServerSocket`** and **`Socket`**:
 
-| API / Directive | Signature / Type | Semantic Explanation |
-|-----------------|------------------|----------------------|
-| `Socket` | `dynamic Function(...)` | Official API component 0-0 for Socket. |
-| `Socket` | `dynamic Function(...)` | Official API component 0-1 for Socket. |
-| `ServerSocket` | `dynamic Function(...)` | Official API component 1-0 for ServerSocket. |
-| `ServerSocket` | `dynamic Function(...)` | Official API component 1-1 for ServerSocket. |
-| `HttpClient` | `dynamic Function(...)` | Official API component 2-0 for HttpClient. |
-| `HttpClient` | `dynamic Function(...)` | Official API component 2-1 for HttpClient. |
-| `HttpServer` | `dynamic Function(...)` | Official API component 3-0 for HttpServer. |
-| `HttpServer` | `dynamic Function(...)` | Official API component 3-1 for HttpServer. |
-| `WebSocket` | `dynamic Function(...)` | Official API component 4-0 for WebSocket. |
-| `WebSocket` | `dynamic Function(...)` | Official API component 4-1 for WebSocket. |
-| `RawDatagramSocket` | `dynamic Function(...)` | Official API component 5-0 for RawDatagramSocket. |
-| `RawDatagramSocket` | `dynamic Function(...)` | Official API component 5-1 for RawDatagramSocket. |
-| `InternetAddress` | `dynamic Function(...)` | Official API component 6-0 for InternetAddress. |
-| `InternetAddress` | `dynamic Function(...)` | Official API component 6-1 for InternetAddress. |
-| `HttpHeaders` | `dynamic Function(...)` | Official API component 7-0 for HttpHeaders. |
-| `HttpHeaders` | `dynamic Function(...)` | Official API component 7-1 for HttpHeaders. |
-| `HttpRequest` | `dynamic Function(...)` | Official API component 8-0 for HttpRequest. |
-| `HttpRequest` | `dynamic Function(...)` | Official API component 8-1 for HttpRequest. |
-| `HttpResponse` | `dynamic Function(...)` | Official API component 9-0 for HttpResponse. |
-| `HttpResponse` | `dynamic Function(...)` | Official API component 9-1 for HttpResponse. |
-
-
-## 3. Technical Deep Dive
-### Internals & Execution Model
-Dart operates on a highly optimized Virtual Machine. When utilizing Sockets, HTTP Networking & WebSockets, the VM leverages its sophisticated memory model and execution engine. Dart's memory is managed in Isolates—independent workers that share no memory. This avoids locks and race conditions. The JIT compiler optimizes code on the fly using Inline Caches (ICs), while the AOT compiler drops the JIT payload for incredibly fast startup times and minimal memory footprint.
-
-### Memory Boundaries
-Memory is strictly isolated. Communication happens via message passing using `SendPort` and `ReceivePort`. Objects are allocated in a young generation (Nursery) and promoted to old space.
-
-## 4. Beginner Step-by-Step Tutorial
-Let's build a simple program demonstrating the basics of Sockets, HTTP Networking & WebSockets.
-
-**Step 1: Initialization**
 ```dart
-// Step 1: Basic setup
-void main() {
-  print('Starting tutorial for Sockets, HTTP Networking & WebSockets...');
+// src/networking/tcp_echo_server.dart
+import 'dart:io';
+import 'dart:convert';
+
+void main() async {
+  // Bind TCP Server on port 4000:
+  final server = await ServerSocket.bind(InternetAddress.anyIPv4, 4000);
+  print('TCP Server listening on port ${server.port}...');
+
+  await for (final Socket client in server) {
+    print('Client connected from ${client.remoteAddress.address}:${client.remotePort}');
+
+    // Echo incoming data back to client:
+    client
+        .transform(utf8.decoder)
+        .listen((message) {
+          print('Received: $message');
+          client.write('ECHO: $message');
+        }, onDone: () {
+          print('Client disconnected.');
+          client.close();
+        });
+  }
 }
 ```
 
-**Step 2: Core Concept Application**
-```dart
-// Step 2: Applying Sockets, HTTP Networking & WebSockets API
-final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8080);
-await for (var req in server) {
-  req.response..write('Hello')..close();
-}
-```
-*Explanation: We define the core structures and use the primary API calls.*
+---
 
-## 5. Intermediate Lab
-In a slightly more complex scenario, we handle edge cases and encapsulate logic.
+## 2. Real-Time WebSockets Server & Client
+
+WebSockets provide full-duplex, bidirectional communication over a single TCP connection:
 
 ```dart
-// Intermediate Lab Code
-import 'dart:async';
+// src/networking/websocket_server.dart
 import 'dart:io';
 
-final socket = await WebSocket.connect('ws://localhost:8080');
-socket.add('Ping');
-socket.listen(print);
+void main() async {
+  final server = await HttpServer.bind(InternetAddress.anyIPv4, 8080);
+  print('WebSocket Server running at ws://localhost:8080/ws');
 
-void runIntermediate() {
-  print('Running intermediate lab...');
-  // Logic implementing robust patterns
-}
-```
+  final activeSockets = <WebSocket>[];
 
-## 6. Production Lab (Advanced)
-Enterprise-grade implementation requires error handling, performance optimization, and strict type safety.
+  await for (final HttpRequest req in server) {
+    if (req.uri.path == '/ws') {
+      // Upgrade HTTP Request to WebSocket Protocol:
+      final socket = await WebSocketTransformer.upgrade(req);
+      activeSockets.add(socket);
+      print('WebSocket client connected. Total clients: ${activeSockets.length}');
 
-```dart
-// Advanced Production Code
-abstract interface class ServiceProvider {
-  Future<void> execute();
-}
-
-final class AdvancedImplementation implements ServiceProvider {
-  @override
-  Future<void> execute() async {
-    try {
-      // High-performance isolated execution
-      print('Executing advanced patterns for Sockets, HTTP Networking & WebSockets');
-    } on Exception catch (e) {
-      print('Handled error: $e');
+      socket.listen(
+        (data) {
+          print('Broadcast message: $data');
+          // Broadcast to all connected clients:
+          for (final client in activeSockets) {
+            client.add('[Broadcast]: $data');
+          }
+        },
+        onDone: () {
+          activeSockets.remove(socket);
+          print('Client disconnected. Remaining: ${activeSockets.length}');
+        },
+      );
+    } else {
+      req.response
+        ..statusCode = HttpStatus.notFound
+        ..write('Not Found')
+        ..close();
     }
   }
 }
 ```
 
-## 7. CLI Reference
-Standard commands used in conjunction with Sockets, HTTP Networking & WebSockets:
+---
 
-```bash
-# Analyze code for static errors
-dart analyze .
+## 3. High-Performance Web Services with `Shelf` (`package:shelf`)
 
-# Format code according to Dart guidelines
-dart format .
+While `HttpServer` from `dart:io` is low-level, **`Shelf`** is Dart's standard, composable web server ecosystem (equivalent to Express in Node or Axum in Rust):
 
-# Compile application to a native executable
-dart compile exe bin/main.dart -o my_app
+```yaml
+# pubspec.yaml
+dependencies:
+  shelf: ^1.4.1
+  shelf_router: ^1.1.4
+  shelf_cors_headers: ^0.1.5
 ```
 
-## 8. FinOps & Cloud Cost Analysis
-Utilizing AOT compilation and Isolate-based concurrency reduces memory footprint by up to 40% compared to heavy JVM processes. This allows for higher density deployments on AWS ECS or Kubernetes, slashing compute costs. Dart's minimal cold start times also make it ideal for AWS Lambda / Google Cloud Run, optimizing serverless billing.
-
-## 9. Troubleshooting Guide
-**Anti-Pattern 1: Blocking the Main Isolate**
-*Symptom:* UI freezes or backend stops handling requests.
-*Root Cause:* Running heavy synchronous computations on the main isolate.
-*Fix:* Use `Isolate.run()` for heavy lifting.
-
-**Anti-Pattern 2: Memory Leaks with Listeners**
-*Symptom:* Gradual memory increase leading to OOM.
-*Root Cause:* Forgetting to cancel `StreamSubscription`.
-*Fix:* Always call `.cancel()` on subscriptions in the tear-down phase.
-
-**Anti-Pattern 3: Ignoring Null Safety Warnings**
-*Symptom:* Runtime null check operators `!` throwing errors.
-*Root Cause:* Forcing unverified nullable types.
-*Fix:* Use `if (x != null)` for flow-analysis promotion.
-
-## 10. References
-1. [Dart Official Docs](https://dart.dev/guides)
-2. [Dart Language Tour](https://dart.dev/language)
-3. [Dart CLI API](https://dart.dev/tools/dart-tool)
-4. [Dart Packages (pub.dev)](https://pub.dev/)
-5. [Dart GitHub Repository](https://github.com/dart-lang/sdk)
-6. [Flutter Engineering Blog](https://medium.com/flutter)
-7. [VGV Engineering](https://verygood.ventures/blog)
-8. [Dart Academy](https://dart.academy/)
-9. [Google Developers Blog](https://developers.googleblog.com/)
-10. [InfoQ Dart Updates](https://www.infoq.com/dart/)
-
-
-## Extended Deep Dive: Sockets, HTTP Networking & WebSockets
-
-### Compiler Pipeline Optimization
-Dart's Front-End Compiler (CFE) transforms Dart source code into Kernel AST. This unified representation allows both the JIT and AOT compilers to share a massive amount of infrastructure.
-
-### The Role of Kernel AST
-Kernel AST (Abstract Syntax Tree) is a strongly-typed, binary representation of Dart code. The `dart compile` toolchain operates directly on Kernel files (`.dill`), applying global transformations such as tree shaking (TFA - Type Flow Analysis).
-
-### Advanced Memory Strategies
-Dart's garbage collector splits the heap into a Young Generation (Nursery) and an Old Generation.
-1. **Nursery**: Managed by a parallel Scavenger. Allocations are simple pointer increments.
-2. **Old Generation**: Managed by a Concurrent Mark-Sweep-Compact algorithm.
-
-### Concurrency and Isolates
-Unlike Node.js or Python, Dart Isolates do not share memory. Each Isolate has its own heap and GC thread.
-This "Shared-Nothing" architecture prevents data races and allows true multi-core parallel execution.
-
-### Pattern Matching (Dart 3+)
-Dart 3 introduced exhaustive pattern matching. You can match against record structures, list elements, and map key-value pairs natively in `switch` statements and `if-case` blocks.
-
-### Example: Exhaustive Switch
 ```dart
-sealed class NetworkResponse {}
-class Ok extends NetworkResponse { final String body; Ok(this.body); }
-class Error extends NetworkResponse { final int code; Error(this.code); }
+// bin/server.dart
+import 'dart:convert';
+import 'dart:io';
+import 'package:shelf/shelf.dart';
+import 'package:shelf/shelf_io.dart' as shelf_io;
+import 'package:shelf_router/shelf_router.dart';
+import 'package:shelf_cors_headers/shelf_cors_headers.dart';
 
-void handle(NetworkResponse resp) {
-  switch (resp) {
-    case Ok(body: var b): print(b);
-    case Error(code: var c): print('Error: $c');
-  }
+// 1. Feature Router:
+Router createApiRouter() {
+  final router = Router();
+
+  // Healthcheck endpoint
+  router.get('/health', (Request req) {
+    return Response.ok(
+      jsonEncode({
+        'status': 'healthy',
+        'uptime_sec': ProcessInfo.currentRss,
+        'timestamp': DateTime.now().toIso8601String(),
+      }),
+      headers: {'content-type': 'application/json'},
+    );
+  });
+
+  // Dynamic parameterized route:
+  router.get('/api/users/<userId>', (Request req, String userId) {
+    if (userId == '404') {
+      return Response.notFound(jsonEncode({'error': 'User not found'}));
+    }
+
+    return Response.ok(
+      jsonEncode({
+        'id': userId,
+        'name': 'Alice Chen',
+        'role': 'Enterprise Architect',
+      }),
+      headers: {'content-type': 'application/json'},
+    );
+  });
+
+  // JSON POST mutation endpoint:
+  router.post('/api/users', (Request req) async {
+    final bodyString = await req.readAsString();
+    final dynamic data = jsonDecode(bodyString);
+
+    return Response(
+      HttpStatus.created,
+      body: jsonEncode({'success': true, 'created': data}),
+      headers: {'content-type': 'application/json'},
+    );
+  });
+
+  return router;
+}
+
+void main() async {
+  final router = createApiRouter();
+
+  // 2. Composable Middleware Pipeline:
+  final handler = const Pipeline()
+      .addMiddleware(logRequests())              // Request logging middleware
+      .addMiddleware(corsHeaders())             // CORS headers middleware
+      .addHandler(router.call);
+
+  // 3. Bind HTTP Server:
+  final port = int.parse(Platform.environment['PORT'] ?? '8080');
+  final server = await shelf_io.serve(handler, InternetAddress.anyIPv4, port);
+
+  server.autoCompress = true; // Built-in Gzip/Deflate compression!
+
+  print('🚀 Enterprise Shelf Server listening on http://${server.address.host}:${server.port}');
 }
 ```
 
-### Future of Dart
-Dart continues to evolve, specifically focusing on native interoperability via `dart:ffi` and WebAssembly (Wasm) target support, ensuring Dart applications can run natively on the web with near-native performance.
+---
 
-## Extended Deep Dive: Sockets, HTTP Networking & WebSockets
+## 4. Modern HTTP Client with Connection Pooling
 
-### Compiler Pipeline Optimization
-Dart's Front-End Compiler (CFE) transforms Dart source code into Kernel AST. This unified representation allows both the JIT and AOT compilers to share a massive amount of infrastructure.
-
-### The Role of Kernel AST
-Kernel AST (Abstract Syntax Tree) is a strongly-typed, binary representation of Dart code. The `dart compile` toolchain operates directly on Kernel files (`.dill`), applying global transformations such as tree shaking (TFA - Type Flow Analysis).
-
-### Advanced Memory Strategies
-Dart's garbage collector splits the heap into a Young Generation (Nursery) and an Old Generation.
-1. **Nursery**: Managed by a parallel Scavenger. Allocations are simple pointer increments.
-2. **Old Generation**: Managed by a Concurrent Mark-Sweep-Compact algorithm.
-
-### Concurrency and Isolates
-Unlike Node.js or Python, Dart Isolates do not share memory. Each Isolate has its own heap and GC thread.
-This "Shared-Nothing" architecture prevents data races and allows true multi-core parallel execution.
-
-### Pattern Matching (Dart 3+)
-Dart 3 introduced exhaustive pattern matching. You can match against record structures, list elements, and map key-value pairs natively in `switch` statements and `if-case` blocks.
-
-### Example: Exhaustive Switch
 ```dart
-sealed class NetworkResponse {}
-class Ok extends NetworkResponse { final String body; Ok(this.body); }
-class Error extends NetworkResponse { final int code; Error(this.code); }
+import 'dart:io';
+import 'dart:convert';
 
-void handle(NetworkResponse resp) {
-  switch (resp) {
-    case Ok(body: var b): print(b);
-    case Error(code: var c): print('Error: $c');
+class ResilientApiClient {
+  final HttpClient _client = HttpClient()
+    ..connectionTimeout = const Duration(seconds: 5)
+    ..idleTimeout = const Duration(seconds: 15)
+    ..maxConnectionsPerHost = 10;
+
+  Future<Map<String, dynamic>> fetchJson(Uri uri) async {
+    final request = await _client.getUrl(uri);
+    request.headers.set('User-Agent', 'Dart-Enterprise-Client/1.0');
+    request.headers.set('Accept', 'application/json');
+
+    final response = await request.close();
+
+    if (response.statusCode != HttpStatus.ok) {
+      throw HttpException('HTTP Error: ${response.statusCode}', uri: uri);
+    }
+
+    final responseBody = await response.transform(utf8.decoder).join();
+    return jsonDecode(responseBody) as Map<String, dynamic>;
   }
+
+  void close() => _client.close();
 }
 ```
 
-### Future of Dart
-Dart continues to evolve, specifically focusing on native interoperability via `dart:ffi` and WebAssembly (Wasm) target support, ensuring Dart applications can run natively on the web with near-native performance.
+---
 
-## Extended Deep Dive: Sockets, HTTP Networking & WebSockets
+## Troubleshooting & Best Practices
 
-### Compiler Pipeline Optimization
-Dart's Front-End Compiler (CFE) transforms Dart source code into Kernel AST. This unified representation allows both the JIT and AOT compilers to share a massive amount of infrastructure.
+1. **Always Set `server.autoCompress = true`**
+   Enabling `autoCompress` on Dart `HttpServer` automatically Gzip-compresses JSON and HTML responses exceeding 1KB, reducing network bandwidth usage by up to 75%.
 
-### The Role of Kernel AST
-Kernel AST (Abstract Syntax Tree) is a strongly-typed, binary representation of Dart code. The `dart compile` toolchain operates directly on Kernel files (`.dill`), applying global transformations such as tree shaking (TFA - Type Flow Analysis).
-
-### Advanced Memory Strategies
-Dart's garbage collector splits the heap into a Young Generation (Nursery) and an Old Generation.
-1. **Nursery**: Managed by a parallel Scavenger. Allocations are simple pointer increments.
-2. **Old Generation**: Managed by a Concurrent Mark-Sweep-Compact algorithm.
-
-### Concurrency and Isolates
-Unlike Node.js or Python, Dart Isolates do not share memory. Each Isolate has its own heap and GC thread.
-This "Shared-Nothing" architecture prevents data races and allows true multi-core parallel execution.
-
-### Pattern Matching (Dart 3+)
-Dart 3 introduced exhaustive pattern matching. You can match against record structures, list elements, and map key-value pairs natively in `switch` statements and `if-case` blocks.
-
-### Example: Exhaustive Switch
-```dart
-sealed class NetworkResponse {}
-class Ok extends NetworkResponse { final String body; Ok(this.body); }
-class Error extends NetworkResponse { final int code; Error(this.code); }
-
-void handle(NetworkResponse resp) {
-  switch (resp) {
-    case Ok(body: var b): print(b);
-    case Error(code: var c): print('Error: $c');
-  }
-}
-```
-
-### Future of Dart
-Dart continues to evolve, specifically focusing on native interoperability via `dart:ffi` and WebAssembly (Wasm) target support, ensuring Dart applications can run natively on the web with near-native performance.
-
-## Extended Deep Dive: Sockets, HTTP Networking & WebSockets
-
-### Compiler Pipeline Optimization
-Dart's Front-End Compiler (CFE) transforms Dart source code into Kernel AST. This unified representation allows both the JIT and AOT compilers to share a massive amount of infrastructure.
-
-### The Role of Kernel AST
-Kernel AST (Abstract Syntax Tree) is a strongly-typed, binary representation of Dart code. The `dart compile` toolchain operates directly on Kernel files (`.dill`), applying global transformations such as tree shaking (TFA - Type Flow Analysis).
-
-### Advanced Memory Strategies
-Dart's garbage collector splits the heap into a Young Generation (Nursery) and an Old Generation.
-1. **Nursery**: Managed by a parallel Scavenger. Allocations are simple pointer increments.
-2. **Old Generation**: Managed by a Concurrent Mark-Sweep-Compact algorithm.
-
-### Concurrency and Isolates
-Unlike Node.js or Python, Dart Isolates do not share memory. Each Isolate has its own heap and GC thread.
-This "Shared-Nothing" architecture prevents data races and allows true multi-core parallel execution.
-
-### Pattern Matching (Dart 3+)
-Dart 3 introduced exhaustive pattern matching. You can match against record structures, list elements, and map key-value pairs natively in `switch` statements and `if-case` blocks.
-
-### Example: Exhaustive Switch
-```dart
-sealed class NetworkResponse {}
-class Ok extends NetworkResponse { final String body; Ok(this.body); }
-class Error extends NetworkResponse { final int code; Error(this.code); }
-
-void handle(NetworkResponse resp) {
-  switch (resp) {
-    case Ok(body: var b): print(b);
-    case Error(code: var c): print('Error: $c');
-  }
-}
-```
-
-### Future of Dart
-Dart continues to evolve, specifically focusing on native interoperability via `dart:ffi` and WebAssembly (Wasm) target support, ensuring Dart applications can run natively on the web with near-native performance.
-
-## Extended Deep Dive: Sockets, HTTP Networking & WebSockets
-
-### Compiler Pipeline Optimization
-Dart's Front-End Compiler (CFE) transforms Dart source code into Kernel AST. This unified representation allows both the JIT and AOT compilers to share a massive amount of infrastructure.
-
-### The Role of Kernel AST
-Kernel AST (Abstract Syntax Tree) is a strongly-typed, binary representation of Dart code. The `dart compile` toolchain operates directly on Kernel files (`.dill`), applying global transformations such as tree shaking (TFA - Type Flow Analysis).
-
-### Advanced Memory Strategies
-Dart's garbage collector splits the heap into a Young Generation (Nursery) and an Old Generation.
-1. **Nursery**: Managed by a parallel Scavenger. Allocations are simple pointer increments.
-2. **Old Generation**: Managed by a Concurrent Mark-Sweep-Compact algorithm.
-
-### Concurrency and Isolates
-Unlike Node.js or Python, Dart Isolates do not share memory. Each Isolate has its own heap and GC thread.
-This "Shared-Nothing" architecture prevents data races and allows true multi-core parallel execution.
-
-### Pattern Matching (Dart 3+)
-Dart 3 introduced exhaustive pattern matching. You can match against record structures, list elements, and map key-value pairs natively in `switch` statements and `if-case` blocks.
-
-### Example: Exhaustive Switch
-```dart
-sealed class NetworkResponse {}
-class Ok extends NetworkResponse { final String body; Ok(this.body); }
-class Error extends NetworkResponse { final int code; Error(this.code); }
-
-void handle(NetworkResponse resp) {
-  switch (resp) {
-    case Ok(body: var b): print(b);
-    case Error(code: var c): print('Error: $c');
-  }
-}
-```
-
-### Future of Dart
-Dart continues to evolve, specifically focusing on native interoperability via `dart:ffi` and WebAssembly (Wasm) target support, ensuring Dart applications can run natively on the web with near-native performance.
-
-## Extended Deep Dive: Sockets, HTTP Networking & WebSockets
-
-### Compiler Pipeline Optimization
-Dart's Front-End Compiler (CFE) transforms Dart source code into Kernel AST. This unified representation allows both the JIT and AOT compilers to share a massive amount of infrastructure.
-
-### The Role of Kernel AST
-Kernel AST (Abstract Syntax Tree) is a strongly-typed, binary representation of Dart code. The `dart compile` toolchain operates directly on Kernel files (`.dill`), applying global transformations such as tree shaking (TFA - Type Flow Analysis).
-
-### Advanced Memory Strategies
-Dart's garbage collector splits the heap into a Young Generation (Nursery) and an Old Generation.
-1. **Nursery**: Managed by a parallel Scavenger. Allocations are simple pointer increments.
-2. **Old Generation**: Managed by a Concurrent Mark-Sweep-Compact algorithm.
-
-### Concurrency and Isolates
-Unlike Node.js or Python, Dart Isolates do not share memory. Each Isolate has its own heap and GC thread.
-This "Shared-Nothing" architecture prevents data races and allows true multi-core parallel execution.
-
-### Pattern Matching (Dart 3+)
-Dart 3 introduced exhaustive pattern matching. You can match against record structures, list elements, and map key-value pairs natively in `switch` statements and `if-case` blocks.
-
-### Example: Exhaustive Switch
-```dart
-sealed class NetworkResponse {}
-class Ok extends NetworkResponse { final String body; Ok(this.body); }
-class Error extends NetworkResponse { final int code; Error(this.code); }
-
-void handle(NetworkResponse resp) {
-  switch (resp) {
-    case Ok(body: var b): print(b);
-    case Error(code: var c): print('Error: $c');
-  }
-}
-```
-
-### Future of Dart
-Dart continues to evolve, specifically focusing on native interoperability via `dart:ffi` and WebAssembly (Wasm) target support, ensuring Dart applications can run natively on the web with near-native performance.
-
-## Extended Deep Dive: Sockets, HTTP Networking & WebSockets
-
-### Compiler Pipeline Optimization
-Dart's Front-End Compiler (CFE) transforms Dart source code into Kernel AST. This unified representation allows both the JIT and AOT compilers to share a massive amount of infrastructure.
-
-### The Role of Kernel AST
-Kernel AST (Abstract Syntax Tree) is a strongly-typed, binary representation of Dart code. The `dart compile` toolchain operates directly on Kernel files (`.dill`), applying global transformations such as tree shaking (TFA - Type Flow Analysis).
-
-### Advanced Memory Strategies
-Dart's garbage collector splits the heap into a Young Generation (Nursery) and an Old Generation.
-1. **Nursery**: Managed by a parallel Scavenger. Allocations are simple pointer increments.
-2. **Old Generation**: Managed by a Concurrent Mark-Sweep-Compact algorithm.
-
-### Concurrency and Isolates
-Unlike Node.js or Python, Dart Isolates do not share memory. Each Isolate has its own heap and GC thread.
-This "Shared-Nothing" architecture prevents data races and allows true multi-core parallel execution.
-
-### Pattern Matching (Dart 3+)
-Dart 3 introduced exhaustive pattern matching. You can match against record structures, list elements, and map key-value pairs natively in `switch` statements and `if-case` blocks.
-
-### Example: Exhaustive Switch
-```dart
-sealed class NetworkResponse {}
-class Ok extends NetworkResponse { final String body; Ok(this.body); }
-class Error extends NetworkResponse { final int code; Error(this.code); }
-
-void handle(NetworkResponse resp) {
-  switch (resp) {
-    case Ok(body: var b): print(b);
-    case Error(code: var c): print('Error: $c');
-  }
-}
-```
-
-### Future of Dart
-Dart continues to evolve, specifically focusing on native interoperability via `dart:ffi` and WebAssembly (Wasm) target support, ensuring Dart applications can run natively on the web with near-native performance.
-
-## Extended Deep Dive: Sockets, HTTP Networking & WebSockets
-
-### Compiler Pipeline Optimization
-Dart's Front-End Compiler (CFE) transforms Dart source code into Kernel AST. This unified representation allows both the JIT and AOT compilers to share a massive amount of infrastructure.
-
-### The Role of Kernel AST
-Kernel AST (Abstract Syntax Tree) is a strongly-typed, binary representation of Dart code. The `dart compile` toolchain operates directly on Kernel files (`.dill`), applying global transformations such as tree shaking (TFA - Type Flow Analysis).
-
-### Advanced Memory Strategies
-Dart's garbage collector splits the heap into a Young Generation (Nursery) and an Old Generation.
-1. **Nursery**: Managed by a parallel Scavenger. Allocations are simple pointer increments.
-2. **Old Generation**: Managed by a Concurrent Mark-Sweep-Compact algorithm.
-
-### Concurrency and Isolates
-Unlike Node.js or Python, Dart Isolates do not share memory. Each Isolate has its own heap and GC thread.
-This "Shared-Nothing" architecture prevents data races and allows true multi-core parallel execution.
-
-### Pattern Matching (Dart 3+)
-Dart 3 introduced exhaustive pattern matching. You can match against record structures, list elements, and map key-value pairs natively in `switch` statements and `if-case` blocks.
-
-### Example: Exhaustive Switch
-```dart
-sealed class NetworkResponse {}
-class Ok extends NetworkResponse { final String body; Ok(this.body); }
-class Error extends NetworkResponse { final int code; Error(this.code); }
-
-void handle(NetworkResponse resp) {
-  switch (resp) {
-    case Ok(body: var b): print(b);
-    case Error(code: var c): print('Error: $c');
-  }
-}
-```
-
-### Future of Dart
-Dart continues to evolve, specifically focusing on native interoperability via `dart:ffi` and WebAssembly (Wasm) target support, ensuring Dart applications can run natively on the web with near-native performance.
-
-## Extended Deep Dive: Sockets, HTTP Networking & WebSockets
-
-### Compiler Pipeline Optimization
-Dart's Front-End Compiler (CFE) transforms Dart source code into Kernel AST. This unified representation allows both the JIT and AOT compilers to share a massive amount of infrastructure.
-
-### The Role of Kernel AST
-Kernel AST (Abstract Syntax Tree) is a strongly-typed, binary representation of Dart code. The `dart compile` toolchain operates directly on Kernel files (`.dill`), applying global transformations such as tree shaking (TFA - Type Flow Analysis).
-
-### Advanced Memory Strategies
-Dart's garbage collector splits the heap into a Young Generation (Nursery) and an Old Generation.
-1. **Nursery**: Managed by a parallel Scavenger. Allocations are simple pointer increments.
-2. **Old Generation**: Managed by a Concurrent Mark-Sweep-Compact algorithm.
-
-### Concurrency and Isolates
-Unlike Node.js or Python, Dart Isolates do not share memory. Each Isolate has its own heap and GC thread.
-This "Shared-Nothing" architecture prevents data races and allows true multi-core parallel execution.
-
-### Pattern Matching (Dart 3+)
-Dart 3 introduced exhaustive pattern matching. You can match against record structures, list elements, and map key-value pairs natively in `switch` statements and `if-case` blocks.
-
-### Example: Exhaustive Switch
-```dart
-sealed class NetworkResponse {}
-class Ok extends NetworkResponse { final String body; Ok(this.body); }
-class Error extends NetworkResponse { final int code; Error(this.code); }
-
-void handle(NetworkResponse resp) {
-  switch (resp) {
-    case Ok(body: var b): print(b);
-    case Error(code: var c): print('Error: $c');
-  }
-}
-```
-
-### Future of Dart
-Dart continues to evolve, specifically focusing on native interoperability via `dart:ffi` and WebAssembly (Wasm) target support, ensuring Dart applications can run natively on the web with near-native performance.
-
-## Extended Deep Dive: Sockets, HTTP Networking & WebSockets
-
-### Compiler Pipeline Optimization
-Dart's Front-End Compiler (CFE) transforms Dart source code into Kernel AST. This unified representation allows both the JIT and AOT compilers to share a massive amount of infrastructure.
-
-### The Role of Kernel AST
-Kernel AST (Abstract Syntax Tree) is a strongly-typed, binary representation of Dart code. The `dart compile` toolchain operates directly on Kernel files (`.dill`), applying global transformations such as tree shaking (TFA - Type Flow Analysis).
-
-### Advanced Memory Strategies
-Dart's garbage collector splits the heap into a Young Generation (Nursery) and an Old Generation.
-1. **Nursery**: Managed by a parallel Scavenger. Allocations are simple pointer increments.
-2. **Old Generation**: Managed by a Concurrent Mark-Sweep-Compact algorithm.
-
-### Concurrency and Isolates
-Unlike Node.js or Python, Dart Isolates do not share memory. Each Isolate has its own heap and GC thread.
-This "Shared-Nothing" architecture prevents data races and allows true multi-core parallel execution.
-
-### Pattern Matching (Dart 3+)
-Dart 3 introduced exhaustive pattern matching. You can match against record structures, list elements, and map key-value pairs natively in `switch` statements and `if-case` blocks.
-
-### Example: Exhaustive Switch
-```dart
-sealed class NetworkResponse {}
-class Ok extends NetworkResponse { final String body; Ok(this.body); }
-class Error extends NetworkResponse { final int code; Error(this.code); }
-
-void handle(NetworkResponse resp) {
-  switch (resp) {
-    case Ok(body: var b): print(b);
-    case Error(code: var c): print('Error: $c');
-  }
-}
-```
-
-### Future of Dart
-Dart continues to evolve, specifically focusing on native interoperability via `dart:ffi` and WebAssembly (Wasm) target support, ensuring Dart applications can run natively on the web with near-native performance.
-
-## Extended Deep Dive: Sockets, HTTP Networking & WebSockets
-
-### Compiler Pipeline Optimization
-Dart's Front-End Compiler (CFE) transforms Dart source code into Kernel AST. This unified representation allows both the JIT and AOT compilers to share a massive amount of infrastructure.
-
-### The Role of Kernel AST
-Kernel AST (Abstract Syntax Tree) is a strongly-typed, binary representation of Dart code. The `dart compile` toolchain operates directly on Kernel files (`.dill`), applying global transformations such as tree shaking (TFA - Type Flow Analysis).
-
-### Advanced Memory Strategies
-Dart's garbage collector splits the heap into a Young Generation (Nursery) and an Old Generation.
-1. **Nursery**: Managed by a parallel Scavenger. Allocations are simple pointer increments.
-2. **Old Generation**: Managed by a Concurrent Mark-Sweep-Compact algorithm.
-
-### Concurrency and Isolates
-Unlike Node.js or Python, Dart Isolates do not share memory. Each Isolate has its own heap and GC thread.
-This "Shared-Nothing" architecture prevents data races and allows true multi-core parallel execution.
-
-### Pattern Matching (Dart 3+)
-Dart 3 introduced exhaustive pattern matching. You can match against record structures, list elements, and map key-value pairs natively in `switch` statements and `if-case` blocks.
-
-### Example: Exhaustive Switch
-```dart
-sealed class NetworkResponse {}
-class Ok extends NetworkResponse { final String body; Ok(this.body); }
-class Error extends NetworkResponse { final int code; Error(this.code); }
-
-void handle(NetworkResponse resp) {
-  switch (resp) {
-    case Ok(body: var b): print(b);
-    case Error(code: var c): print('Error: $c');
-  }
-}
-```
-
-### Future of Dart
-Dart continues to evolve, specifically focusing on native interoperability via `dart:ffi` and WebAssembly (Wasm) target support, ensuring Dart applications can run natively on the web with near-native performance.
-
-## Extended Deep Dive: Sockets, HTTP Networking & WebSockets
-
-### Compiler Pipeline Optimization
-Dart's Front-End Compiler (CFE) transforms Dart source code into Kernel AST. This unified representation allows both the JIT and AOT compilers to share a massive amount of infrastructure.
-
-### The Role of Kernel AST
-Kernel AST (Abstract Syntax Tree) is a strongly-typed, binary representation of Dart code. The `dart compile` toolchain operates directly on Kernel files (`.dill`), applying global transformations such as tree shaking (TFA - Type Flow Analysis).
-
-### Advanced Memory Strategies
-Dart's garbage collector splits the heap into a Young Generation (Nursery) and an Old Generation.
-1. **Nursery**: Managed by a parallel Scavenger. Allocations are simple pointer increments.
-2. **Old Generation**: Managed by a Concurrent Mark-Sweep-Compact algorithm.
-
-### Concurrency and Isolates
-Unlike Node.js or Python, Dart Isolates do not share memory. Each Isolate has its own heap and GC thread.
-This "Shared-Nothing" architecture prevents data races and allows true multi-core parallel execution.
-
-### Pattern Matching (Dart 3+)
-Dart 3 introduced exhaustive pattern matching. You can match against record structures, list elements, and map key-value pairs natively in `switch` statements and `if-case` blocks.
-
-### Example: Exhaustive Switch
-```dart
-sealed class NetworkResponse {}
-class Ok extends NetworkResponse { final String body; Ok(this.body); }
-class Error extends NetworkResponse { final int code; Error(this.code); }
-
-void handle(NetworkResponse resp) {
-  switch (resp) {
-    case Ok(body: var b): print(b);
-    case Error(code: var c): print('Error: $c');
-  }
-}
-```
-
-### Future of Dart
-Dart continues to evolve, specifically focusing on native interoperability via `dart:ffi` and WebAssembly (Wasm) target support, ensuring Dart applications can run natively on the web with near-native performance.
-
-## Extended Deep Dive: Sockets, HTTP Networking & WebSockets
-
-### Compiler Pipeline Optimization
-Dart's Front-End Compiler (CFE) transforms Dart source code into Kernel AST. This unified representation allows both the JIT and AOT compilers to share a massive amount of infrastructure.
-
-### The Role of Kernel AST
-Kernel AST (Abstract Syntax Tree) is a strongly-typed, binary representation of Dart code. The `dart compile` toolchain operates directly on Kernel files (`.dill`), applying global transformations such as tree shaking (TFA - Type Flow Analysis).
-
-### Advanced Memory Strategies
-Dart's garbage collector splits the heap into a Young Generation (Nursery) and an Old Generation.
-1. **Nursery**: Managed by a parallel Scavenger. Allocations are simple pointer increments.
-2. **Old Generation**: Managed by a Concurrent Mark-Sweep-Compact algorithm.
-
-### Concurrency and Isolates
-Unlike Node.js or Python, Dart Isolates do not share memory. Each Isolate has its own heap and GC thread.
-This "Shared-Nothing" architecture prevents data races and allows true multi-core parallel execution.
-
-### Pattern Matching (Dart 3+)
-Dart 3 introduced exhaustive pattern matching. You can match against record structures, list elements, and map key-value pairs natively in `switch` statements and `if-case` blocks.
-
-### Example: Exhaustive Switch
-```dart
-sealed class NetworkResponse {}
-class Ok extends NetworkResponse { final String body; Ok(this.body); }
-class Error extends NetworkResponse { final int code; Error(this.code); }
-
-void handle(NetworkResponse resp) {
-  switch (resp) {
-    case Ok(body: var b): print(b);
-    case Error(code: var c): print('Error: $c');
-  }
-}
-```
-
-### Future of Dart
-Dart continues to evolve, specifically focusing on native interoperability via `dart:ffi` and WebAssembly (Wasm) target support, ensuring Dart applications can run natively on the web with near-native performance.
-
-## Extended Deep Dive: Sockets, HTTP Networking & WebSockets
-
-### Compiler Pipeline Optimization
-Dart's Front-End Compiler (CFE) transforms Dart source code into Kernel AST. This unified representation allows both the JIT and AOT compilers to share a massive amount of infrastructure.
-
-### The Role of Kernel AST
-Kernel AST (Abstract Syntax Tree) is a strongly-typed, binary representation of Dart code. The `dart compile` toolchain operates directly on Kernel files (`.dill`), applying global transformations such as tree shaking (TFA - Type Flow Analysis).
-
-### Advanced Memory Strategies
-Dart's garbage collector splits the heap into a Young Generation (Nursery) and an Old Generation.
-1. **Nursery**: Managed by a parallel Scavenger. Allocations are simple pointer increments.
-2. **Old Generation**: Managed by a Concurrent Mark-Sweep-Compact algorithm.
-
-### Concurrency and Isolates
-Unlike Node.js or Python, Dart Isolates do not share memory. Each Isolate has its own heap and GC thread.
-This "Shared-Nothing" architecture prevents data races and allows true multi-core parallel execution.
-
-### Pattern Matching (Dart 3+)
-Dart 3 introduced exhaustive pattern matching. You can match against record structures, list elements, and map key-value pairs natively in `switch` statements and `if-case` blocks.
-
-### Example: Exhaustive Switch
-```dart
-sealed class NetworkResponse {}
-class Ok extends NetworkResponse { final String body; Ok(this.body); }
-class Error extends NetworkResponse { final int code; Error(this.code); }
-
-void handle(NetworkResponse resp) {
-  switch (resp) {
-    case Ok(body: var b): print(b);
-    case Error(code: var c): print('Error: $c');
-  }
-}
-```
-
-### Future of Dart
-Dart continues to evolve, specifically focusing on native interoperability via `dart:ffi` and WebAssembly (Wasm) target support, ensuring Dart applications can run natively on the web with near-native performance.
-
-## Extended Deep Dive: Sockets, HTTP Networking & WebSockets
-
-### Compiler Pipeline Optimization
-Dart's Front-End Compiler (CFE) transforms Dart source code into Kernel AST. This unified representation allows both the JIT and AOT compilers to share a massive amount of infrastructure.
-
-### The Role of Kernel AST
-Kernel AST (Abstract Syntax Tree) is a strongly-typed, binary representation of Dart code. The `dart compile` toolchain operates directly on Kernel files (`.dill`), applying global transformations such as tree shaking (TFA - Type Flow Analysis).
-
-### Advanced Memory Strategies
-Dart's garbage collector splits the heap into a Young Generation (Nursery) and an Old Generation.
-1. **Nursery**: Managed by a parallel Scavenger. Allocations are simple pointer increments.
-2. **Old Generation**: Managed by a Concurrent Mark-Sweep-Compact algorithm.
-
-### Concurrency and Isolates
-Unlike Node.js or Python, Dart Isolates do not share memory. Each Isolate has its own heap and GC thread.
-This "Shared-Nothing" architecture prevents data races and allows true multi-core parallel execution.
-
-### Pattern Matching (Dart 3+)
-Dart 3 introduced exhaustive pattern matching. You can match against record structures, list elements, and map key-value pairs natively in `switch` statements and `if-case` blocks.
-
-### Example: Exhaustive Switch
-```dart
-sealed class NetworkResponse {}
-class Ok extends NetworkResponse { final String body; Ok(this.body); }
-class Error extends NetworkResponse { final int code; Error(this.code); }
-
-void handle(NetworkResponse resp) {
-  switch (resp) {
-    case Ok(body: var b): print(b);
-    case Error(code: var c): print('Error: $c');
-  }
-}
-```
-
-### Future of Dart
-Dart continues to evolve, specifically focusing on native interoperability via `dart:ffi` and WebAssembly (Wasm) target support, ensuring Dart applications can run natively on the web with near-native performance.
-
-## Extended Deep Dive: Sockets, HTTP Networking & WebSockets
-
-### Compiler Pipeline Optimization
-Dart's Front-End Compiler (CFE) transforms Dart source code into Kernel AST. This unified representation allows both the JIT and AOT compilers to share a massive amount of infrastructure.
-
-### The Role of Kernel AST
-Kernel AST (Abstract Syntax Tree) is a strongly-typed, binary representation of Dart code. The `dart compile` toolchain operates directly on Kernel files (`.dill`), applying global transformations such as tree shaking (TFA - Type Flow Analysis).
-
-### Advanced Memory Strategies
-Dart's garbage collector splits the heap into a Young Generation (Nursery) and an Old Generation.
-1. **Nursery**: Managed by a parallel Scavenger. Allocations are simple pointer increments.
-2. **Old Generation**: Managed by a Concurrent Mark-Sweep-Compact algorithm.
-
-### Concurrency and Isolates
-Unlike Node.js or Python, Dart Isolates do not share memory. Each Isolate has its own heap and GC thread.
-This "Shared-Nothing" architecture prevents data races and allows true multi-core parallel execution.
-
-### Pattern Matching (Dart 3+)
-Dart 3 introduced exhaustive pattern matching. You can match against record structures, list elements, and map key-value pairs natively in `switch` statements and `if-case` blocks.
-
-### Example: Exhaustive Switch
-```dart
-sealed class NetworkResponse {}
-class Ok extends NetworkResponse { final String body; Ok(this.body); }
-class Error extends NetworkResponse { final int code; Error(this.code); }
-
-void handle(NetworkResponse resp) {
-  switch (resp) {
-    case Ok(body: var b): print(b);
-    case Error(code: var c): print('Error: $c');
-  }
-}
-```
-
-### Future of Dart
-Dart continues to evolve, specifically focusing on native interoperability via `dart:ffi` and WebAssembly (Wasm) target support, ensuring Dart applications can run natively on the web with near-native performance.
-
-## Extended Deep Dive: Sockets, HTTP Networking & WebSockets
-
-### Compiler Pipeline Optimization
-Dart's Front-End Compiler (CFE) transforms Dart source code into Kernel AST. This unified representation allows both the JIT and AOT compilers to share a massive amount of infrastructure.
-
-### The Role of Kernel AST
-Kernel AST (Abstract Syntax Tree) is a strongly-typed, binary representation of Dart code. The `dart compile` toolchain operates directly on Kernel files (`.dill`), applying global transformations such as tree shaking (TFA - Type Flow Analysis).
-
-### Advanced Memory Strategies
-Dart's garbage collector splits the heap into a Young Generation (Nursery) and an Old Generation.
-1. **Nursery**: Managed by a parallel Scavenger. Allocations are simple pointer increments.
-2. **Old Generation**: Managed by a Concurrent Mark-Sweep-Compact algorithm.
-
-### Concurrency and Isolates
-Unlike Node.js or Python, Dart Isolates do not share memory. Each Isolate has its own heap and GC thread.
-This "Shared-Nothing" architecture prevents data races and allows true multi-core parallel execution.
-
-### Pattern Matching (Dart 3+)
-Dart 3 introduced exhaustive pattern matching. You can match against record structures, list elements, and map key-value pairs natively in `switch` statements and `if-case` blocks.
-
-### Example: Exhaustive Switch
-```dart
-sealed class NetworkResponse {}
-class Ok extends NetworkResponse { final String body; Ok(this.body); }
-class Error extends NetworkResponse { final int code; Error(this.code); }
-
-void handle(NetworkResponse resp) {
-  switch (resp) {
-    case Ok(body: var b): print(b);
-    case Error(code: var c): print('Error: $c');
-  }
-}
-```
-
-### Future of Dart
-Dart continues to evolve, specifically focusing on native interoperability via `dart:ffi` and WebAssembly (Wasm) target support, ensuring Dart applications can run natively on the web with near-native performance.
-
-## Extended Deep Dive: Sockets, HTTP Networking & WebSockets
-
-### Compiler Pipeline Optimization
-Dart's Front-End Compiler (CFE) transforms Dart source code into Kernel AST. This unified representation allows both the JIT and AOT compilers to share a massive amount of infrastructure.
-
-### The Role of Kernel AST
-Kernel AST (Abstract Syntax Tree) is a strongly-typed, binary representation of Dart code. The `dart compile` toolchain operates directly on Kernel files (`.dill`), applying global transformations such as tree shaking (TFA - Type Flow Analysis).
-
-### Advanced Memory Strategies
-Dart's garbage collector splits the heap into a Young Generation (Nursery) and an Old Generation.
-1. **Nursery**: Managed by a parallel Scavenger. Allocations are simple pointer increments.
-2. **Old Generation**: Managed by a Concurrent Mark-Sweep-Compact algorithm.
-
-### Concurrency and Isolates
-Unlike Node.js or Python, Dart Isolates do not share memory. Each Isolate has its own heap and GC thread.
-This "Shared-Nothing" architecture prevents data races and allows true multi-core parallel execution.
-
-### Pattern Matching (Dart 3+)
-Dart 3 introduced exhaustive pattern matching. You can match against record structures, list elements, and map key-value pairs natively in `switch` statements and `if-case` blocks.
-
-### Example: Exhaustive Switch
-```dart
-sealed class NetworkResponse {}
-class Ok extends NetworkResponse { final String body; Ok(this.body); }
-class Error extends NetworkResponse { final int code; Error(this.code); }
-
-void handle(NetworkResponse resp) {
-  switch (resp) {
-    case Ok(body: var b): print(b);
-    case Error(code: var c): print('Error: $c');
-  }
-}
-```
-
-### Future of Dart
-Dart continues to evolve, specifically focusing on native interoperability via `dart:ffi` and WebAssembly (Wasm) target support, ensuring Dart applications can run natively on the web with near-native performance.
-
-## Extended Deep Dive: Sockets, HTTP Networking & WebSockets
-
-### Compiler Pipeline Optimization
-Dart's Front-End Compiler (CFE) transforms Dart source code into Kernel AST. This unified representation allows both the JIT and AOT compilers to share a massive amount of infrastructure.
-
-### The Role of Kernel AST
-Kernel AST (Abstract Syntax Tree) is a strongly-typed, binary representation of Dart code. The `dart compile` toolchain operates directly on Kernel files (`.dill`), applying global transformations such as tree shaking (TFA - Type Flow Analysis).
-
-### Advanced Memory Strategies
-Dart's garbage collector splits the heap into a Young Generation (Nursery) and an Old Generation.
-1. **Nursery**: Managed by a parallel Scavenger. Allocations are simple pointer increments.
-2. **Old Generation**: Managed by a Concurrent Mark-Sweep-Compact algorithm.
-
-### Concurrency and Isolates
-Unlike Node.js or Python, Dart Isolates do not share memory. Each Isolate has its own heap and GC thread.
-This "Shared-Nothing" architecture prevents data races and allows true multi-core parallel execution.
-
-### Pattern Matching (Dart 3+)
-Dart 3 introduced exhaustive pattern matching. You can match against record structures, list elements, and map key-value pairs natively in `switch` statements and `if-case` blocks.
-
-### Example: Exhaustive Switch
-```dart
-sealed class NetworkResponse {}
-class Ok extends NetworkResponse { final String body; Ok(this.body); }
-class Error extends NetworkResponse { final int code; Error(this.code); }
-
-void handle(NetworkResponse resp) {
-  switch (resp) {
-    case Ok(body: var b): print(b);
-    case Error(code: var c): print('Error: $c');
-  }
-}
-```
-
-### Future of Dart
-Dart continues to evolve, specifically focusing on native interoperability via `dart:ffi` and WebAssembly (Wasm) target support, ensuring Dart applications can run natively on the web with near-native performance.
+2. **Handle Socket Disconnections Gracefully**
+   When writing to a TCP socket or WebSocket, the remote client may drop connection abruptly. Always catch `SocketException` to prevent unhandled exceptions from crashing your server isolate.

@@ -1,1527 +1,224 @@
-# Angular Router: Standalone Routes & Guards
-Track 9: Angular Signals Platform & Ivy Architecture
-Category: Web Development Frameworks
+# Module 09: Standalone Angular Router & Functional Route Guards
 
-## 1. Opening: Beginner to Expert Progression
-Welcome to Angular Router: Standalone Routes & Guards. Angular is a modern web development platform and framework built by Google. At its core, Angular allows developers to build robust, scalable Single Page Applications (SPAs) using TypeScript, HTML, and CSS. A component in Angular is the fundamental building block of the UI—it encapsulates the template (HTML), the styles (CSS), and the logic (TypeScript).
+**Track:** Angular — Signals Platform & Ivy Architecture  
+**Category:** Client-Side Routing, Lazy Loading & Functional Guards
 
-Why Router & Guards matters: In enterprise environments, efficiency, maintainability, and performance are critical. By mastering Router & Guards, you unlock the ability to write scalable applications that handle complex data flows without memory leaks or UI jank.
+---
 
-```mermaid
-graph TD;
-    A[Root Component] --> B[Child Component 1];
-    A --> C[Child Component 2];
-    B --> D[Signal State];
-    C --> E[RxJS Stream];
-    D --> F[DOM Update];
-    E --> F;
-```
+## 1. Modern Standalone Routing Architecture
 
-## 2. Core API Dictionary
-| API | Signature | Description |
-|---|---|---|
-| `ng new` | `ng new <project> --standalone` | Generates a new Angular workspace. |
-| `signal()` | `signal<T>(initialValue: T)` | Creates a writable signal. |
-| `computed()` | `computed<T>(computation: () => T)` | Creates a declarative, memoized reactive value. |
-| `effect()` | `effect(effectFn: () => void)` | Schedules a side-effect to run when dependencies change. |
-| `input()` | `input<T>()` | Defines a reactive input for a component. |
-| `model()` | `model<T>()` | Defines a two-way bindable reactive input. |
-| `output()` | `output<T>()` | Defines an event emitter using signal-based APIs. |
-| `inject()` | `inject<T>(token: ProviderToken<T>)` | Injects a dependency contextually. |
-| `@Component` | `@Component({ standalone: true, ... })` | Decorator marking a class as an Angular component. |
-| `@Injectable`| `@Injectable({ providedIn: 'root' })` | Marks a class as available for dependency injection. |
-| `switchMap()`| `switchMap(project: (val) => Observable)` | RxJS operator: Maps to observable, cancels previous. |
-| `mergeMap()` | `mergeMap(project: (val) => Observable)` | RxJS operator: Maps to observable, merges concurrently. |
-| `catchError()`| `catchError(selector: (err) => Observable)` | RxJS operator: Catches errors on the observable sequence. |
-| `HttpClient` | `class HttpClient` | Performs HTTP requests. |
-| `FormGroup`  | `class FormGroup` | Tracks the value and validity state of a group of form controls. |
-| `viewChild()`| `viewChild(selector)` | Query a single child element as a signal. |
-| `ɵɵdefineComponent` | `ɵɵdefineComponent(...)` | Ivy AOT compiler instruction for defining components. |
-| `ApplicationRef.tick()` | `tick()` | Manually triggers change detection. |
-
-## 3. Technical Deep Dive
-Angular's Ivy compiler transforms components into a series of instructions that mutate the DOM. Instead of a monolithic Virtual DOM comparison, Ivy's instruction pipeline is highly granular.
-
-When combined with Signals (Angular 16+), the framework moves from a pull-based zone.js model to a push/pull hybrid DAG. A Signal is a wrapper around a value that can notify interested consumers when that value changes.
-
-## 4. Beginner Step-by-Step Tutorial
-Let's build our first component using Router & Guards.
+In modern Angular (v15+), routing is configured using standalone **`Routes`** arrays and functional route guards, completely eliminating `RouterModule.forRoot()` and `RouterModule.forChild()`.
 
 ```typescript
-import { Component, signal } from '@angular/core';
+// src/app/app.routes.ts
+import { type Routes } from "@angular/router";
+import { authGuard } from "./core/guards/auth.guard";
+import { featureFlagGuard } from "./core/guards/feature-flag.guard";
 
-@Component({
-  selector: 'app-hello',
-  standalone: true,
-  template: `
-    <div>
-      <h1>Hello, {{ name() }}!</h1>
-      <button (click)="updateName()">Change Name</button>
-    </div>
-  `
-})
-export class HelloComponent {
-  // 1. Define a signal
-  name = signal('World');
+export const routes: Routes = [
+  // 1. Direct Component Route
+  {
+    path: "",
+    loadComponent: () =>
+      import("./features/home/home.component").then((m) => m.HomeComponent),
+    title: "Home | Angular Signals Platform",
+  },
 
-  // 2. Update the signal
-  updateName() {
-    this.name.set('Angular 17+');
-  }
-}
+  // 2. Protected Feature Route with Functional Guard
+  {
+    path: "dashboard",
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import("./features/dashboard/dashboard.component").then((m) => m.DashboardComponent),
+    title: "Dashboard",
+  },
+
+  // 3. Lazy-Loaded Child Feature Sub-Routes (Code-Split Module)
+  {
+    path: "projects",
+    canMatch: [featureFlagGuard("enable_projects_v2")], // Feature Flag Guard
+    loadChildren: () =>
+      import("./features/projects/projects.routes").then((m) => m.PROJECTS_ROUTES),
+  },
+
+  // 4. Wildcard Catch-All 404 Route
+  {
+    path: "**",
+    loadComponent: () =>
+      import("./features/not-found/not-found.component").then((m) => m.NotFoundComponent),
+    title: "404 Not Found",
+  },
+];
 ```
 
-## 5. Intermediate Lab
-In this lab, we connect Router & Guards to a realistic service.
+---
+
+## 2. Functional Route Guards (`CanActivateFn`, `CanMatchFn`, `CanDeactivateFn`)
+
+In legacy Angular, route guards required creating classes that implemented `CanActivate`. 
+
+In modern Angular, guards are simple **pure functions** that consume dependencies via `inject()`:
+
+### 1. Authentication & Role Guard (`CanActivateFn`)
 
 ```typescript
-import { Component, inject, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { toSignal } from '@angular/core/rxjs-interop';
+// src/app/core/guards/auth.guard.ts
+import { inject } from "@angular/core";
+import { type CanActivateFn, Router } from "@angular/router";
+import { AuthService } from "../services/auth.service";
 
-@Component({
-  selector: 'app-data',
-  standalone: true,
-  template: `
-    @if (data()) {
-      <div>Data loaded: {{ data() | json }}</div>
-    } @else {
-      <p>Loading...</p>
+export const authGuard: CanActivateFn = (route, state) => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+
+  if (authService.isAuthenticated()) {
+    // Check role permissions if specified in route data:
+    const requiredRole = route.data?.["role"] as string | undefined;
+    if (requiredRole && authService.userRole() !== requiredRole) {
+      return router.createUrlTree(["/forbidden"]);
     }
-  `
+    return true; // Allow navigation
+  }
+
+  // Redirect to login and preserve target destination:
+  return router.createUrlTree(["/login"], {
+    queryParams: { returnUrl: state.url },
+  });
+};
+```
+
+### 2. Unsaved Changes Guard (`CanDeactivateFn`)
+
+Prevents accidental navigation if a user has unsaved edits in a form:
+
+```typescript
+// src/app/core/guards/pending-changes.guard.ts
+import { type CanDeactivateFn } from "@angular/router";
+
+export interface HasPendingChanges {
+  hasUnsavedChanges(): boolean;
+}
+
+export const pendingChangesGuard: CanDeactivateFn<HasPendingChanges> = (component) => {
+  if (component.hasUnsavedChanges()) {
+    return confirm("You have unsaved edits! Do you really want to discard them and leave?");
+  }
+  return true;
+};
+```
+
+### 3. Feature Flag Guard (`CanMatchFn`)
+
+`CanMatchFn` evaluates before a route is matched. If it returns `false`, Angular skips this route entirely and tests the next matching route in the array:
+
+```typescript
+// src/app/core/guards/feature-flag.guard.ts
+import { inject } from "@angular/core";
+import { type CanMatchFn } from "@angular/router";
+import { FeatureFlagService } from "../services/feature-flag.service";
+
+export function featureFlagGuard(flagKey: string): CanMatchFn {
+  return () => {
+    const flagService = inject(FeatureFlagService);
+    return flagService.isEnabled(flagKey);
+  };
+}
+```
+
+---
+
+## 3. Component Input Binding (`withComponentInputBinding()`)
+
+In modern Angular, you no longer need to inject `ActivatedRoute` to read path parameters, query parameters, or route data.
+
+By enabling `withComponentInputBinding()` in `provideRouter()`, Angular **binds route parameters directly into component inputs / signals**:
+
+```typescript
+// src/app/app.config.ts
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideRouter(
+      routes,
+      withComponentInputBinding() // ◄── Enables direct route parameter binding!
+    ),
+  ],
+};
+```
+
+### Consuming Route Params Directly as Signal Inputs:
+
+Given route path: `/projects/:projectId?tab=analytics`
+
+```typescript
+// src/app/features/projects/project-detail.component.ts
+import { Component, input, effect } from "@angular/core";
+
+@Component({
+  selector: "app-project-detail",
+  standalone: true,
+  template: `
+    <div class="project-view">
+      <h2>Project ID: {{ projectId() }}</h2>
+      <p>Active Tab: {{ tab() }}</p>
+    </div>
+  `,
 })
-export class DataComponent {
-  private http = inject(HttpClient);
-  // Convert RxJS to Signal
-  data = toSignal(this.http.get('/api/data'));
-}
-```
+export class ProjectDetailComponent {
+  // 1. Path parameter ':projectId' bound automatically as a Signal Input!
+  public projectId = input.required<string>();
 
-## 6. Production Lab (Advanced)
-For enterprise applications, Router & Guards requires robust error handling and strict typing.
+  // 2. Query parameter '?tab=...' bound automatically!
+  public tab = input<string>("overview");
 
-```typescript
-import { ErrorHandler, Injectable } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class GlobalErrorHandler implements ErrorHandler {
-  handleError(error: any): void {
-    console.error('Production Error Intercepted:', error);
-    // Send to logging service
+  constructor() {
+    effect(() => {
+      console.log(`Navigated to Project ${this.projectId()}, Tab: ${this.tab()}`);
+    });
   }
 }
 ```
 
-## 7. CLI Reference
-- `ng new my-app --standalone`: Create a modern standalone app.
-- `ng generate component my-cmp`: Scaffolds a new component.
-- `ng build --configuration production`: Compiles the app with AOT and tree-shaking.
-- `ng test`: Runs Jasmine/Karma tests.
+---
 
-## 8. FinOps & Cloud Cost Analysis
-Utilizing SSR (Server-Side Rendering) with hydration can reduce Time to Interactive (TTI), lowering bounce rates. However, Node.js SSR servers cost compute. By utilizing efficient Change Detection (Zoneless/Signals), CPU cycles on the server are reduced by roughly 15-20%, leading to smaller auto-scaling groups and lower AWS/GCP bills.
-
-## 9. Troubleshooting Guide
-1. **Anti-pattern**: Mutating signal objects directly.
-   **Symptom**: `computed` values don't update.
-   **Fix**: Always use `.update()` or `.set()` and create a new object reference.
-2. **Anti-pattern**: Nested `subscribe()` in RxJS.
-   **Symptom**: Callback hell, memory leaks.
-   **Fix**: Use operators like `switchMap`.
-3. **Anti-pattern**: Forgetting `track` in `@for`.
-   **Symptom**: DOM elements are destroyed and recreated instead of reused.
-   **Fix**: Add `@for (item of items; track item.id)`.
-
-## 10. References
-1. [Angular Official Docs: Signals](https://angular.dev/guide/signals)
-2. [Angular Official Docs: Standalone Components](https://angular.dev/guide/standalone-components)
-3. [Angular Official Docs: Control Flow](https://angular.dev/guide/control-flow)
-4. [Angular Official Docs: Dependency Injection](https://angular.dev/guide/di)
-5. [Angular Official Docs: HttpClient](https://angular.dev/guide/http)
-6. [Nrwl/Nx Engineering Blog](https://nx.dev/blog)
-7. [Google Developers Blog: Angular](https://developers.googleblog.com/search/label/Angular)
-8. [Auth0 Blog: Angular Authentication](https://auth0.com/blog/angular/)
-9. [Cypress Blog: Angular Component Testing](https://www.cypress.io/blog/)
-10. [Vercel Blog: Deploying Angular SSR](https://vercel.com/blog)
-
-
-### Deep Dive Segment 1: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
+## 4. Programmatic Navigation & View Transitions API
 
 ```typescript
-// Sample architecture code block 0
-import { Injectable, signal, computed } from '@angular/core';
+import { Component, inject } from "@angular/core";
+import { Router } from "@angular/router";
 
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager0 {
-  private state = signal({ active: true, count: 0 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
+@Component({
+  selector: "app-project-list",
+  standalone: true,
+  template: `<button (click)="openProject('proj_99')">Open Project</button>`,
+})
+export class ProjectListComponent {
+  private router = inject(Router);
+
+  public openProject(id: string): void {
+    this.router.navigate(["/projects", id], {
+      queryParams: { tab: "settings" },
+      fragment: "general",
+    });
   }
 }
 ```
 
-### Deep Dive Segment 2: Advanced Concepts in Router & Guards
+### Native Browser View Transitions API (`withViewTransitions()`)
 
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 1
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager1 {
-  private state = signal({ active: true, count: 1 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 3: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
+Enable native animated page transitions by adding `withViewTransitions()` to `provideRouter()`:
 
 ```typescript
-// Sample architecture code block 2
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager2 {
-  private state = signal({ active: true, count: 2 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
+provideRouter(routes, withViewTransitions());
 ```
 
-### Deep Dive Segment 4: Advanced Concepts in Router & Guards
+Now, navigating between routes automatically animates with smooth CSS cross-fades!
 
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
+---
 
-```typescript
-// Sample architecture code block 3
-import { Injectable, signal, computed } from '@angular/core';
+## Troubleshooting & Best Practices
 
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager3 {
-  private state = signal({ active: true, count: 3 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
+1. **Always Return `UrlTree` for Redirection in Guards**
+   In modern guards, return `router.createUrlTree(['/login'])` rather than calling `router.navigate(['/login'])` followed by `return false`. Returning a `UrlTree` cancels the current navigation and starts the new redirect atomically without racing change detection.
 
-### Deep Dive Segment 5: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 4
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager4 {
-  private state = signal({ active: true, count: 4 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 6: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 5
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager5 {
-  private state = signal({ active: true, count: 5 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 7: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 6
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager6 {
-  private state = signal({ active: true, count: 6 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 8: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 7
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager7 {
-  private state = signal({ active: true, count: 7 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 9: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 8
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager8 {
-  private state = signal({ active: true, count: 8 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 10: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 9
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager9 {
-  private state = signal({ active: true, count: 9 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 11: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 10
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager10 {
-  private state = signal({ active: true, count: 10 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 12: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 11
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager11 {
-  private state = signal({ active: true, count: 11 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 13: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 12
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager12 {
-  private state = signal({ active: true, count: 12 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 14: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 13
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager13 {
-  private state = signal({ active: true, count: 13 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 15: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 14
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager14 {
-  private state = signal({ active: true, count: 14 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 16: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 15
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager15 {
-  private state = signal({ active: true, count: 15 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 17: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 16
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager16 {
-  private state = signal({ active: true, count: 16 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 18: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 17
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager17 {
-  private state = signal({ active: true, count: 17 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 19: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 18
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager18 {
-  private state = signal({ active: true, count: 18 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 20: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 19
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager19 {
-  private state = signal({ active: true, count: 19 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 21: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 20
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager20 {
-  private state = signal({ active: true, count: 20 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 22: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 21
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager21 {
-  private state = signal({ active: true, count: 21 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 23: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 22
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager22 {
-  private state = signal({ active: true, count: 22 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 24: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 23
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager23 {
-  private state = signal({ active: true, count: 23 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 25: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 24
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager24 {
-  private state = signal({ active: true, count: 24 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 26: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 25
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager25 {
-  private state = signal({ active: true, count: 25 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 27: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 26
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager26 {
-  private state = signal({ active: true, count: 26 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 28: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 27
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager27 {
-  private state = signal({ active: true, count: 27 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 29: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 28
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager28 {
-  private state = signal({ active: true, count: 28 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 30: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 29
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager29 {
-  private state = signal({ active: true, count: 29 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 31: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 30
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager30 {
-  private state = signal({ active: true, count: 30 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 32: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 31
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager31 {
-  private state = signal({ active: true, count: 31 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 33: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 32
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager32 {
-  private state = signal({ active: true, count: 32 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 34: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 33
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager33 {
-  private state = signal({ active: true, count: 33 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 35: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 34
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager34 {
-  private state = signal({ active: true, count: 34 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 36: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 35
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager35 {
-  private state = signal({ active: true, count: 35 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 37: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 36
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager36 {
-  private state = signal({ active: true, count: 36 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 38: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 37
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager37 {
-  private state = signal({ active: true, count: 37 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 39: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 38
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager38 {
-  private state = signal({ active: true, count: 38 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 40: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 39
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager39 {
-  private state = signal({ active: true, count: 39 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 41: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 40
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager40 {
-  private state = signal({ active: true, count: 40 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 42: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 41
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager41 {
-  private state = signal({ active: true, count: 41 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 43: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 42
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager42 {
-  private state = signal({ active: true, count: 42 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 44: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 43
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager43 {
-  private state = signal({ active: true, count: 43 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 45: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 44
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager44 {
-  private state = signal({ active: true, count: 44 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 46: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 45
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager45 {
-  private state = signal({ active: true, count: 45 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 47: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 46
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager46 {
-  private state = signal({ active: true, count: 46 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 48: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 47
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager47 {
-  private state = signal({ active: true, count: 47 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 49: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 48
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager48 {
-  private state = signal({ active: true, count: 48 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 50: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 49
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager49 {
-  private state = signal({ active: true, count: 49 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 51: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 50
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager50 {
-  private state = signal({ active: true, count: 50 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 52: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 51
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager51 {
-  private state = signal({ active: true, count: 51 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 53: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 52
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager52 {
-  private state = signal({ active: true, count: 52 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 54: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 53
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager53 {
-  private state = signal({ active: true, count: 53 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 55: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 54
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager54 {
-  private state = signal({ active: true, count: 54 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 56: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 55
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager55 {
-  private state = signal({ active: true, count: 55 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 57: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 56
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager56 {
-  private state = signal({ active: true, count: 56 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 58: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 57
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager57 {
-  private state = signal({ active: true, count: 57 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 59: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 58
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager58 {
-  private state = signal({ active: true, count: 58 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
-### Deep Dive Segment 60: Advanced Concepts in Router & Guards
-
-In modern web development, Router & Guards plays a pivotal role. The architecture requires a solid understanding of memory management, reactive data streams, and change detection boundaries. When an event fires or an observable emits, the system must efficiently propagate those changes. This is where the DAG (Directed Acyclic Graph) of Angular's dependency tracking shines. Instead of blindly checking every component, the framework knows exactly which nodes in the DOM tree need updates.
-
-```typescript
-// Sample architecture code block 59
-import { Injectable, signal, computed } from '@angular/core';
-
-@Injectable({ providedIn: 'root' })
-export class RouterGuardsManager59 {
-  private state = signal({ active: true, count: 59 });
-  
-  public derivedState = computed(() => {
-    const current = this.state();
-    return current.active ? current.count * 2 : 0;
-  });
-  
-  public updateState() {
-    this.state.update(s => ({ ...s, count: s.count + 1 }));
-  }
-}
-```
-
+2. **`pathMatch: 'full'` on Empty Root Path**
+   When defining `{ path: '', redirectTo: '/home', pathMatch: 'full' }`, `pathMatch: 'full'` is mandatory. Without it, the empty prefix matches every URL in the application.

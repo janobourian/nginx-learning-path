@@ -1,866 +1,183 @@
-# Track 10: Dart Language & VM Architecture - Sealed Classes, Records & Pattern Matching
+# Module 06: Dart 3 Modern Primitives — Sealed Classes, Records & Pattern Matching
 
-## 1. Opening: Sealed Classes, Records & Pattern Matching
-Welcome to the definitive guide on Sealed Classes, Records & Pattern Matching. This module explores the foundational and advanced concepts of Dart 3. Dart is a client-optimized language for fast apps on any platform. In this module, we break down exactly why this matters in modern software engineering, moving from beginner fundamentals to expert-level architecture.
+**Track:** Dart — Language & VM Architecture  
+**Category:** Modern Type Primitives, Algebraic Data Types & Pattern Matching
 
-### Why this matters in production
-In real production systems, understanding Sealed Classes, Records & Pattern Matching allows developers to build robust, memory-safe, and highly concurrent applications. Whether you are building Flutter apps or backend services, mastering this ensures optimal performance and maintainability.
+---
 
-### Architecture Diagram
-```ascii
-+-------------------------------------------------+
-| Dart 3 System Overview                          |
-|                                                 |
-|  [ Dart Source ] -> [ Front-End Compiler ]      |
-|                             |                   |
-|                      [ Kernel AST ]             |
-|                             |                   |
-|        +--------------------+-----------------+ |
-|        |                                      | |
-| [ JIT Compiler ]                       [ AOT Compiler ]
-|  (Dev/Hot Reload)                       (Prod/Fast Sync)
-+-------------------------------------------------+
+## 1. The Dart 3 Language Revolution
+
+Dart 3 represents the largest evolution of the Dart language since Sound Null Safety, introducing:
+1. **Records**: Anonymous, aggregate, immutable tuple types with built-in value equality.
+2. **Sealed Classes**: Closed class hierarchies enabling Algebraic Data Types (ADTs).
+3. **Pattern Matching & Destructuring**: Ergonomic extraction and inspection of complex data structures.
+4. **Switch Expressions**: Declarative, expression-based pattern matching with **compiler-enforced exhaustiveness**.
+
+---
+
+## 2. Records (Immutable Aggregate Types)
+
+Before Dart 3, returning multiple values from a function required either creating a dedicated class (`Pair`, `Tuple`, `Coordinates`) or returning an untyped `List<dynamic>`.
+
+**Records** are lightweight, anonymous, immutable compound types:
+
+```dart
+// 1. Positional Records:
+(String, int) getUserInfo() {
+  return ('Alice', 28);
+}
+
+// 2. Named Records:
+({String host, int port, bool isSecure}) getDatabaseConfig() {
+  return (host: 'db.example.com', port: 5432, isSecure: true);
+}
+
+// 3. Mixed Positional & Named Records:
+(String name, {int age, String role}) getAdminProfile() {
+  return ('Bob', age: 34, role: 'admin');
+}
 ```
 
-## 2. Core API Dictionary Table
+### Accessing Record Fields & Destructuring:
 
-| API / Directive | Signature / Type | Semantic Explanation |
-|-----------------|------------------|----------------------|
-| `sealed class` | `dynamic Function(...)` | Official API component 0-0 for sealed class. |
-| `sealed class` | `dynamic Function(...)` | Official API component 0-1 for sealed class. |
-| `switch expression` | `dynamic Function(...)` | Official API component 1-0 for switch expression. |
-| `switch expression` | `dynamic Function(...)` | Official API component 1-1 for switch expression. |
-| `record` | `dynamic Function(...)` | Official API component 2-0 for record. |
-| `record` | `dynamic Function(...)` | Official API component 2-1 for record. |
-| `if-case` | `dynamic Function(...)` | Official API component 3-0 for if-case. |
-| `if-case` | `dynamic Function(...)` | Official API component 3-1 for if-case. |
-| `when` | `dynamic Function(...)` | Official API component 4-0 for when. |
-| `when` | `dynamic Function(...)` | Official API component 4-1 for when. |
-| `pattern` | `dynamic Function(...)` | Official API component 5-0 for pattern. |
-| `pattern` | `dynamic Function(...)` | Official API component 5-1 for pattern. |
-| `destructuring` | `dynamic Function(...)` | Official API component 6-0 for destructuring. |
-| `destructuring` | `dynamic Function(...)` | Official API component 6-1 for destructuring. |
-| `list pattern` | `dynamic Function(...)` | Official API component 7-0 for list pattern. |
-| `list pattern` | `dynamic Function(...)` | Official API component 7-1 for list pattern. |
-| `map pattern` | `dynamic Function(...)` | Official API component 8-0 for map pattern. |
-| `map pattern` | `dynamic Function(...)` | Official API component 8-1 for map pattern. |
-| `object pattern` | `dynamic Function(...)` | Official API component 9-0 for object pattern. |
-| `object pattern` | `dynamic Function(...)` | Official API component 9-1 for object pattern. |
-
-
-## 3. Technical Deep Dive
-### Internals & Execution Model
-Dart operates on a highly optimized Virtual Machine. When utilizing Sealed Classes, Records & Pattern Matching, the VM leverages its sophisticated memory model and execution engine. Dart's memory is managed in Isolates—independent workers that share no memory. This avoids locks and race conditions. The JIT compiler optimizes code on the fly using Inline Caches (ICs), while the AOT compiler drops the JIT payload for incredibly fast startup times and minimal memory footprint.
-
-### Memory Boundaries
-Memory is strictly isolated. Communication happens via message passing using `SendPort` and `ReceivePort`. Objects are allocated in a young generation (Nursery) and promoted to old space.
-
-## 4. Beginner Step-by-Step Tutorial
-Let's build a simple program demonstrating the basics of Sealed Classes, Records & Pattern Matching.
-
-**Step 1: Initialization**
 ```dart
-// Step 1: Basic setup
 void main() {
-  print('Starting tutorial for Sealed Classes, Records & Pattern Matching...');
+  // Accessing positional fields ($1, $2):
+  final user = getUserInfo();
+  print('${user.$1} is ${user.$2} years old.'); // Alice is 28 years old.
+
+  // Accessing named fields:
+  final config = getDatabaseConfig();
+  print('Connecting to ${config.host}:${config.port} (SSL: ${config.isSecure})');
+
+  // Destructuring a Record directly:
+  final (name, age) = getUserInfo();
+  print('Destructured: $name, $age');
+
+  // Value Equality (Built-in!):
+  print(('A', 1) == ('A', 1)); // Prints: true!
 }
 ```
 
-**Step 2: Core Concept Application**
+---
+
+## 3. Sealed Classes & Algebraic Data Types (ADTs)
+
+A **`sealed class`** creates a closed subtype hierarchy. All subclasses **must be declared in the same library/file**.
+
+Because the compiler knows every possible subclass, it enforces **exhaustive pattern matching**:
+
 ```dart
-// Step 2: Applying Sealed Classes, Records & Pattern Matching API
-sealed class Result {}
-class Success extends Result { final String data; Success(this.data); }
-class Failure extends Result { final Exception e; Failure(this.e); }
+// Sealed Base Class (Cannot be instantiated directly):
+sealed class NetworkResult<T> {}
+
+class Success<T> extends NetworkResult<T> {
+  final T data;
+  final int statusCode;
+  Success(this.data, {this.statusCode = 200});
+}
+
+class ClientError<T> extends NetworkResult<T> {
+  final String message;
+  final int code;
+  ClientError(this.message, this.code);
+}
+
+class ServerError<T> extends NetworkResult<T> {
+  final String stackTrace;
+  ServerError(this.stackTrace);
+}
+
+class Loading<T> extends NetworkResult<T> {}
 ```
-*Explanation: We define the core structures and use the primary API calls.*
 
-## 5. Intermediate Lab
-In a slightly more complex scenario, we handle edge cases and encapsulate logic.
+---
+
+## 4. Switch Expressions & Compiler Exhaustiveness Checking
+
+A **Switch Expression** evaluates patterns and returns a value. If you forget to handle even a single subclass of a `sealed class`, the Dart compiler **refuses to compile**:
 
 ```dart
-// Intermediate Lab Code
-import 'dart:async';
-import 'dart:io';
-
-String handleResult(Result r) => switch(r) {
-  Success(data: var d) => 'Got $d',
-  Failure(e: var e) => 'Failed: $e'
-};
-
-void runIntermediate() {
-  print('Running intermediate lab...');
-  // Logic implementing robust patterns
+String renderStatusMessage(NetworkResult<String> result) {
+  // Switch Expression returning a String:
+  return switch (result) {
+    Success(:final data, :final statusCode) => 'Data fetched successfully ($statusCode): $data',
+    ClientError(:final message, :final code) => 'Client Error [$code]: $message',
+    ServerError(:final stackTrace) => 'Internal Server Error. Diagnostic trace: $stackTrace',
+    Loading() => 'Fetching resource from edge...',
+    // No 'default' needed! The compiler proves all branches are exhausted!
+  };
 }
 ```
 
-## 6. Production Lab (Advanced)
-Enterprise-grade implementation requires error handling, performance optimization, and strict type safety.
+---
+
+## 5. Pattern Matching & `if-case` Destructuring
+
+Pattern matching allows unpacking complex nested data (JSON, Maps, Lists, Objects) declaratively:
+
+### 1. JSON Destructuring with `if-case`:
 
 ```dart
-// Advanced Production Code
-abstract interface class ServiceProvider {
-  Future<void> execute();
-}
-
-final class AdvancedImplementation implements ServiceProvider {
-  @override
-  Future<void> execute() async {
-    try {
-      // High-performance isolated execution
-      print('Executing advanced patterns for Sealed Classes, Records & Pattern Matching');
-    } on Exception catch (e) {
-      print('Handled error: $e');
-    }
+void processIncomingWebhook(Map<String, dynamic> json) {
+  // Match exact map shape and extract fields into typed local variables:
+  if (json case {
+    'event': 'user_created',
+    'payload': {'id': String userId, 'email': String email},
+  }) {
+    print('New user registered: $userId ($email)');
+  } else if (json case {'event': 'payment_success', 'amount': num amount} when amount > 1000) {
+    // Guard clause using 'when':
+    print('High-value payment processed: \$$amount');
+  } else {
+    print('Unhandled webhook event.');
   }
 }
 ```
 
-## 7. CLI Reference
-Standard commands used in conjunction with Sealed Classes, Records & Pattern Matching:
+### 2. List Pattern Matching with Rest Elements (`...`):
 
-```bash
-# Analyze code for static errors
-dart analyze .
-
-# Format code according to Dart guidelines
-dart format .
-
-# Compile application to a native executable
-dart compile exe bin/main.dart -o my_app
-```
-
-## 8. FinOps & Cloud Cost Analysis
-Utilizing AOT compilation and Isolate-based concurrency reduces memory footprint by up to 40% compared to heavy JVM processes. This allows for higher density deployments on AWS ECS or Kubernetes, slashing compute costs. Dart's minimal cold start times also make it ideal for AWS Lambda / Google Cloud Run, optimizing serverless billing.
-
-## 9. Troubleshooting Guide
-**Anti-Pattern 1: Blocking the Main Isolate**
-*Symptom:* UI freezes or backend stops handling requests.
-*Root Cause:* Running heavy synchronous computations on the main isolate.
-*Fix:* Use `Isolate.run()` for heavy lifting.
-
-**Anti-Pattern 2: Memory Leaks with Listeners**
-*Symptom:* Gradual memory increase leading to OOM.
-*Root Cause:* Forgetting to cancel `StreamSubscription`.
-*Fix:* Always call `.cancel()` on subscriptions in the tear-down phase.
-
-**Anti-Pattern 3: Ignoring Null Safety Warnings**
-*Symptom:* Runtime null check operators `!` throwing errors.
-*Root Cause:* Forcing unverified nullable types.
-*Fix:* Use `if (x != null)` for flow-analysis promotion.
-
-## 10. References
-1. [Dart Official Docs](https://dart.dev/guides)
-2. [Dart Language Tour](https://dart.dev/language)
-3. [Dart CLI API](https://dart.dev/tools/dart-tool)
-4. [Dart Packages (pub.dev)](https://pub.dev/)
-5. [Dart GitHub Repository](https://github.com/dart-lang/sdk)
-6. [Flutter Engineering Blog](https://medium.com/flutter)
-7. [VGV Engineering](https://verygood.ventures/blog)
-8. [Dart Academy](https://dart.academy/)
-9. [Google Developers Blog](https://developers.googleblog.com/)
-10. [InfoQ Dart Updates](https://www.infoq.com/dart/)
-
-
-## Extended Deep Dive: Sealed Classes, Records & Pattern Matching
-
-### Compiler Pipeline Optimization
-Dart's Front-End Compiler (CFE) transforms Dart source code into Kernel AST. This unified representation allows both the JIT and AOT compilers to share a massive amount of infrastructure.
-
-### The Role of Kernel AST
-Kernel AST (Abstract Syntax Tree) is a strongly-typed, binary representation of Dart code. The `dart compile` toolchain operates directly on Kernel files (`.dill`), applying global transformations such as tree shaking (TFA - Type Flow Analysis).
-
-### Advanced Memory Strategies
-Dart's garbage collector splits the heap into a Young Generation (Nursery) and an Old Generation.
-1. **Nursery**: Managed by a parallel Scavenger. Allocations are simple pointer increments.
-2. **Old Generation**: Managed by a Concurrent Mark-Sweep-Compact algorithm.
-
-### Concurrency and Isolates
-Unlike Node.js or Python, Dart Isolates do not share memory. Each Isolate has its own heap and GC thread.
-This "Shared-Nothing" architecture prevents data races and allows true multi-core parallel execution.
-
-### Pattern Matching (Dart 3+)
-Dart 3 introduced exhaustive pattern matching. You can match against record structures, list elements, and map key-value pairs natively in `switch` statements and `if-case` blocks.
-
-### Example: Exhaustive Switch
 ```dart
-sealed class NetworkResponse {}
-class Ok extends NetworkResponse { final String body; Ok(this.body); }
-class Error extends NetworkResponse { final int code; Error(this.code); }
-
-void handle(NetworkResponse resp) {
-  switch (resp) {
-    case Ok(body: var b): print(b);
-    case Error(code: var c): print('Error: $c');
+void analyzeLogSequence(List<String> logs) {
+  switch (logs) {
+    case ['START', ...final middle, 'FINISH']:
+      print('Standard batch completed with ${middle.length} intermediate tasks.');
+    case ['ERROR', ...final details]:
+      print('Batch failed with error details: $details');
+    case []:
+      print('Empty log stream.');
+    default:
+      print('Unknown log sequence pattern.');
   }
 }
 ```
 
-### Future of Dart
-Dart continues to evolve, specifically focusing on native interoperability via `dart:ffi` and WebAssembly (Wasm) target support, ensuring Dart applications can run natively on the web with near-native performance.
+### 3. Object Pattern Matching & Field Extractors:
 
-## Extended Deep Dive: Sealed Classes, Records & Pattern Matching
-
-### Compiler Pipeline Optimization
-Dart's Front-End Compiler (CFE) transforms Dart source code into Kernel AST. This unified representation allows both the JIT and AOT compilers to share a massive amount of infrastructure.
-
-### The Role of Kernel AST
-Kernel AST (Abstract Syntax Tree) is a strongly-typed, binary representation of Dart code. The `dart compile` toolchain operates directly on Kernel files (`.dill`), applying global transformations such as tree shaking (TFA - Type Flow Analysis).
-
-### Advanced Memory Strategies
-Dart's garbage collector splits the heap into a Young Generation (Nursery) and an Old Generation.
-1. **Nursery**: Managed by a parallel Scavenger. Allocations are simple pointer increments.
-2. **Old Generation**: Managed by a Concurrent Mark-Sweep-Compact algorithm.
-
-### Concurrency and Isolates
-Unlike Node.js or Python, Dart Isolates do not share memory. Each Isolate has its own heap and GC thread.
-This "Shared-Nothing" architecture prevents data races and allows true multi-core parallel execution.
-
-### Pattern Matching (Dart 3+)
-Dart 3 introduced exhaustive pattern matching. You can match against record structures, list elements, and map key-value pairs natively in `switch` statements and `if-case` blocks.
-
-### Example: Exhaustive Switch
 ```dart
-sealed class NetworkResponse {}
-class Ok extends NetworkResponse { final String body; Ok(this.body); }
-class Error extends NetworkResponse { final int code; Error(this.code); }
+class Point {
+  final double x;
+  final double y;
+  const Point(this.x, this.y);
+}
 
-void handle(NetworkResponse resp) {
-  switch (resp) {
-    case Ok(body: var b): print(b);
-    case Error(code: var c): print('Error: $c');
-  }
+String describePoint(Point p) {
+  return switch (p) {
+    Point(x: 0, y: 0) => 'Origin',
+    Point(x: 0, :final y) => 'On Y-axis at $y',
+    Point(:final x, y: 0) => 'On X-axis at $x',
+    Point(:final x, :final y) when x == y => 'On Diagonal at $x',
+    Point(:final x, :final y) => 'Quadrant point at ($x, $y)',
+  };
 }
 ```
 
-### Future of Dart
-Dart continues to evolve, specifically focusing on native interoperability via `dart:ffi` and WebAssembly (Wasm) target support, ensuring Dart applications can run natively on the web with near-native performance.
+---
 
-## Extended Deep Dive: Sealed Classes, Records & Pattern Matching
+## Troubleshooting & Best Practices
 
-### Compiler Pipeline Optimization
-Dart's Front-End Compiler (CFE) transforms Dart source code into Kernel AST. This unified representation allows both the JIT and AOT compilers to share a massive amount of infrastructure.
+1. **Do NOT add redundant `default:` branches to Sealed Class switches**
+   Adding a `default` case to a sealed class switch turns off compile-time exhaustiveness checking. If you add a new subclass in the future, the compiler will silently fall back to `default` instead of warning you to handle the new case!
 
-### The Role of Kernel AST
-Kernel AST (Abstract Syntax Tree) is a strongly-typed, binary representation of Dart code. The `dart compile` toolchain operates directly on Kernel files (`.dill`), applying global transformations such as tree shaking (TFA - Type Flow Analysis).
-
-### Advanced Memory Strategies
-Dart's garbage collector splits the heap into a Young Generation (Nursery) and an Old Generation.
-1. **Nursery**: Managed by a parallel Scavenger. Allocations are simple pointer increments.
-2. **Old Generation**: Managed by a Concurrent Mark-Sweep-Compact algorithm.
-
-### Concurrency and Isolates
-Unlike Node.js or Python, Dart Isolates do not share memory. Each Isolate has its own heap and GC thread.
-This "Shared-Nothing" architecture prevents data races and allows true multi-core parallel execution.
-
-### Pattern Matching (Dart 3+)
-Dart 3 introduced exhaustive pattern matching. You can match against record structures, list elements, and map key-value pairs natively in `switch` statements and `if-case` blocks.
-
-### Example: Exhaustive Switch
-```dart
-sealed class NetworkResponse {}
-class Ok extends NetworkResponse { final String body; Ok(this.body); }
-class Error extends NetworkResponse { final int code; Error(this.code); }
-
-void handle(NetworkResponse resp) {
-  switch (resp) {
-    case Ok(body: var b): print(b);
-    case Error(code: var c): print('Error: $c');
-  }
-}
-```
-
-### Future of Dart
-Dart continues to evolve, specifically focusing on native interoperability via `dart:ffi` and WebAssembly (Wasm) target support, ensuring Dart applications can run natively on the web with near-native performance.
-
-## Extended Deep Dive: Sealed Classes, Records & Pattern Matching
-
-### Compiler Pipeline Optimization
-Dart's Front-End Compiler (CFE) transforms Dart source code into Kernel AST. This unified representation allows both the JIT and AOT compilers to share a massive amount of infrastructure.
-
-### The Role of Kernel AST
-Kernel AST (Abstract Syntax Tree) is a strongly-typed, binary representation of Dart code. The `dart compile` toolchain operates directly on Kernel files (`.dill`), applying global transformations such as tree shaking (TFA - Type Flow Analysis).
-
-### Advanced Memory Strategies
-Dart's garbage collector splits the heap into a Young Generation (Nursery) and an Old Generation.
-1. **Nursery**: Managed by a parallel Scavenger. Allocations are simple pointer increments.
-2. **Old Generation**: Managed by a Concurrent Mark-Sweep-Compact algorithm.
-
-### Concurrency and Isolates
-Unlike Node.js or Python, Dart Isolates do not share memory. Each Isolate has its own heap and GC thread.
-This "Shared-Nothing" architecture prevents data races and allows true multi-core parallel execution.
-
-### Pattern Matching (Dart 3+)
-Dart 3 introduced exhaustive pattern matching. You can match against record structures, list elements, and map key-value pairs natively in `switch` statements and `if-case` blocks.
-
-### Example: Exhaustive Switch
-```dart
-sealed class NetworkResponse {}
-class Ok extends NetworkResponse { final String body; Ok(this.body); }
-class Error extends NetworkResponse { final int code; Error(this.code); }
-
-void handle(NetworkResponse resp) {
-  switch (resp) {
-    case Ok(body: var b): print(b);
-    case Error(code: var c): print('Error: $c');
-  }
-}
-```
-
-### Future of Dart
-Dart continues to evolve, specifically focusing on native interoperability via `dart:ffi` and WebAssembly (Wasm) target support, ensuring Dart applications can run natively on the web with near-native performance.
-
-## Extended Deep Dive: Sealed Classes, Records & Pattern Matching
-
-### Compiler Pipeline Optimization
-Dart's Front-End Compiler (CFE) transforms Dart source code into Kernel AST. This unified representation allows both the JIT and AOT compilers to share a massive amount of infrastructure.
-
-### The Role of Kernel AST
-Kernel AST (Abstract Syntax Tree) is a strongly-typed, binary representation of Dart code. The `dart compile` toolchain operates directly on Kernel files (`.dill`), applying global transformations such as tree shaking (TFA - Type Flow Analysis).
-
-### Advanced Memory Strategies
-Dart's garbage collector splits the heap into a Young Generation (Nursery) and an Old Generation.
-1. **Nursery**: Managed by a parallel Scavenger. Allocations are simple pointer increments.
-2. **Old Generation**: Managed by a Concurrent Mark-Sweep-Compact algorithm.
-
-### Concurrency and Isolates
-Unlike Node.js or Python, Dart Isolates do not share memory. Each Isolate has its own heap and GC thread.
-This "Shared-Nothing" architecture prevents data races and allows true multi-core parallel execution.
-
-### Pattern Matching (Dart 3+)
-Dart 3 introduced exhaustive pattern matching. You can match against record structures, list elements, and map key-value pairs natively in `switch` statements and `if-case` blocks.
-
-### Example: Exhaustive Switch
-```dart
-sealed class NetworkResponse {}
-class Ok extends NetworkResponse { final String body; Ok(this.body); }
-class Error extends NetworkResponse { final int code; Error(this.code); }
-
-void handle(NetworkResponse resp) {
-  switch (resp) {
-    case Ok(body: var b): print(b);
-    case Error(code: var c): print('Error: $c');
-  }
-}
-```
-
-### Future of Dart
-Dart continues to evolve, specifically focusing on native interoperability via `dart:ffi` and WebAssembly (Wasm) target support, ensuring Dart applications can run natively on the web with near-native performance.
-
-## Extended Deep Dive: Sealed Classes, Records & Pattern Matching
-
-### Compiler Pipeline Optimization
-Dart's Front-End Compiler (CFE) transforms Dart source code into Kernel AST. This unified representation allows both the JIT and AOT compilers to share a massive amount of infrastructure.
-
-### The Role of Kernel AST
-Kernel AST (Abstract Syntax Tree) is a strongly-typed, binary representation of Dart code. The `dart compile` toolchain operates directly on Kernel files (`.dill`), applying global transformations such as tree shaking (TFA - Type Flow Analysis).
-
-### Advanced Memory Strategies
-Dart's garbage collector splits the heap into a Young Generation (Nursery) and an Old Generation.
-1. **Nursery**: Managed by a parallel Scavenger. Allocations are simple pointer increments.
-2. **Old Generation**: Managed by a Concurrent Mark-Sweep-Compact algorithm.
-
-### Concurrency and Isolates
-Unlike Node.js or Python, Dart Isolates do not share memory. Each Isolate has its own heap and GC thread.
-This "Shared-Nothing" architecture prevents data races and allows true multi-core parallel execution.
-
-### Pattern Matching (Dart 3+)
-Dart 3 introduced exhaustive pattern matching. You can match against record structures, list elements, and map key-value pairs natively in `switch` statements and `if-case` blocks.
-
-### Example: Exhaustive Switch
-```dart
-sealed class NetworkResponse {}
-class Ok extends NetworkResponse { final String body; Ok(this.body); }
-class Error extends NetworkResponse { final int code; Error(this.code); }
-
-void handle(NetworkResponse resp) {
-  switch (resp) {
-    case Ok(body: var b): print(b);
-    case Error(code: var c): print('Error: $c');
-  }
-}
-```
-
-### Future of Dart
-Dart continues to evolve, specifically focusing on native interoperability via `dart:ffi` and WebAssembly (Wasm) target support, ensuring Dart applications can run natively on the web with near-native performance.
-
-## Extended Deep Dive: Sealed Classes, Records & Pattern Matching
-
-### Compiler Pipeline Optimization
-Dart's Front-End Compiler (CFE) transforms Dart source code into Kernel AST. This unified representation allows both the JIT and AOT compilers to share a massive amount of infrastructure.
-
-### The Role of Kernel AST
-Kernel AST (Abstract Syntax Tree) is a strongly-typed, binary representation of Dart code. The `dart compile` toolchain operates directly on Kernel files (`.dill`), applying global transformations such as tree shaking (TFA - Type Flow Analysis).
-
-### Advanced Memory Strategies
-Dart's garbage collector splits the heap into a Young Generation (Nursery) and an Old Generation.
-1. **Nursery**: Managed by a parallel Scavenger. Allocations are simple pointer increments.
-2. **Old Generation**: Managed by a Concurrent Mark-Sweep-Compact algorithm.
-
-### Concurrency and Isolates
-Unlike Node.js or Python, Dart Isolates do not share memory. Each Isolate has its own heap and GC thread.
-This "Shared-Nothing" architecture prevents data races and allows true multi-core parallel execution.
-
-### Pattern Matching (Dart 3+)
-Dart 3 introduced exhaustive pattern matching. You can match against record structures, list elements, and map key-value pairs natively in `switch` statements and `if-case` blocks.
-
-### Example: Exhaustive Switch
-```dart
-sealed class NetworkResponse {}
-class Ok extends NetworkResponse { final String body; Ok(this.body); }
-class Error extends NetworkResponse { final int code; Error(this.code); }
-
-void handle(NetworkResponse resp) {
-  switch (resp) {
-    case Ok(body: var b): print(b);
-    case Error(code: var c): print('Error: $c');
-  }
-}
-```
-
-### Future of Dart
-Dart continues to evolve, specifically focusing on native interoperability via `dart:ffi` and WebAssembly (Wasm) target support, ensuring Dart applications can run natively on the web with near-native performance.
-
-## Extended Deep Dive: Sealed Classes, Records & Pattern Matching
-
-### Compiler Pipeline Optimization
-Dart's Front-End Compiler (CFE) transforms Dart source code into Kernel AST. This unified representation allows both the JIT and AOT compilers to share a massive amount of infrastructure.
-
-### The Role of Kernel AST
-Kernel AST (Abstract Syntax Tree) is a strongly-typed, binary representation of Dart code. The `dart compile` toolchain operates directly on Kernel files (`.dill`), applying global transformations such as tree shaking (TFA - Type Flow Analysis).
-
-### Advanced Memory Strategies
-Dart's garbage collector splits the heap into a Young Generation (Nursery) and an Old Generation.
-1. **Nursery**: Managed by a parallel Scavenger. Allocations are simple pointer increments.
-2. **Old Generation**: Managed by a Concurrent Mark-Sweep-Compact algorithm.
-
-### Concurrency and Isolates
-Unlike Node.js or Python, Dart Isolates do not share memory. Each Isolate has its own heap and GC thread.
-This "Shared-Nothing" architecture prevents data races and allows true multi-core parallel execution.
-
-### Pattern Matching (Dart 3+)
-Dart 3 introduced exhaustive pattern matching. You can match against record structures, list elements, and map key-value pairs natively in `switch` statements and `if-case` blocks.
-
-### Example: Exhaustive Switch
-```dart
-sealed class NetworkResponse {}
-class Ok extends NetworkResponse { final String body; Ok(this.body); }
-class Error extends NetworkResponse { final int code; Error(this.code); }
-
-void handle(NetworkResponse resp) {
-  switch (resp) {
-    case Ok(body: var b): print(b);
-    case Error(code: var c): print('Error: $c');
-  }
-}
-```
-
-### Future of Dart
-Dart continues to evolve, specifically focusing on native interoperability via `dart:ffi` and WebAssembly (Wasm) target support, ensuring Dart applications can run natively on the web with near-native performance.
-
-## Extended Deep Dive: Sealed Classes, Records & Pattern Matching
-
-### Compiler Pipeline Optimization
-Dart's Front-End Compiler (CFE) transforms Dart source code into Kernel AST. This unified representation allows both the JIT and AOT compilers to share a massive amount of infrastructure.
-
-### The Role of Kernel AST
-Kernel AST (Abstract Syntax Tree) is a strongly-typed, binary representation of Dart code. The `dart compile` toolchain operates directly on Kernel files (`.dill`), applying global transformations such as tree shaking (TFA - Type Flow Analysis).
-
-### Advanced Memory Strategies
-Dart's garbage collector splits the heap into a Young Generation (Nursery) and an Old Generation.
-1. **Nursery**: Managed by a parallel Scavenger. Allocations are simple pointer increments.
-2. **Old Generation**: Managed by a Concurrent Mark-Sweep-Compact algorithm.
-
-### Concurrency and Isolates
-Unlike Node.js or Python, Dart Isolates do not share memory. Each Isolate has its own heap and GC thread.
-This "Shared-Nothing" architecture prevents data races and allows true multi-core parallel execution.
-
-### Pattern Matching (Dart 3+)
-Dart 3 introduced exhaustive pattern matching. You can match against record structures, list elements, and map key-value pairs natively in `switch` statements and `if-case` blocks.
-
-### Example: Exhaustive Switch
-```dart
-sealed class NetworkResponse {}
-class Ok extends NetworkResponse { final String body; Ok(this.body); }
-class Error extends NetworkResponse { final int code; Error(this.code); }
-
-void handle(NetworkResponse resp) {
-  switch (resp) {
-    case Ok(body: var b): print(b);
-    case Error(code: var c): print('Error: $c');
-  }
-}
-```
-
-### Future of Dart
-Dart continues to evolve, specifically focusing on native interoperability via `dart:ffi` and WebAssembly (Wasm) target support, ensuring Dart applications can run natively on the web with near-native performance.
-
-## Extended Deep Dive: Sealed Classes, Records & Pattern Matching
-
-### Compiler Pipeline Optimization
-Dart's Front-End Compiler (CFE) transforms Dart source code into Kernel AST. This unified representation allows both the JIT and AOT compilers to share a massive amount of infrastructure.
-
-### The Role of Kernel AST
-Kernel AST (Abstract Syntax Tree) is a strongly-typed, binary representation of Dart code. The `dart compile` toolchain operates directly on Kernel files (`.dill`), applying global transformations such as tree shaking (TFA - Type Flow Analysis).
-
-### Advanced Memory Strategies
-Dart's garbage collector splits the heap into a Young Generation (Nursery) and an Old Generation.
-1. **Nursery**: Managed by a parallel Scavenger. Allocations are simple pointer increments.
-2. **Old Generation**: Managed by a Concurrent Mark-Sweep-Compact algorithm.
-
-### Concurrency and Isolates
-Unlike Node.js or Python, Dart Isolates do not share memory. Each Isolate has its own heap and GC thread.
-This "Shared-Nothing" architecture prevents data races and allows true multi-core parallel execution.
-
-### Pattern Matching (Dart 3+)
-Dart 3 introduced exhaustive pattern matching. You can match against record structures, list elements, and map key-value pairs natively in `switch` statements and `if-case` blocks.
-
-### Example: Exhaustive Switch
-```dart
-sealed class NetworkResponse {}
-class Ok extends NetworkResponse { final String body; Ok(this.body); }
-class Error extends NetworkResponse { final int code; Error(this.code); }
-
-void handle(NetworkResponse resp) {
-  switch (resp) {
-    case Ok(body: var b): print(b);
-    case Error(code: var c): print('Error: $c');
-  }
-}
-```
-
-### Future of Dart
-Dart continues to evolve, specifically focusing on native interoperability via `dart:ffi` and WebAssembly (Wasm) target support, ensuring Dart applications can run natively on the web with near-native performance.
-
-## Extended Deep Dive: Sealed Classes, Records & Pattern Matching
-
-### Compiler Pipeline Optimization
-Dart's Front-End Compiler (CFE) transforms Dart source code into Kernel AST. This unified representation allows both the JIT and AOT compilers to share a massive amount of infrastructure.
-
-### The Role of Kernel AST
-Kernel AST (Abstract Syntax Tree) is a strongly-typed, binary representation of Dart code. The `dart compile` toolchain operates directly on Kernel files (`.dill`), applying global transformations such as tree shaking (TFA - Type Flow Analysis).
-
-### Advanced Memory Strategies
-Dart's garbage collector splits the heap into a Young Generation (Nursery) and an Old Generation.
-1. **Nursery**: Managed by a parallel Scavenger. Allocations are simple pointer increments.
-2. **Old Generation**: Managed by a Concurrent Mark-Sweep-Compact algorithm.
-
-### Concurrency and Isolates
-Unlike Node.js or Python, Dart Isolates do not share memory. Each Isolate has its own heap and GC thread.
-This "Shared-Nothing" architecture prevents data races and allows true multi-core parallel execution.
-
-### Pattern Matching (Dart 3+)
-Dart 3 introduced exhaustive pattern matching. You can match against record structures, list elements, and map key-value pairs natively in `switch` statements and `if-case` blocks.
-
-### Example: Exhaustive Switch
-```dart
-sealed class NetworkResponse {}
-class Ok extends NetworkResponse { final String body; Ok(this.body); }
-class Error extends NetworkResponse { final int code; Error(this.code); }
-
-void handle(NetworkResponse resp) {
-  switch (resp) {
-    case Ok(body: var b): print(b);
-    case Error(code: var c): print('Error: $c');
-  }
-}
-```
-
-### Future of Dart
-Dart continues to evolve, specifically focusing on native interoperability via `dart:ffi` and WebAssembly (Wasm) target support, ensuring Dart applications can run natively on the web with near-native performance.
-
-## Extended Deep Dive: Sealed Classes, Records & Pattern Matching
-
-### Compiler Pipeline Optimization
-Dart's Front-End Compiler (CFE) transforms Dart source code into Kernel AST. This unified representation allows both the JIT and AOT compilers to share a massive amount of infrastructure.
-
-### The Role of Kernel AST
-Kernel AST (Abstract Syntax Tree) is a strongly-typed, binary representation of Dart code. The `dart compile` toolchain operates directly on Kernel files (`.dill`), applying global transformations such as tree shaking (TFA - Type Flow Analysis).
-
-### Advanced Memory Strategies
-Dart's garbage collector splits the heap into a Young Generation (Nursery) and an Old Generation.
-1. **Nursery**: Managed by a parallel Scavenger. Allocations are simple pointer increments.
-2. **Old Generation**: Managed by a Concurrent Mark-Sweep-Compact algorithm.
-
-### Concurrency and Isolates
-Unlike Node.js or Python, Dart Isolates do not share memory. Each Isolate has its own heap and GC thread.
-This "Shared-Nothing" architecture prevents data races and allows true multi-core parallel execution.
-
-### Pattern Matching (Dart 3+)
-Dart 3 introduced exhaustive pattern matching. You can match against record structures, list elements, and map key-value pairs natively in `switch` statements and `if-case` blocks.
-
-### Example: Exhaustive Switch
-```dart
-sealed class NetworkResponse {}
-class Ok extends NetworkResponse { final String body; Ok(this.body); }
-class Error extends NetworkResponse { final int code; Error(this.code); }
-
-void handle(NetworkResponse resp) {
-  switch (resp) {
-    case Ok(body: var b): print(b);
-    case Error(code: var c): print('Error: $c');
-  }
-}
-```
-
-### Future of Dart
-Dart continues to evolve, specifically focusing on native interoperability via `dart:ffi` and WebAssembly (Wasm) target support, ensuring Dart applications can run natively on the web with near-native performance.
-
-## Extended Deep Dive: Sealed Classes, Records & Pattern Matching
-
-### Compiler Pipeline Optimization
-Dart's Front-End Compiler (CFE) transforms Dart source code into Kernel AST. This unified representation allows both the JIT and AOT compilers to share a massive amount of infrastructure.
-
-### The Role of Kernel AST
-Kernel AST (Abstract Syntax Tree) is a strongly-typed, binary representation of Dart code. The `dart compile` toolchain operates directly on Kernel files (`.dill`), applying global transformations such as tree shaking (TFA - Type Flow Analysis).
-
-### Advanced Memory Strategies
-Dart's garbage collector splits the heap into a Young Generation (Nursery) and an Old Generation.
-1. **Nursery**: Managed by a parallel Scavenger. Allocations are simple pointer increments.
-2. **Old Generation**: Managed by a Concurrent Mark-Sweep-Compact algorithm.
-
-### Concurrency and Isolates
-Unlike Node.js or Python, Dart Isolates do not share memory. Each Isolate has its own heap and GC thread.
-This "Shared-Nothing" architecture prevents data races and allows true multi-core parallel execution.
-
-### Pattern Matching (Dart 3+)
-Dart 3 introduced exhaustive pattern matching. You can match against record structures, list elements, and map key-value pairs natively in `switch` statements and `if-case` blocks.
-
-### Example: Exhaustive Switch
-```dart
-sealed class NetworkResponse {}
-class Ok extends NetworkResponse { final String body; Ok(this.body); }
-class Error extends NetworkResponse { final int code; Error(this.code); }
-
-void handle(NetworkResponse resp) {
-  switch (resp) {
-    case Ok(body: var b): print(b);
-    case Error(code: var c): print('Error: $c');
-  }
-}
-```
-
-### Future of Dart
-Dart continues to evolve, specifically focusing on native interoperability via `dart:ffi` and WebAssembly (Wasm) target support, ensuring Dart applications can run natively on the web with near-native performance.
-
-## Extended Deep Dive: Sealed Classes, Records & Pattern Matching
-
-### Compiler Pipeline Optimization
-Dart's Front-End Compiler (CFE) transforms Dart source code into Kernel AST. This unified representation allows both the JIT and AOT compilers to share a massive amount of infrastructure.
-
-### The Role of Kernel AST
-Kernel AST (Abstract Syntax Tree) is a strongly-typed, binary representation of Dart code. The `dart compile` toolchain operates directly on Kernel files (`.dill`), applying global transformations such as tree shaking (TFA - Type Flow Analysis).
-
-### Advanced Memory Strategies
-Dart's garbage collector splits the heap into a Young Generation (Nursery) and an Old Generation.
-1. **Nursery**: Managed by a parallel Scavenger. Allocations are simple pointer increments.
-2. **Old Generation**: Managed by a Concurrent Mark-Sweep-Compact algorithm.
-
-### Concurrency and Isolates
-Unlike Node.js or Python, Dart Isolates do not share memory. Each Isolate has its own heap and GC thread.
-This "Shared-Nothing" architecture prevents data races and allows true multi-core parallel execution.
-
-### Pattern Matching (Dart 3+)
-Dart 3 introduced exhaustive pattern matching. You can match against record structures, list elements, and map key-value pairs natively in `switch` statements and `if-case` blocks.
-
-### Example: Exhaustive Switch
-```dart
-sealed class NetworkResponse {}
-class Ok extends NetworkResponse { final String body; Ok(this.body); }
-class Error extends NetworkResponse { final int code; Error(this.code); }
-
-void handle(NetworkResponse resp) {
-  switch (resp) {
-    case Ok(body: var b): print(b);
-    case Error(code: var c): print('Error: $c');
-  }
-}
-```
-
-### Future of Dart
-Dart continues to evolve, specifically focusing on native interoperability via `dart:ffi` and WebAssembly (Wasm) target support, ensuring Dart applications can run natively on the web with near-native performance.
-
-## Extended Deep Dive: Sealed Classes, Records & Pattern Matching
-
-### Compiler Pipeline Optimization
-Dart's Front-End Compiler (CFE) transforms Dart source code into Kernel AST. This unified representation allows both the JIT and AOT compilers to share a massive amount of infrastructure.
-
-### The Role of Kernel AST
-Kernel AST (Abstract Syntax Tree) is a strongly-typed, binary representation of Dart code. The `dart compile` toolchain operates directly on Kernel files (`.dill`), applying global transformations such as tree shaking (TFA - Type Flow Analysis).
-
-### Advanced Memory Strategies
-Dart's garbage collector splits the heap into a Young Generation (Nursery) and an Old Generation.
-1. **Nursery**: Managed by a parallel Scavenger. Allocations are simple pointer increments.
-2. **Old Generation**: Managed by a Concurrent Mark-Sweep-Compact algorithm.
-
-### Concurrency and Isolates
-Unlike Node.js or Python, Dart Isolates do not share memory. Each Isolate has its own heap and GC thread.
-This "Shared-Nothing" architecture prevents data races and allows true multi-core parallel execution.
-
-### Pattern Matching (Dart 3+)
-Dart 3 introduced exhaustive pattern matching. You can match against record structures, list elements, and map key-value pairs natively in `switch` statements and `if-case` blocks.
-
-### Example: Exhaustive Switch
-```dart
-sealed class NetworkResponse {}
-class Ok extends NetworkResponse { final String body; Ok(this.body); }
-class Error extends NetworkResponse { final int code; Error(this.code); }
-
-void handle(NetworkResponse resp) {
-  switch (resp) {
-    case Ok(body: var b): print(b);
-    case Error(code: var c): print('Error: $c');
-  }
-}
-```
-
-### Future of Dart
-Dart continues to evolve, specifically focusing on native interoperability via `dart:ffi` and WebAssembly (Wasm) target support, ensuring Dart applications can run natively on the web with near-native performance.
-
-## Extended Deep Dive: Sealed Classes, Records & Pattern Matching
-
-### Compiler Pipeline Optimization
-Dart's Front-End Compiler (CFE) transforms Dart source code into Kernel AST. This unified representation allows both the JIT and AOT compilers to share a massive amount of infrastructure.
-
-### The Role of Kernel AST
-Kernel AST (Abstract Syntax Tree) is a strongly-typed, binary representation of Dart code. The `dart compile` toolchain operates directly on Kernel files (`.dill`), applying global transformations such as tree shaking (TFA - Type Flow Analysis).
-
-### Advanced Memory Strategies
-Dart's garbage collector splits the heap into a Young Generation (Nursery) and an Old Generation.
-1. **Nursery**: Managed by a parallel Scavenger. Allocations are simple pointer increments.
-2. **Old Generation**: Managed by a Concurrent Mark-Sweep-Compact algorithm.
-
-### Concurrency and Isolates
-Unlike Node.js or Python, Dart Isolates do not share memory. Each Isolate has its own heap and GC thread.
-This "Shared-Nothing" architecture prevents data races and allows true multi-core parallel execution.
-
-### Pattern Matching (Dart 3+)
-Dart 3 introduced exhaustive pattern matching. You can match against record structures, list elements, and map key-value pairs natively in `switch` statements and `if-case` blocks.
-
-### Example: Exhaustive Switch
-```dart
-sealed class NetworkResponse {}
-class Ok extends NetworkResponse { final String body; Ok(this.body); }
-class Error extends NetworkResponse { final int code; Error(this.code); }
-
-void handle(NetworkResponse resp) {
-  switch (resp) {
-    case Ok(body: var b): print(b);
-    case Error(code: var c): print('Error: $c');
-  }
-}
-```
-
-### Future of Dart
-Dart continues to evolve, specifically focusing on native interoperability via `dart:ffi` and WebAssembly (Wasm) target support, ensuring Dart applications can run natively on the web with near-native performance.
-
-## Extended Deep Dive: Sealed Classes, Records & Pattern Matching
-
-### Compiler Pipeline Optimization
-Dart's Front-End Compiler (CFE) transforms Dart source code into Kernel AST. This unified representation allows both the JIT and AOT compilers to share a massive amount of infrastructure.
-
-### The Role of Kernel AST
-Kernel AST (Abstract Syntax Tree) is a strongly-typed, binary representation of Dart code. The `dart compile` toolchain operates directly on Kernel files (`.dill`), applying global transformations such as tree shaking (TFA - Type Flow Analysis).
-
-### Advanced Memory Strategies
-Dart's garbage collector splits the heap into a Young Generation (Nursery) and an Old Generation.
-1. **Nursery**: Managed by a parallel Scavenger. Allocations are simple pointer increments.
-2. **Old Generation**: Managed by a Concurrent Mark-Sweep-Compact algorithm.
-
-### Concurrency and Isolates
-Unlike Node.js or Python, Dart Isolates do not share memory. Each Isolate has its own heap and GC thread.
-This "Shared-Nothing" architecture prevents data races and allows true multi-core parallel execution.
-
-### Pattern Matching (Dart 3+)
-Dart 3 introduced exhaustive pattern matching. You can match against record structures, list elements, and map key-value pairs natively in `switch` statements and `if-case` blocks.
-
-### Example: Exhaustive Switch
-```dart
-sealed class NetworkResponse {}
-class Ok extends NetworkResponse { final String body; Ok(this.body); }
-class Error extends NetworkResponse { final int code; Error(this.code); }
-
-void handle(NetworkResponse resp) {
-  switch (resp) {
-    case Ok(body: var b): print(b);
-    case Error(code: var c): print('Error: $c');
-  }
-}
-```
-
-### Future of Dart
-Dart continues to evolve, specifically focusing on native interoperability via `dart:ffi` and WebAssembly (Wasm) target support, ensuring Dart applications can run natively on the web with near-native performance.
-
-## Extended Deep Dive: Sealed Classes, Records & Pattern Matching
-
-### Compiler Pipeline Optimization
-Dart's Front-End Compiler (CFE) transforms Dart source code into Kernel AST. This unified representation allows both the JIT and AOT compilers to share a massive amount of infrastructure.
-
-### The Role of Kernel AST
-Kernel AST (Abstract Syntax Tree) is a strongly-typed, binary representation of Dart code. The `dart compile` toolchain operates directly on Kernel files (`.dill`), applying global transformations such as tree shaking (TFA - Type Flow Analysis).
-
-### Advanced Memory Strategies
-Dart's garbage collector splits the heap into a Young Generation (Nursery) and an Old Generation.
-1. **Nursery**: Managed by a parallel Scavenger. Allocations are simple pointer increments.
-2. **Old Generation**: Managed by a Concurrent Mark-Sweep-Compact algorithm.
-
-### Concurrency and Isolates
-Unlike Node.js or Python, Dart Isolates do not share memory. Each Isolate has its own heap and GC thread.
-This "Shared-Nothing" architecture prevents data races and allows true multi-core parallel execution.
-
-### Pattern Matching (Dart 3+)
-Dart 3 introduced exhaustive pattern matching. You can match against record structures, list elements, and map key-value pairs natively in `switch` statements and `if-case` blocks.
-
-### Example: Exhaustive Switch
-```dart
-sealed class NetworkResponse {}
-class Ok extends NetworkResponse { final String body; Ok(this.body); }
-class Error extends NetworkResponse { final int code; Error(this.code); }
-
-void handle(NetworkResponse resp) {
-  switch (resp) {
-    case Ok(body: var b): print(b);
-    case Error(code: var c): print('Error: $c');
-  }
-}
-```
-
-### Future of Dart
-Dart continues to evolve, specifically focusing on native interoperability via `dart:ffi` and WebAssembly (Wasm) target support, ensuring Dart applications can run natively on the web with near-native performance.
-
-## Extended Deep Dive: Sealed Classes, Records & Pattern Matching
-
-### Compiler Pipeline Optimization
-Dart's Front-End Compiler (CFE) transforms Dart source code into Kernel AST. This unified representation allows both the JIT and AOT compilers to share a massive amount of infrastructure.
-
-### The Role of Kernel AST
-Kernel AST (Abstract Syntax Tree) is a strongly-typed, binary representation of Dart code. The `dart compile` toolchain operates directly on Kernel files (`.dill`), applying global transformations such as tree shaking (TFA - Type Flow Analysis).
-
-### Advanced Memory Strategies
-Dart's garbage collector splits the heap into a Young Generation (Nursery) and an Old Generation.
-1. **Nursery**: Managed by a parallel Scavenger. Allocations are simple pointer increments.
-2. **Old Generation**: Managed by a Concurrent Mark-Sweep-Compact algorithm.
-
-### Concurrency and Isolates
-Unlike Node.js or Python, Dart Isolates do not share memory. Each Isolate has its own heap and GC thread.
-This "Shared-Nothing" architecture prevents data races and allows true multi-core parallel execution.
-
-### Pattern Matching (Dart 3+)
-Dart 3 introduced exhaustive pattern matching. You can match against record structures, list elements, and map key-value pairs natively in `switch` statements and `if-case` blocks.
-
-### Example: Exhaustive Switch
-```dart
-sealed class NetworkResponse {}
-class Ok extends NetworkResponse { final String body; Ok(this.body); }
-class Error extends NetworkResponse { final int code; Error(this.code); }
-
-void handle(NetworkResponse resp) {
-  switch (resp) {
-    case Ok(body: var b): print(b);
-    case Error(code: var c): print('Error: $c');
-  }
-}
-```
-
-### Future of Dart
-Dart continues to evolve, specifically focusing on native interoperability via `dart:ffi` and WebAssembly (Wasm) target support, ensuring Dart applications can run natively on the web with near-native performance.
+2. **Use Records for Multiple Function Return Values**
+   Prefer `(bool success, String? error)` over custom 2-field data transfer classes.
