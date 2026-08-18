@@ -42,6 +42,8 @@ nav:
     - 09. Security & Cryptography Hardening: nodejs/09_security_authentication_jwt_and_cryptography.md
     - 10. Testing & Memory Leak Profiling: nodejs/10_testing_debugging_and_memory_profiling.md
     - 11. Production Docker & Kubernetes: nodejs/11_production_deployment_docker_pm2_and_kubernetes.md
+    - 12. Child Processes & Subprocesses: nodejs/12_child_processes_and_system_command_orchestration.md
+    - 13. V8 Garbage Collection Internals: nodejs/13_memory_management_v8_garbage_collector_internals.md
   - Deno Enterprise Curriculum:
     - 00. Toolchain & CLI Architecture: deno/00_installation_toolchain_and_deno_cli.md
     - 01. Security & Capability Sandbox: deno/01_security_model_and_permissions_system.md
@@ -51,30 +53,44 @@ nav:
   - Frontend JavaScript Curriculum:
     - 00. DOM Tree & Critical Rendering Path: javascript_frontend/01_the_dom_cssom_and_critical_rendering_path.md
     - 01. Event Propagation & Delegation: javascript_frontend/02_browser_event_system_and_event_delegation.md
-    - 02. Service Workers, PWAs & Offline: javascript_frontend/06_service_workers_pwa_and_offline_strategies.md
+    - 02. Asynchronous Fetch & Streams: javascript_frontend/03_asynchronous_javascript_fetch_and_web_apis.md
+    - 03. WebSockets & SSE Real-Time: javascript_frontend/04_real_time_web_websockets_and_server_sent_events.md
+    - 04. Service Workers, PWAs & Offline: javascript_frontend/06_service_workers_pwa_and_offline_strategies.md
+  - Backend JavaScript Curriculum:
+    - 00. Clean Architecture & Microservices: javascript_backend/00_backend_javascript_microservices_rest_and_architecture.md
+    - 01. RESTful API Design & OpenAPI: javascript_backend/01_restful_api_design_and_openapi_specifications.md
   - TypeScript Enterprise Curriculum:
     - 00. Type System Architecture: typescript/00_typescript_type_system_generics_and_compiler_ast.md
     - 01. Advanced Generics, Conditionals & infer: typescript/01_generics_conditional_types_and_infer.md
+    - 02. Utility Types In-Depth: typescript/02_utility_types_deep_dive.md
   - React Enterprise Curriculum:
     - 00. Fiber Architecture & Reconciliation: react/00_react_fiber_architecture_virtual_dom_and_hooks.md
     - 01. Complete Hooks Lifecycle & State: react/01_react_hooks_lifecycle_and_custom_hooks.md
+    - 02. Concurrent React & Suspense: react/02_concurrent_react_transitions_and_suspense.md
   - Next.js Enterprise Curriculum:
     - 00. App Router & RSC Architecture: nextjs/00_nextjs_app_router_server_components_and_edge_runtime.md
     - 01. Server Actions & Optimistic UI: nextjs/01_server_actions_mutations_and_optimistic_ui.md
+    - 02. Edge Middleware & JWT Auth: nextjs/02_edge_middleware_and_jwt_authentication.md
   - Vue.js Enterprise Curriculum:
     - 00. Composition API & Pinia: vue/00_vue_reactivity_proxy_system_composition_api_and_pinia.md
     - 01. Proxy Reactivity & Dependency Graph: vue/01_vue_3_reactivity_ref_reactive_and_proxies.md
+    - 02. Pinia Modular State Stores: vue/02_pinia_state_management_and_modular_stores.md
   - Angular Enterprise Curriculum:
     - 00. Signals & Standalone Components: angular/00_angular_signals_ivy_compiler_and_standalone_architecture.md
     - 01. Push-Pull Reactivity DAG & Zoneless: angular/01_angular_signals_and_fine_grained_reactivity.md
+    - 02. RxJS Observables & Operators: angular/02_rxjs_observables_and_reactive_operators.md
   - Dart & Flutter Cross-Platform Curriculum:
     - 00. Dart VM & Isolate Architecture: dart/00_dart_language_architecture_vm_isolates_and_aot.md
     - 01. Dart Sound Null Safety & Mixins: dart/01_sound_null_safety_oop_and_concurrency.md
-    - 02. Flutter Web (CanvasKit & WasmGC): flutter_web/00_flutter_web_architecture_canvaskit_and_wasm_gc.md
-    - 03. Flutter Mobile & Impeller Engine: flutter_mobile/00_flutter_mobile_architecture_impeller_and_platform_channels.md
-    - 04. Flutter Riverpod & BLoC State: flutter_mobile/01_state_management_riverpod_and_bloc.md
-    - 05. Full-Stack Dart (Serverpod & ORM): dart_real_world/00_full_stack_dart_serverpod_microservices_and_production.md
-    - 06. Serverpod Postgres ORM & WebSockets: dart_real_world/01_serverpod_postgres_orm_and_websockets.md
+    - 02. Dart Reactive Streams & Generators: dart/02_streams_async_generators_and_transformers.md
+    - 03. Flutter Web (CanvasKit & WasmGC): flutter_web/00_flutter_web_architecture_canvaskit_and_wasm_gc.md
+    - 04. Flutter Web (WasmGC Bytecode): flutter_web/01_wasmgc_compilation_and_web_workers.md
+    - 05. Flutter Mobile & Impeller Engine: flutter_mobile/00_flutter_mobile_architecture_impeller_and_platform_channels.md
+    - 06. Flutter Riverpod & BLoC State: flutter_mobile/01_state_management_riverpod_and_bloc.md
+    - 07. Flutter Shaders & Impeller GPU: flutter_mobile/02_custom_fragment_shaders_glsl_impeller.md
+    - 08. Full-Stack Dart (Serverpod & ORM): dart_real_world/00_full_stack_dart_serverpod_microservices_and_production.md
+    - 09. Serverpod Postgres ORM & WebSockets: dart_real_world/01_serverpod_postgres_orm_and_websockets.md
+    - 10. Dart Frog Microservice Server: dart_real_world/02_dart_frog_high_speed_rest_api_server.md
   - NGINX Classic Guides:
     - Go to Production: production.md
     - Foundational Concepts: foundational.md
