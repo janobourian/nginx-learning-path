@@ -29,7 +29,24 @@ nav:
     - 10. Layer 4 TCP/UDP Streaming: nginx_enterprise/10_stream_module_tcp_udp_load_balancing.md
     - 11. Observability & Prometheus: nginx_enterprise/11_logging_metrics_prometheus_exporter_and_observability.md
     - 12. High Availability (Keepalived): nginx_enterprise/12_high_availability_keepalived_vrrp_and_active_passive.md
-    - 13. Enterprise Master Blueprint: nginx_enterprise/13_real_world_production_case_studies_and_enterprise_blueprints.md
+  - Node.js & Deno Runtime:
+    - 00. Node.js Runtime & Libuv: nodejs/00_nodejs_runtime_architecture_libuv_and_event_loop.md
+    - 01. Node.js Streams & Clustering: nodejs/01_nodejs_streams_buffers_clustering_and_worker_threads.md
+    - 02. Deno Runtime & Security: deno/00_deno_runtime_architecture_rust_v8_and_security_model.md
+  - JavaScript & TypeScript Full Stack:
+    - 00. JavaScript Frontend & DOM: javascript_frontend/00_browser_javascript_dom_event_loop_and_web_apis.md
+    - 01. JavaScript Backend & Microservices: javascript_backend/00_backend_javascript_microservices_rest_and_architecture.md
+    - 02. TypeScript Advanced Type System: typescript/00_typescript_type_system_generics_and_compiler_ast.md
+  - Modern Web Frameworks (React, Next.js, Vue, Angular):
+    - 00. React Fiber & Hooks: react/00_react_fiber_architecture_virtual_dom_and_hooks.md
+    - 01. Next.js App Router & RSC: nextjs/00_nextjs_app_router_server_components_and_edge_runtime.md
+    - 02. Vue 3 Reactivity & Pinia: vue/00_vue_reactivity_proxy_system_composition_api_and_pinia.md
+    - 03. Angular Signals & Ivy: angular/00_angular_signals_ivy_compiler_and_standalone_architecture.md
+  - Dart & Flutter Ecosystem:
+    - 00. Dart Language & VM Isolates: dart/00_dart_language_architecture_vm_isolates_and_aot.md
+    - 01. Flutter for Web & WasmGC: flutter_web/00_flutter_web_architecture_canvaskit_and_wasm_gc.md
+    - 02. Flutter for Mobile & Impeller: flutter_mobile/00_flutter_mobile_architecture_impeller_and_platform_channels.md
+    - 03. Dart for Real World Apps (Serverpod): dart_real_world/00_full_stack_dart_serverpod_microservices_and_production.md
   - NGINX Classic Guides:
     - Go to Production: production.md
     - Foundational Concepts: foundational.md
