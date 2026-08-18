@@ -1,1219 +1,416 @@
-# Module 10: Composition API & Building Reusable Composables (use*)
-**Repository Track:** `vit/nginx-learning-path` -> `docs/vue/`
-**Technology Domain:** Vue.js 3 & Nuxt 3 Full-Stack Framework
-**Category:** Composition API
-**Runtime Environment:** Vue 3 Reactivity Engine & Nitro
-**Status:** ✅ Complete Production-Grade Reference Textbook (Zero to Master)
+# Module 10: Composition API & Custom Composables
+
+**Track:** Vue — Progressive Web Framework  
+**Category:** Logic Reuse & Architecture
 
 ---
 
-## 1. High-Level Architectural Foundations
+## What Is a Composable?
 
-This document represents the definitive, zero-to-master engineering textbook chapter for **Composition API & Building Reusable Composables (use*)** within the **Vue.js 3 & Nuxt 3 Full-Stack Framework** ecosystem.
-Operating on top of the **Vue 3 Reactivity Engine & Nitro**, this module establishes complete technical mastery over language semantics, runtime internals, step-by-step production implementations, performance benchmarks, and enterprise cloud resource governance.
+In the context of Vue applications, a **composable** is a function that leverages Vue's Composition API to encapsulate and reuse **stateful logic**. 
 
-### 👔 Executive Summary (For Engineering Leadership & Stakeholders)
-* **Business Purpose**: Implements robust, enterprise-grade Composition API & Building Reusable Composables (use*) to support high-throughput, mission-critical production workloads.
-* **Operational Mechanics**: Leverages native Vue 3 Reactivity Engine & Nitro primitives, compile-time type soundness, and non-blocking asynchronous event pipelines.
-* **Key Value & Financial ROI**: Eliminates runtime crashes, lowers server compute utilization by up to 70%, and provides sub-millisecond response latency.
+Unlike simple utility functions (which take inputs, perform computations, and return pure outputs), composables manage reactive state, compute derived values, register lifecycle hooks, and synchronize external resources (like browser APIs, WebSockets, or network requests).
 
----
+Composables solve the key limitations of Vue 2's code reuse patterns:
+1. **Mixins**: Implicit property collisions, unclear source of properties, tight coupling.
+2. **Scoped Slots / Renderless Components**: Component tree bloating, performance overhead, awkward syntax for non-UI logic.
+3. **Higher-Order Components (HOCs)**: Complex prop forwarding and TypeScript typing difficulties.
 
-## 📌 Historical Evolution, Design Tradeoffs & Original Architecture
-
-* Foundational architecture and engineering evolution of Vue.js 3 & Nuxt 3 Full-Stack Framework.
-* Key tradeoffs between runtime performance, memory consumption, and developer ergonomics in module `composition_api_and_custom_composables`.
-* Standards compliance, API stability guarantees, and enterprise migration strategies.
+In Vue 3, composables are the primary mechanism for abstracting business and UI logic.
 
 ---
 
-## 2. Complete Language Syntax, Keywords & Statements Dictionary
+## Composable Conventions and Best Practices
 
-The following dictionary details key reserved keywords, control flow statements, declarations, and operators native to **Vue.js 3 & Nuxt 3 Full-Stack Framework**:
+1. **Naming Convention**: Always prefix composable function names with `use` (e.g., `useFetch`, `useLocalStorage`, `useWindowSize`, `useAuth`).
+2. **Input Flexibility with `toValue` / `MaybeRefOrGetter`**: Accept plain values, refs, or getter functions (`() => val`) to make the composable universally flexible.
+3. **Return Format**: Always return a plain object containing multiple `ref`s (or `readonly(ref)`s). Do **not** return a `reactive()` object directly, because destructuring in the consuming component would strip reactivity.
+4. **Lifecycle Scoping**: Call lifecycle hooks (`onMounted`, `onUnmounted`) inside the composable if resource setup and teardown are needed.
+5. **SSR Compatibility**: Guard browser-only APIs (`window`, `document`, `navigator`, `localStorage`) by checking `typeof window !== 'undefined'`.
 
-| Keyword / Identifier | Category | Formal Grammar Specification | Operational Execution Semantics |
-| :--- | :--- | :--- | :--- |
-| `ref / reactive` | Reactivity Primitives | `const count = ref(0) / reactive({ x: 1 })` | Wraps values in JavaScript Proxies triggering track() and trigger() dependency effects. |
-| `computed` | Cached Getters | `const double = computed(() => count.value * 2)` | Creates memoized reactive getters that only re-evaluate when dependencies change. |
-| `watchEffect` | Side Effects | `watchEffect(() => console.log(count.value))` | Automatically tracks reactive dependencies and re-executes callback on mutation. |
-| `provide / inject` | Dependency Injection | `provide('key', val) / inject('key')` | Shares reactive state and services down the component hierarchy without props. |
-| `defineStore` | Pinia State | `export const useStore = defineStore('id', () => {})` | Defines a modular, type-safe Pinia state store with actions and getters. |
-| `defineEventHandler` | Nitro Engine | `export default defineEventHandler(async (event) => {})` | Declares a universal server API route handler in Nuxt 3. |
-| `vue_operator_06` | Language Primitive & Control Flow | `vue_operator_06(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro. |
-| `vue_operator_07` | Language Primitive & Control Flow | `vue_operator_07(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro. |
-| `vue_operator_08` | Language Primitive & Control Flow | `vue_operator_08(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro. |
-| `vue_operator_09` | Language Primitive & Control Flow | `vue_operator_09(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro. |
-| `vue_operator_10` | Language Primitive & Control Flow | `vue_operator_10(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro. |
-| `vue_operator_11` | Language Primitive & Control Flow | `vue_operator_11(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro. |
-| `vue_operator_12` | Language Primitive & Control Flow | `vue_operator_12(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro. |
-| `vue_operator_13` | Language Primitive & Control Flow | `vue_operator_13(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro. |
-| `vue_operator_14` | Language Primitive & Control Flow | `vue_operator_14(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro. |
-| `vue_operator_15` | Language Primitive & Control Flow | `vue_operator_15(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro. |
-| `vue_operator_16` | Language Primitive & Control Flow | `vue_operator_16(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro. |
-| `vue_operator_17` | Language Primitive & Control Flow | `vue_operator_17(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro. |
-| `vue_operator_18` | Language Primitive & Control Flow | `vue_operator_18(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro. |
-| `vue_operator_19` | Language Primitive & Control Flow | `vue_operator_19(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro. |
-| `vue_operator_20` | Language Primitive & Control Flow | `vue_operator_20(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro. |
-| `vue_operator_21` | Language Primitive & Control Flow | `vue_operator_21(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro. |
-| `vue_operator_22` | Language Primitive & Control Flow | `vue_operator_22(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro. |
-| `vue_operator_23` | Language Primitive & Control Flow | `vue_operator_23(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro. |
-| `vue_operator_24` | Language Primitive & Control Flow | `vue_operator_24(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro. |
-| `vue_operator_25` | Language Primitive & Control Flow | `vue_operator_25(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro. |
-| `vue_operator_26` | Language Primitive & Control Flow | `vue_operator_26(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro. |
-| `vue_operator_27` | Language Primitive & Control Flow | `vue_operator_27(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro. |
-| `vue_operator_28` | Language Primitive & Control Flow | `vue_operator_28(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro. |
-| `vue_operator_29` | Language Primitive & Control Flow | `vue_operator_29(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro. |
-| `vue_operator_30` | Language Primitive & Control Flow | `vue_operator_30(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro. |
-| `vue_operator_31` | Language Primitive & Control Flow | `vue_operator_31(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro. |
-| `vue_operator_32` | Language Primitive & Control Flow | `vue_operator_32(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro. |
-| `vue_operator_33` | Language Primitive & Control Flow | `vue_operator_33(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro. |
-| `vue_operator_34` | Language Primitive & Control Flow | `vue_operator_34(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro. |
-| `vue_operator_35` | Language Primitive & Control Flow | `vue_operator_35(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro. |
-| `vue_operator_36` | Language Primitive & Control Flow | `vue_operator_36(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro. |
-| `vue_operator_37` | Language Primitive & Control Flow | `vue_operator_37(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro. |
-| `vue_operator_38` | Language Primitive & Control Flow | `vue_operator_38(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro. |
-| `vue_operator_39` | Language Primitive & Control Flow | `vue_operator_39(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro. |
-| `vue_operator_40` | Language Primitive & Control Flow | `vue_operator_40(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro. |
-| `vue_operator_41` | Language Primitive & Control Flow | `vue_operator_41(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro. |
-| `vue_operator_42` | Language Primitive & Control Flow | `vue_operator_42(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro. |
-| `vue_operator_43` | Language Primitive & Control Flow | `vue_operator_43(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro. |
-| `vue_operator_44` | Language Primitive & Control Flow | `vue_operator_44(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro. |
+---
 
-### Detailed Statement-by-Statement Mechanics & Code Implementation
+## Anatomy of a Production-Grade Composable
 
-#### `ref / reactive` (Reactivity Primitives)
-* **Grammar Specification**: `const count = ref(0) / reactive({ x: 1 })`
-* **Execution Semantics**: Wraps values in JavaScript Proxies triggering track() and trigger() dependency effects.
-* **Production Implementation Example (typescript)**:
+Let us build a comprehensive `useFetch` composable that handles abort controllers, automatic re-fetching on URL/parameter changes, error handling, caching, and manual execution.
+
 ```typescript
-// Usage: ref / reactive
-export function execute_0() {
-    console.log('[ENTERPRISE] Executing ref / reactive in vue');
+// src/composables/useFetch.ts
+import { ref, shallowRef, isRef, watchEffect, toValue, type Ref, type MaybeRefOrGetter } from "vue";
+
+export interface UseFetchOptions<T> {
+  immediate?: boolean;
+  initialData?: T;
+  timeout?: number;
+  headers?: MaybeRefOrGetter<Record<string, string>>;
+  transform?: (raw: any) => T;
 }
-```
 
-#### `computed` (Cached Getters)
-* **Grammar Specification**: `const double = computed(() => count.value * 2)`
-* **Execution Semantics**: Creates memoized reactive getters that only re-evaluate when dependencies change.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Usage: computed
-export function execute_1() {
-    console.log('[ENTERPRISE] Executing computed in vue');
+export interface UseFetchReturn<T> {
+  data: Ref<T | null>;
+  error: Ref<Error | null>;
+  isLoading: Ref<boolean>;
+  isFinished: Ref<boolean>;
+  statusCode: Ref<number | null>;
+  abort: () => void;
+  execute: () => Promise<void>;
 }
-```
 
-#### `watchEffect` (Side Effects)
-* **Grammar Specification**: `watchEffect(() => console.log(count.value))`
-* **Execution Semantics**: Automatically tracks reactive dependencies and re-executes callback on mutation.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Usage: watchEffect
-export function execute_2() {
-    console.log('[ENTERPRISE] Executing watchEffect in vue');
-}
-```
+export function useFetch<T = unknown>(
+  url: MaybeRefOrGetter<string>,
+  options: UseFetchOptions<T> = {}
+): UseFetchReturn<T> {
+  const {
+    immediate = true,
+    initialData = null,
+    timeout = 10000,
+    headers,
+    transform,
+  } = options;
 
-#### `provide / inject` (Dependency Injection)
-* **Grammar Specification**: `provide('key', val) / inject('key')`
-* **Execution Semantics**: Shares reactive state and services down the component hierarchy without props.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Usage: provide / inject
-export function execute_3() {
-    console.log('[ENTERPRISE] Executing provide / inject in vue');
-}
-```
+  const data = shallowRef<T | null>(initialData);
+  const error = shallowRef<Error | null>(null);
+  const isLoading = ref<boolean>(false);
+  const isFinished = ref<boolean>(false);
+  const statusCode = ref<number | null>(null);
 
-#### `defineStore` (Pinia State)
-* **Grammar Specification**: `export const useStore = defineStore('id', () => {})`
-* **Execution Semantics**: Defines a modular, type-safe Pinia state store with actions and getters.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Usage: defineStore
-export function execute_4() {
-    console.log('[ENTERPRISE] Executing defineStore in vue');
-}
-```
+  let currentController: AbortController | null = null;
 
-#### `defineEventHandler` (Nitro Engine)
-* **Grammar Specification**: `export default defineEventHandler(async (event) => {})`
-* **Execution Semantics**: Declares a universal server API route handler in Nuxt 3.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Usage: defineEventHandler
-export function execute_5() {
-    console.log('[ENTERPRISE] Executing defineEventHandler in vue');
-}
-```
-
-#### `vue_operator_06` (Language Primitive & Control Flow)
-* **Grammar Specification**: `vue_operator_06(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of vue_operator_06
-export class ServiceComponent_6 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing vue_operator_06 under Vue 3 Reactivity Engine & Nitro...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
+  const abort = () => {
+    if (currentController) {
+      currentController.abort();
+      currentController = null;
     }
-}
-```
+  };
 
-#### `vue_operator_07` (Language Primitive & Control Flow)
-* **Grammar Specification**: `vue_operator_07(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of vue_operator_07
-export class ServiceComponent_7 {
-    private stateMap = new Map<string, unknown>();
+  const execute = async () => {
+    // Cancel previous inflight request
+    abort();
 
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing vue_operator_07 under Vue 3 Reactivity Engine & Nitro...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
+    const targetUrl = toValue(url);
+    if (!targetUrl) return;
+
+    currentController = new AbortController();
+    const timeoutId = setTimeout(() => {
+      if (currentController) {
+        currentController.abort();
+      }
+    }, timeout);
+
+    isLoading.value = true;
+    isFinished.value = false;
+    error.value = null;
+
+    try {
+      const resolvedHeaders = headers ? toValue(headers) : {};
+      const response = await fetch(targetUrl, {
+        signal: currentController.signal,
+        headers: {
+          "Content-Type": "application/json",
+          ...resolvedHeaders,
+        },
+      });
+
+      statusCode.value = response.status;
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const rawJson = await response.json();
+      data.value = transform ? transform(rawJson) : rawJson;
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === "AbortError") {
+        // Request was deliberately canceled
+        return;
+      }
+      error.value = err instanceof Error ? err : new Error(String(err));
+      data.value = null;
+    } finally {
+      clearTimeout(timeoutId);
+      isLoading.value = false;
+      isFinished.value = true;
     }
-}
-```
-
-#### `vue_operator_08` (Language Primitive & Control Flow)
-* **Grammar Specification**: `vue_operator_08(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of vue_operator_08
-export class ServiceComponent_8 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing vue_operator_08 under Vue 3 Reactivity Engine & Nitro...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `vue_operator_09` (Language Primitive & Control Flow)
-* **Grammar Specification**: `vue_operator_09(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of vue_operator_09
-export class ServiceComponent_9 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing vue_operator_09 under Vue 3 Reactivity Engine & Nitro...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `vue_operator_10` (Language Primitive & Control Flow)
-* **Grammar Specification**: `vue_operator_10(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of vue_operator_10
-export class ServiceComponent_10 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing vue_operator_10 under Vue 3 Reactivity Engine & Nitro...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `vue_operator_11` (Language Primitive & Control Flow)
-* **Grammar Specification**: `vue_operator_11(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of vue_operator_11
-export class ServiceComponent_11 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing vue_operator_11 under Vue 3 Reactivity Engine & Nitro...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `vue_operator_12` (Language Primitive & Control Flow)
-* **Grammar Specification**: `vue_operator_12(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of vue_operator_12
-export class ServiceComponent_12 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing vue_operator_12 under Vue 3 Reactivity Engine & Nitro...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `vue_operator_13` (Language Primitive & Control Flow)
-* **Grammar Specification**: `vue_operator_13(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of vue_operator_13
-export class ServiceComponent_13 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing vue_operator_13 under Vue 3 Reactivity Engine & Nitro...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `vue_operator_14` (Language Primitive & Control Flow)
-* **Grammar Specification**: `vue_operator_14(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of vue_operator_14
-export class ServiceComponent_14 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing vue_operator_14 under Vue 3 Reactivity Engine & Nitro...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `vue_operator_15` (Language Primitive & Control Flow)
-* **Grammar Specification**: `vue_operator_15(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of vue_operator_15
-export class ServiceComponent_15 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing vue_operator_15 under Vue 3 Reactivity Engine & Nitro...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `vue_operator_16` (Language Primitive & Control Flow)
-* **Grammar Specification**: `vue_operator_16(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of vue_operator_16
-export class ServiceComponent_16 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing vue_operator_16 under Vue 3 Reactivity Engine & Nitro...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `vue_operator_17` (Language Primitive & Control Flow)
-* **Grammar Specification**: `vue_operator_17(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of vue_operator_17
-export class ServiceComponent_17 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing vue_operator_17 under Vue 3 Reactivity Engine & Nitro...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `vue_operator_18` (Language Primitive & Control Flow)
-* **Grammar Specification**: `vue_operator_18(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of vue_operator_18
-export class ServiceComponent_18 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing vue_operator_18 under Vue 3 Reactivity Engine & Nitro...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `vue_operator_19` (Language Primitive & Control Flow)
-* **Grammar Specification**: `vue_operator_19(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of vue_operator_19
-export class ServiceComponent_19 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing vue_operator_19 under Vue 3 Reactivity Engine & Nitro...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `vue_operator_20` (Language Primitive & Control Flow)
-* **Grammar Specification**: `vue_operator_20(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of vue_operator_20
-export class ServiceComponent_20 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing vue_operator_20 under Vue 3 Reactivity Engine & Nitro...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `vue_operator_21` (Language Primitive & Control Flow)
-* **Grammar Specification**: `vue_operator_21(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of vue_operator_21
-export class ServiceComponent_21 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing vue_operator_21 under Vue 3 Reactivity Engine & Nitro...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `vue_operator_22` (Language Primitive & Control Flow)
-* **Grammar Specification**: `vue_operator_22(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of vue_operator_22
-export class ServiceComponent_22 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing vue_operator_22 under Vue 3 Reactivity Engine & Nitro...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `vue_operator_23` (Language Primitive & Control Flow)
-* **Grammar Specification**: `vue_operator_23(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of vue_operator_23
-export class ServiceComponent_23 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing vue_operator_23 under Vue 3 Reactivity Engine & Nitro...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `vue_operator_24` (Language Primitive & Control Flow)
-* **Grammar Specification**: `vue_operator_24(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of vue_operator_24
-export class ServiceComponent_24 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing vue_operator_24 under Vue 3 Reactivity Engine & Nitro...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `vue_operator_25` (Language Primitive & Control Flow)
-* **Grammar Specification**: `vue_operator_25(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of vue_operator_25
-export class ServiceComponent_25 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing vue_operator_25 under Vue 3 Reactivity Engine & Nitro...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `vue_operator_26` (Language Primitive & Control Flow)
-* **Grammar Specification**: `vue_operator_26(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of vue_operator_26
-export class ServiceComponent_26 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing vue_operator_26 under Vue 3 Reactivity Engine & Nitro...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `vue_operator_27` (Language Primitive & Control Flow)
-* **Grammar Specification**: `vue_operator_27(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of vue_operator_27
-export class ServiceComponent_27 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing vue_operator_27 under Vue 3 Reactivity Engine & Nitro...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `vue_operator_28` (Language Primitive & Control Flow)
-* **Grammar Specification**: `vue_operator_28(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of vue_operator_28
-export class ServiceComponent_28 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing vue_operator_28 under Vue 3 Reactivity Engine & Nitro...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `vue_operator_29` (Language Primitive & Control Flow)
-* **Grammar Specification**: `vue_operator_29(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of vue_operator_29
-export class ServiceComponent_29 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing vue_operator_29 under Vue 3 Reactivity Engine & Nitro...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `vue_operator_30` (Language Primitive & Control Flow)
-* **Grammar Specification**: `vue_operator_30(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of vue_operator_30
-export class ServiceComponent_30 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing vue_operator_30 under Vue 3 Reactivity Engine & Nitro...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `vue_operator_31` (Language Primitive & Control Flow)
-* **Grammar Specification**: `vue_operator_31(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of vue_operator_31
-export class ServiceComponent_31 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing vue_operator_31 under Vue 3 Reactivity Engine & Nitro...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `vue_operator_32` (Language Primitive & Control Flow)
-* **Grammar Specification**: `vue_operator_32(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of vue_operator_32
-export class ServiceComponent_32 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing vue_operator_32 under Vue 3 Reactivity Engine & Nitro...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `vue_operator_33` (Language Primitive & Control Flow)
-* **Grammar Specification**: `vue_operator_33(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of vue_operator_33
-export class ServiceComponent_33 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing vue_operator_33 under Vue 3 Reactivity Engine & Nitro...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `vue_operator_34` (Language Primitive & Control Flow)
-* **Grammar Specification**: `vue_operator_34(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of vue_operator_34
-export class ServiceComponent_34 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing vue_operator_34 under Vue 3 Reactivity Engine & Nitro...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `vue_operator_35` (Language Primitive & Control Flow)
-* **Grammar Specification**: `vue_operator_35(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of vue_operator_35
-export class ServiceComponent_35 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing vue_operator_35 under Vue 3 Reactivity Engine & Nitro...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `vue_operator_36` (Language Primitive & Control Flow)
-* **Grammar Specification**: `vue_operator_36(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of vue_operator_36
-export class ServiceComponent_36 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing vue_operator_36 under Vue 3 Reactivity Engine & Nitro...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `vue_operator_37` (Language Primitive & Control Flow)
-* **Grammar Specification**: `vue_operator_37(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of vue_operator_37
-export class ServiceComponent_37 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing vue_operator_37 under Vue 3 Reactivity Engine & Nitro...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `vue_operator_38` (Language Primitive & Control Flow)
-* **Grammar Specification**: `vue_operator_38(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of vue_operator_38
-export class ServiceComponent_38 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing vue_operator_38 under Vue 3 Reactivity Engine & Nitro...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `vue_operator_39` (Language Primitive & Control Flow)
-* **Grammar Specification**: `vue_operator_39(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of vue_operator_39
-export class ServiceComponent_39 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing vue_operator_39 under Vue 3 Reactivity Engine & Nitro...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `vue_operator_40` (Language Primitive & Control Flow)
-* **Grammar Specification**: `vue_operator_40(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of vue_operator_40
-export class ServiceComponent_40 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing vue_operator_40 under Vue 3 Reactivity Engine & Nitro...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `vue_operator_41` (Language Primitive & Control Flow)
-* **Grammar Specification**: `vue_operator_41(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of vue_operator_41
-export class ServiceComponent_41 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing vue_operator_41 under Vue 3 Reactivity Engine & Nitro...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `vue_operator_42` (Language Primitive & Control Flow)
-* **Grammar Specification**: `vue_operator_42(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of vue_operator_42
-export class ServiceComponent_42 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing vue_operator_42 under Vue 3 Reactivity Engine & Nitro...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `vue_operator_43` (Language Primitive & Control Flow)
-* **Grammar Specification**: `vue_operator_43(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of vue_operator_43
-export class ServiceComponent_43 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing vue_operator_43 under Vue 3 Reactivity Engine & Nitro...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `vue_operator_44` (Language Primitive & Control Flow)
-* **Grammar Specification**: `vue_operator_44(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Vue 3 Reactivity Engine & Nitro.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of vue_operator_44
-export class ServiceComponent_44 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing vue_operator_44 under Vue 3 Reactivity Engine & Nitro...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
+  };
+
+  if (immediate) {
+    // If url or headers are reactive getters/refs, watchEffect automatically triggers execute() on changes
+    watchEffect(() => {
+      execute();
+    });
+  }
+
+  return {
+    data,
+    error,
+    isLoading,
+    isFinished,
+    statusCode,
+    abort,
+    execute,
+  };
 }
 ```
 
 ---
 
-## 3. Primitive Types, Memory Layout & Data Structures
+## Browser API Composables: `useEventListener` & `useLocalStorage`
 
-| Data Structure / Type | Memory Layout & Mutability | Time Complexity (Access / Search / Insert / Delete) | Enterprise Use Case |
-| :--- | :--- | :--- | :--- |
-| `Array<T> / Dynamic List` | Contiguous heap buffer with dynamic geometric doubling capacity. | Access: O(1), Search: O(N), Insert: O(N), Push: O(1) amortized | Sequential event batching, queuing, and iterative pipelines. |
-| `Map<K, V> / Hash Table` | Hash table with collision buckets maintaining insertion order. | Get: O(1), Set: O(1), Delete: O(1), Has: O(1) | In-memory caching, routing lookup tables, session registries. |
-| `Set<T> / Unique Hash Set` | Hash table storing unique values with fast membership testing. | Add: O(1), Has: O(1), Delete: O(1), Size: O(1) | Deduplication registries, connection tracking, tag matching. |
-| `WeakMap<K, V>` | Ephemeron hash table holding weak references to object keys. | Get: O(1), Set: O(1), Delete: O(1), Has: O(1) - GC Friendly | Attaching private state to DOM/Objects without memory leaks. |
-| `WeakSet<T>` | Set holding weak references to objects allowing GC collection. | Add: O(1), Has: O(1), Delete: O(1) - GC Friendly | Circular reference detection, object visited tracking in AST. |
-| `Uint8Array / Byte Slab` | Raw typed binary memory buffer allocated directly on heap. | Index: O(1), Slice: O(1) (view) / O(N) (copy) | Network packet framing, cryptographic buffers, file I/O streams. |
-| `Int32Array / Typed Ints` | Contiguous 32-bit signed integer buffer. | Direct memory offset indexing: O(1) | High-speed numerical computing, telemetry time series aggregation. |
-| `Float64Array / Float Slabs` | Contiguous 64-bit IEEE 754 double precision floats. | Direct memory offset indexing: O(1) | Financial market pricing, spatial coordinates, physics simulation. |
-| `SharedArrayBuffer` | Raw shared binary memory buffer accessible across Worker Threads. | Atomic access: O(1) with hardware memory fencing | Zero-copy multithreaded computation and ring buffers. |
-| `Circular Ring Buffer` | Fixed-size circular array with head and tail pointer offsets. | Enqueue: O(1), Dequeue: O(1), Peak: O(1) | High-throughput logging queues and sliding window metrics. |
-| `LRU Cache (Doubly Linked List + Map)` | Hash map paired with doubly linked list for O(1) eviction. | Get: O(1), Put: O(1), Evict: O(1) | Database query result caching with strict memory bounds. |
-| `Min/Max Binary Heap` | Complete binary tree stored contiguously in an array. | Peek: O(1), Insert: O(log N), Extract: O(log N) | Priority task queues, deadline scheduling, SLA task dispatch. |
-| `Trie / Prefix Tree` | Multi-way search tree structured by string character prefixes. | Search: O(K), Insert: O(K), Delete: O(K) where K = string length | URL routing engines, auto-complete, IP routing prefix tables. |
-| `Disjoint Set Union (DSU)` | Tree structure tracking elements partitioned into disjoint subsets. | Find: O(alpha(N)) ~ O(1), Union: O(alpha(N)) ~ O(1) | Network cluster connectivity, cycle detection in microservices. |
-| `Bloom Filter` | Bit array paired with multiple independent hash functions. | Insert: O(K), Lookup: O(K) with zero false negatives | Deduplicating disk cache reads, spam filtering, crawler visited checks. |
+### 1. `useEventListener`
 
-### Detailed Memory Layout & Data Structure Mechanics
+Attaches event listeners safely and automatically cleans them up when the component unmounts or when the target element changes.
 
-#### `Array<T> / Dynamic List`
-* **Memory Model**: Contiguous heap buffer with dynamic geometric doubling capacity.
-* **Complexity Guarantees**: Access: O(1), Search: O(N), Insert: O(N), Push: O(1) amortized
-* **Best Practices & Pitfalls**: Sequential event batching, queuing, and iterative pipelines.
-* **Implementation Code (typescript)**:
 ```typescript
-const eventBuffer: Array<TelemetryEvent> = [];
-eventBuffer.push({ timestamp: Date.now(), metric: 'cpu', value: 84.2 });
-```
+// src/composables/useEventListener.ts
+import { onMounted, onUnmounted, isRef, watch, unref, type MaybeRef } from "vue";
 
-#### `Map<K, V> / Hash Table`
-* **Memory Model**: Hash table with collision buckets maintaining insertion order.
-* **Complexity Guarantees**: Get: O(1), Set: O(1), Delete: O(1), Has: O(1)
-* **Best Practices & Pitfalls**: In-memory caching, routing lookup tables, session registries.
-* **Implementation Code (typescript)**:
-```typescript
-const sessionStore = new Map<string, UserSession>();
-sessionStore.set('sess_9901', { userId: 'usr_12', role: 'ADMIN' });
-```
+export function useEventListener<K extends keyof WindowEventMap>(
+  target: Window,
+  event: K,
+  listener: (this: Window, ev: WindowEventMap[K]) => any,
+  options?: boolean | AddEventListenerOptions
+): () => void;
 
-#### `Set<T> / Unique Hash Set`
-* **Memory Model**: Hash table storing unique values with fast membership testing.
-* **Complexity Guarantees**: Add: O(1), Has: O(1), Delete: O(1), Size: O(1)
-* **Best Practices & Pitfalls**: Deduplication registries, connection tracking, tag matching.
-* **Implementation Code (typescript)**:
-```typescript
-const activeSocketIds = new Set<string>();
-activeSocketIds.add('sock_usr_9021');
-```
+export function useEventListener<K extends keyof DocumentEventMap>(
+  target: Document,
+  event: K,
+  listener: (this: Document, ev: DocumentEventMap[K]) => any,
+  options?: boolean | AddEventListenerOptions
+): () => void;
 
-#### `WeakMap<K, V>`
-* **Memory Model**: Ephemeron hash table holding weak references to object keys.
-* **Complexity Guarantees**: Get: O(1), Set: O(1), Delete: O(1), Has: O(1) - GC Friendly
-* **Best Practices & Pitfalls**: Attaching private state to DOM/Objects without memory leaks.
-* **Implementation Code (typescript)**:
-```typescript
-const domPrivateData = new WeakMap<HTMLElement, ComponentState>();
-```
+export function useEventListener<K extends keyof HTMLElementEventMap>(
+  target: MaybeRef<HTMLElement | null | undefined>,
+  event: K,
+  listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any,
+  options?: boolean | AddEventListenerOptions
+): () => void;
 
-#### `WeakSet<T>`
-* **Memory Model**: Set holding weak references to objects allowing GC collection.
-* **Complexity Guarantees**: Add: O(1), Has: O(1), Delete: O(1) - GC Friendly
-* **Best Practices & Pitfalls**: Circular reference detection, object visited tracking in AST.
-* **Implementation Code (typescript)**:
-```typescript
-const visitedNodes = new WeakSet<ASTNode>();
-visitedNodes.add(currentNode);
-```
+export function useEventListener(
+  target: any,
+  event: string,
+  listener: EventListenerOrEventListenerObject,
+  options?: boolean | AddEventListenerOptions
+) {
+  let cleanup = () => {};
 
-#### `Uint8Array / Byte Slab`
-* **Memory Model**: Raw typed binary memory buffer allocated directly on heap.
-* **Complexity Guarantees**: Index: O(1), Slice: O(1) (view) / O(N) (copy)
-* **Best Practices & Pitfalls**: Network packet framing, cryptographic buffers, file I/O streams.
-* **Implementation Code (typescript)**:
-```typescript
-const packetHeader = new Uint8Array([0x45, 0x00, 0x00, 0x3C, 0x1C, 0x46]);
-```
+  const register = (el: any) => {
+    cleanup();
+    if (!el) return;
+    el.addEventListener(event, listener, options);
+    cleanup = () => el.removeEventListener(event, listener, options);
+  };
 
-#### `Int32Array / Typed Ints`
-* **Memory Model**: Contiguous 32-bit signed integer buffer.
-* **Complexity Guarantees**: Direct memory offset indexing: O(1)
-* **Best Practices & Pitfalls**: High-speed numerical computing, telemetry time series aggregation.
-* **Implementation Code (typescript)**:
-```typescript
-const metricsPoints = new Int32Array(100000);
-metricsPoints[0] = 14820;
-```
+  if (isRef(target)) {
+    watch(target, (newEl) => register(newEl), { immediate: true });
+  } else {
+    onMounted(() => register(unref(target)));
+  }
 
-#### `Float64Array / Float Slabs`
-* **Memory Model**: Contiguous 64-bit IEEE 754 double precision floats.
-* **Complexity Guarantees**: Direct memory offset indexing: O(1)
-* **Best Practices & Pitfalls**: Financial market pricing, spatial coordinates, physics simulation.
-* **Implementation Code (typescript)**:
-```typescript
-const priceTicks = new Float64Array(50000);
-priceTicks[0] = 184.52;
-```
+  onUnmounted(() => {
+    cleanup();
+  });
 
-#### `SharedArrayBuffer`
-* **Memory Model**: Raw shared binary memory buffer accessible across Worker Threads.
-* **Complexity Guarantees**: Atomic access: O(1) with hardware memory fencing
-* **Best Practices & Pitfalls**: Zero-copy multithreaded computation and ring buffers.
-* **Implementation Code (typescript)**:
-```typescript
-const sharedMemory = new SharedArrayBuffer(1024 * 1024);
-const atomicView = new Int32Array(sharedMemory);
-```
-
-#### `Circular Ring Buffer`
-* **Memory Model**: Fixed-size circular array with head and tail pointer offsets.
-* **Complexity Guarantees**: Enqueue: O(1), Dequeue: O(1), Peak: O(1)
-* **Best Practices & Pitfalls**: High-throughput logging queues and sliding window metrics.
-* **Implementation Code (typescript)**:
-```typescript
-class RingBuffer<T> {
-    private buf: (T|null)[]; private head = 0; private tail = 0;
-    constructor(public size: number) { this.buf = new Array(size).fill(null); }
-    push(item: T) { this.buf[this.head] = item; this.head = (this.head + 1) % this.size; }
+  return cleanup;
 }
 ```
 
-#### `LRU Cache (Doubly Linked List + Map)`
-* **Memory Model**: Hash map paired with doubly linked list for O(1) eviction.
-* **Complexity Guarantees**: Get: O(1), Put: O(1), Evict: O(1)
-* **Best Practices & Pitfalls**: Database query result caching with strict memory bounds.
-* **Implementation Code (typescript)**:
-```typescript
-class LRUNode<K, V> { constructor(public key: K, public val: V, public prev?: LRUNode<K,V>, public next?: LRUNode<K,V>) {} }
-```
+### 2. `useLocalStorage` with Reactive Synchronization
 
-#### `Min/Max Binary Heap`
-* **Memory Model**: Complete binary tree stored contiguously in an array.
-* **Complexity Guarantees**: Peek: O(1), Insert: O(log N), Extract: O(log N)
-* **Best Practices & Pitfalls**: Priority task queues, deadline scheduling, SLA task dispatch.
-* **Implementation Code (typescript)**:
-```typescript
-class PriorityQueue<T> { private heap: T[] = []; /* Heap operations */ }
-```
-
-#### `Trie / Prefix Tree`
-* **Memory Model**: Multi-way search tree structured by string character prefixes.
-* **Complexity Guarantees**: Search: O(K), Insert: O(K), Delete: O(K) where K = string length
-* **Best Practices & Pitfalls**: URL routing engines, auto-complete, IP routing prefix tables.
-* **Implementation Code (typescript)**:
-```typescript
-class TrieNode { children: Map<string, TrieNode> = new Map(); isTerminal = false; }
-```
-
-#### `Disjoint Set Union (DSU)`
-* **Memory Model**: Tree structure tracking elements partitioned into disjoint subsets.
-* **Complexity Guarantees**: Find: O(alpha(N)) ~ O(1), Union: O(alpha(N)) ~ O(1)
-* **Best Practices & Pitfalls**: Network cluster connectivity, cycle detection in microservices.
-* **Implementation Code (typescript)**:
-```typescript
-class DSU { private parent: number[]; constructor(n: number) { this.parent = Array.from({length:n}, (_,i)=>i); } }
-```
-
-#### `Bloom Filter`
-* **Memory Model**: Bit array paired with multiple independent hash functions.
-* **Complexity Guarantees**: Insert: O(K), Lookup: O(K) with zero false negatives
-* **Best Practices & Pitfalls**: Deduplicating disk cache reads, spam filtering, crawler visited checks.
-* **Implementation Code (typescript)**:
-```typescript
-class BloomFilter { private bits: Uint8Array; constructor(size: number) { this.bits = new Uint8Array(size); } }
-```
-
----
-
-## 4. Virtual Machine, Bytecode & Compilation Engine Internals
-
-Execution of `composition_api_and_custom_composables` in Vue.js 3 & Nuxt 3 Full-Stack Framework is governed by high-performance virtual machine compilation and optimization pipelines:
-
-```
-  +------------------+      +-------------------+      +--------------------+      +--------------------+
-  |   Source Code    | ---> | Lexer & AST Parser| ---> | Bytecode Generator | ---> | Optimizing JIT/AOT |
-  |  (Vue.js 3 & Nuxt 3 Full-Stack Framework) |      |  (Syntax Grammar) |      | (Compact Opcodes)  |      | (Vue 3 Reactivity Engine & Nitro) |
-  +------------------+      +-------------------+      +--------------------+      +--------------------+
-                                                                                      |
-                                                                                      v
-                                                           +--------------------+      +--------------------+
-                                                           | Host Hardware OS   | <--- | OS Memory Allocator|
-                                                           | (CPU & Kernel I/O) |      | (Young / Old Heap) |
-                                                           +--------------------+      +--------------------+
-```
-
-1. **Lexical Tokenization & AST Parsing**: Source code is verified for grammatical correctness and transformed into a typed Abstract Syntax Tree.
-2. **Bytecode Emission**: The compiler generates compact intermediate bytecode opcodes interpreted by the runtime engine.
-3. **JIT / AOT Machine Code Generation**: Hot execution paths are compiled directly into native x86_64 or ARM64 assembly instructions.
-4. **Generational Garbage Collection**: Nursery allocations are collected in sub-millisecond minor GC sweeps without halting application throughput.
-
----
-
-## 5. Technical Deep Dive & Advanced Architecture
-
-In enterprise architectures, `composition_api_and_custom_composables` serves as a core subsystem of Vue.js 3 & Nuxt 3 Full-Stack Framework:
-
-- **Unidirectional Data Flow & Immutability**: Enforces deterministic state lifecycles to eliminate race conditions.
-- **Asynchronous Non-Blocking Execution**: Yields execution back to the event loop, maximizing concurrent request capacity.
-- **Defensive Schema Validation**: Validates external untrusted network inputs at system boundaries.
-
----
-
-## 6. Hands-On Step-by-Step Production Lab
-
-### Step 1: Domain Data Contracts & Modeling (`domain_contracts.ts`)
+Synchronizes a reactive ref with browser `localStorage`, listening to cross-tab `storage` events.
 
 ```typescript
-// Domain Contracts for Composition API & Building Reusable Composables (use*)
-export interface IEnterpriseWorkload_10 {
-    id: string;
-    domain: string;
-    timestamp: Date;
-    payload: Record<string, unknown>;
-}
-```
+// src/composables/useLocalStorage.ts
+import { ref, watch, type Ref } from "vue";
+import { useEventListener } from "./useEventListener";
 
-### Step 2: Core Business Logic Service (`business_service.ts`)
-
-```typescript
-// Business Service Implementation for Composition API & Building Reusable Composables (use*)
-export class Enterprise_CompositionApiAndCustomComposables_Service {
-    private cache = new Map<string, any>();
-
-    async processWorkload(id: string, payload: Record<string, unknown>) {
-        console.log(`[SERVICE] Processing composition_api_and_custom_composables for workload: ${id}...`);
-        return {
-            status: 'PROCESSED',
-            id,
-            module: 'composition_api_and_custom_composables',
-            executedAt: new Date().toISOString()
-        };
+export function useLocalStorage<T>(
+  key: string,
+  initialValue: T
+): Ref<T> {
+  const readValue = (): T => {
+    if (typeof window === "undefined") {
+      return initialValue;
     }
+    try {
+      const raw = window.localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : initialValue;
+    } catch (err) {
+      console.warn(`[useLocalStorage] Error reading key "${key}":`, err);
+      return initialValue;
+    }
+  };
+
+  const state = ref<T>(readValue()) as Ref<T>;
+
+  // Sync state mutations to LocalStorage
+  watch(
+    state,
+    (val) => {
+      if (typeof window === "undefined") return;
+      try {
+        if (val === null || val === undefined) {
+          window.localStorage.removeItem(key);
+        } else {
+          window.localStorage.setItem(key, JSON.stringify(val));
+        }
+      } catch (err) {
+        console.error(`[useLocalStorage] Error writing key "${key}":`, err);
+      }
+    },
+    { deep: true }
+  );
+
+  // Sync cross-tab updates via window storage event
+  if (typeof window !== "undefined") {
+    useEventListener(window, "storage", (event: StorageEvent) => {
+      if (event.key === key && event.newValue !== null) {
+        try {
+          state.value = JSON.parse(event.newValue);
+        } catch {
+          // ignore corrupted data
+        }
+      }
+    });
+  }
+
+  return state;
 }
 ```
 
-### Step 3: Automated Verification Test Suite (`test_suite.ts`)
+---
+
+## Composing Multiple Composables (Compound Architecture)
+
+One of the greatest strengths of the Composition API is assembling small, focused composables into higher-level business features:
 
 ```typescript
-// Automated Test Suite for Composition API & Building Reusable Composables (use*)
-async function runVerification() {
-    console.log('--- Verifying Composition API & Building Reusable Composables (use*) ---');
-    const service = new Enterprise_CompositionApiAndCustomComposables_Service();
-    const result = await service.processWorkload('TASK-001', { priority: 'HIGH' });
-    if (result.status !== 'PROCESSED') throw new Error('Assertion failed');
-    console.log('✅ Composition API & Building Reusable Composables (use*) verification passed cleanly.');
+// src/composables/useUserProfile.ts
+import { computed } from "vue";
+import { useFetch } from "./useFetch";
+import { useLocalStorage } from "./useLocalStorage";
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  role: "admin" | "editor" | "viewer";
+  avatar: string;
 }
-runVerification();
+
+export function useUserProfile() {
+  const authToken = useLocalStorage<string | null>("auth_token", null);
+
+  const authHeaders = computed(() => ({
+    Authorization: authToken.value ? `Bearer ${authToken.value}` : "",
+  }));
+
+  const {
+    data: profile,
+    isLoading,
+    error,
+    execute: refreshProfile,
+  } = useFetch<UserProfile>("/api/v1/user/me", {
+    headers: authHeaders,
+    immediate: computed(() => Boolean(authToken.value)),
+  });
+
+  const isAuthenticated = computed(() => Boolean(authToken.value && profile.value));
+  const isAdmin = computed(() => profile.value?.role === "admin");
+
+  const logout = () => {
+    authToken.value = null;
+    profile.value = null;
+  };
+
+  return {
+    profile,
+    isLoading,
+    error,
+    isAuthenticated,
+    isAdmin,
+    refreshProfile,
+    logout,
+  };
+}
 ```
 
 ---
 
-## 7. Pure Escaped CLI Snippets (Production Operations)
+## Consuming Composables in Single File Components
 
-```bash
-npx tsc --noEmit --strict --target ES2022 \
-    --module NodeNext docs/vue/10_composition_api_and_custom_composables.md
+```vue
+<!-- src/views/DashboardView.vue -->
+<script setup lang="ts">
+import { ref } from "vue";
+import { useUserProfile } from "@/composables/useUserProfile";
+import { useEventListener } from "@/composables/useEventListener";
 
-git add -A && git commit -m 'docs(vue): complete composition_api_and_custom_composables module' \
-    --no-verify
+const { profile, isLoading, error, isAdmin, logout } = useUserProfile();
+const mousePos = ref({ x: 0, y: 0 });
+
+useEventListener(window, "mousemove", (e) => {
+  mousePos.value = { x: e.clientX, y: e.clientY };
+});
+</script>
+
+<template>
+  <div class="dashboard">
+    <div v-if="isLoading" class="loading-skeleton">
+      Loading user profile...
+    </div>
+
+    <div v-else-if="error" class="error-banner">
+      Failed to load profile: {{ error.message }}
+    </div>
+
+    <div v-else-if="profile" class="profile-card">
+      <img :src="profile.avatar" :alt="profile.name" class="avatar" />
+      <h2>{{ profile.name }}</h2>
+      <span v-if="isAdmin" class="badge admin">System Administrator</span>
+      <button @click="logout" class="btn-logout">Log Out</button>
+    </div>
+
+    <footer class="telemetry">
+      Cursor Coordinates: X: {{ mousePos.x }}, Y: {{ mousePos.y }}
+    </footer>
+  </div>
+</template>
 ```
 
 ---
 
-## 8. Detailed Sub-Components & Diagnostics
-
-### Vue 3 Proxy TargetMap
-* **Role & Function**: WeakMap tracking reactive object properties to active subscriber effects.
-* **Inspection & Verification Command**:
-  ```bash
-  echo 'TargetMap active'
-  ```
-
-### Nuxt 3 Nitro Server Engine
-* **Role & Function**: Universal server runtime deploying to Node.js, Deno, and Edge Workers.
-* **Inspection & Verification Command**:
-  ```bash
-  npx nuxi build
-  ```
-
----
-
-## References
-
-### Official Documentation
-
-* [Vue.js 3 Official Documentation](https://vuejs.org/) - Official specification.
-* [Nuxt 3 Official Documentation](https://nuxt.com/docs) - Official specification.
-* [Pinia Official Documentation](https://pinia.vuejs.org/) - Official specification.
-* [Vite Build Tool Documentation](https://vitejs.dev/) - Official specification.
-* [W3C Web Standards](https://www.w3.org/) - Official specification.
-
-### Authoritative Engineering Blogs
-
-* [Evan You: Vue 3 Design Decisions](https://blog.evanyou.me/) - Architecture and systems engineering.
-* [Anthony Fu: Vue Reactivity & Composition Architecture](https://antfu.me/) - Architecture and systems engineering.
-* [Baeldung on Computer Science: Vue Proxy Internals](https://www.baeldung.com/) - Architecture and systems engineering.
-* [Vue School Engineering Articles](https://vueschool.io/articles/) - Architecture and systems engineering.
-* [Smashing Magazine: Vue 3 Enterprise Architecture](https://www.smashingmagazine.com/) - Architecture and systems engineering.
-
----
-
-## 9. FinOps & Cloud Resource Cost Governance (500+ Words)
-
-### 1. The Financial Engineering Imperative in Modern Web & Cloud Systems
-
-
-
-Modern cloud computing infrastructure charges enterprises based on three primary vectors: **vCPU compute seconds**, **RAM gigabyte-hours**, and **Network egress bandwidth ($0.09 per GB)**. Without strict architectural discipline, unoptimized web applications trigger runaway autoscaling, leading to monthly cloud bills tens of thousands of dollars higher than budgeted.
-
-
-
-Architectural optimizations implemented within this module directly dictate the financial bottom line of the engineering organization.
-
-
-
-### 2. Compute Right-Sizing & VM Packing Density
-
-
-
-By default, unconfigured runtimes allocate default heap ceilings (e.g. 1.4GB on 64-bit V8). In a Kubernetes pod topology, this forces DevOps engineers to assign 2GB memory requests per container pod. On standard cloud nodes (such as AWS `c6g.2xlarge` with 8 vCPUs and 16GB RAM), an engineering team can pack at most 7 application replicas before exhausting node memory.
-
-
-
-By applying strict buffer pooling, eliminating memory leaks, and tuning `--max-old-space-size=512`, the memory footprint per replica drops to $< 350\text{MB}$. This enables packing **32 application replicas per node**—a **$4.5\times$ increase in compute density**, slashing monthly EC2 instance spend by over 70%.
-
-
-
-| Architecture Configuration | Heap Allocation Ceiling | Pods per AWS c6g.2xlarge (16GB) | Monthly Node Infrastructure Cost |
-
-| :--- | :--- | :--- | :--- |
-
-| **Unoptimized Default** | 1,400 MB | 7 Pods | $1,248 / month (8 Nodes required) |
-
-| **Memory-Tuned Standard** | 512 MB | 24 Pods | $468 / month (3 Nodes required) |
-
-| **High-Density Optimized** | 256 MB | 48 Pods | $156 / month (1 Node required) |
-
-
-
-### 3. Network Egress Cost Reduction via Binary Codecs & Caching
-
-
-
-Transmitting JSON over HTTP introduces massive text serialization overhead. When sending 100,000 requests per second across microservices within an AWS VPC or across availability zones (AZs), AWS charges **$0.01 per GB** for intra-region AZ data transfer and **$0.09 per GB** for internet egress.
-
-
-
-- A standard JSON telemetry payload averages **850 bytes**.
-
-- The equivalent binary Protocol Buffers (Protobuf) or binary TypedArray payload averages **160 bytes** ($81\%$ reduction).
-
-- Across 500 million monthly API transactions, binary serialization reduces data transfer from **425 TB down to 80 TB**, saving over **$31,000 annually** in cloud data transfer fees alone!
-
-
-
-### 4. Garbage Collection Pause Elimination & Latency SLA Protection
-
-
-
-Frequent allocations of short-lived objects in hot API loops trigger repeated Minor GC Scavenger cycles and Major Mark-Sweep-Compact pauses. When a GC pause halts the CPU thread for 40ms, inbound HTTP requests queue in kernel TCP socket buffers, causing p99 latency spikes and triggering false-positive autoscaling triggers.
-
-
-
-Utilizing object pools, reusable Byte Slabs (`Uint8Array`), and static Record types eliminates 95% of dynamic heap allocations, keeping server CPU utilization steady at $< 15\%$ under peak load and preventing premature cloud cluster autoscaling.
-
-
-
-### 5. Summary Cost Governance Checklist
-
-
-
-1. **Enforce Memory Ceilings**: Set strict `--max-old-space-size` and container memory limits.
-
-2. **Implement Binary Serialization**: Use Protobuf or binary TypedArrays for high-throughput inter-service links.
-
-3. **Eliminate Memory Leaks**: Use `WeakMap` and `WeakSet` for object metadata to allow immediate GC reclamation.
-
-4. **Leverage Edge Caching**: Cache static responses at CDN edge nodes to prevent origin server compute invocations.
-
----
-
-
-
-## 10. Troubleshooting, Diagnostic Workflows & Common Anti-Patterns
-
-
-
-When debugging complex distributed systems, engineers must recognize and avoid critical architectural anti-patterns:
-
-
-
-### Common Anti-Patterns & Failure Modes
-
-
-
-1. **Unbounded Memory Leaks via Closures & Global Event Listeners**:
-
-   - *Anti-Pattern*: Attaching event listeners (`socket.on('data')`) without removing them upon connection teardown.
-
-   - *Fix*: Always invoke `.removeListener()` or bind callbacks to an `AbortController` signal.
-
-
-
-2. **The Event Loop Starvation Hazard (Sync in Hot Paths)**:
-
-   - *Anti-Pattern*: Calling synchronous JSON parsing (`JSON.parse`) or regex on 10MB payloads inside main thread request handlers.
-
-   - *Fix*: Offload CPU-heavy parsing to Worker Threads or streaming chunk parsers (`JSONStream`).
-
-
-
-3. **Missing Error Handlers on Asynchronous Streams (Unhandled Exceptions)**:
-
-   - *Anti-Pattern*: Piping readable streams to writable streams without attaching `.on('error')` listeners.
-
-   - *Fix*: Always use `stream.pipeline()` or `finished()` which automatically tears down all streams upon failure.
-
-
-
-### Diagnostic Debugging Cheat-Sheet
-
-
-
-```bash
-
-# 1. Profile CPU bottlenecks with 99Hz sampling rate
-
-node --prof --prof-process isolate-*.log > cpu_profile.txt
-
-
-
-# 2. Inspect active Libuv handles preventing process exit
-
-node --trace-uncaught --trace-warnings --inspect app.js
-
-
-
-# 3. Verify socket file descriptor leaks in Linux kernel
-
-lsof -p $(pgrep -f node) | wc -l
-
+## Troubleshooting & Anti-Patterns
+
+**1. Destructuring a reactive object inside a composable**
+```typescript
+// ❌ WRONG: Destructuring strips proxy tracking
+export function useCounter() {
+  const state = reactive({ count: 0 });
+  return { ...state }; // Returns plain { count: 0 }, not reactive!
+}
+
+// ✅ CORRECT: Return refs or use toRefs
+export function useCounter() {
+  const count = ref(0);
+  return { count };
+}
 ```
+
+**2. Calling lifecycle hooks conditionally or outside synchronous setup**
+```typescript
+// ❌ WRONG: Calling onMounted inside an async callback
+export function useBadAsync() {
+  setTimeout(() => {
+    onMounted(() => {}); // Error: onMounted() is called when there is no active component instance!
+  }, 1000);
+}
+
+// ✅ CORRECT: Register lifecycle hooks synchronously in the composable body
+export function useGoodAsync() {
+  onMounted(() => {
+    // Setup listeners or async work here
+  });
+}
+```
+
+**3. Memory leaks from missing cleanup**
+Always ensure event listeners, timers, web workers, and websocket connections created inside a composable are registered with `onUnmounted()` or `onScopeDispose()`.
