@@ -1,1219 +1,299 @@
-# Module 06: Deno FFI: Foreign Function Interface & C/Rust Interop
-**Repository Track:** `vit/nginx-learning-path` -> `docs/deno/`
-**Technology Domain:** Deno Secure Engine & Edge Runtime
-**Category:** Native Interop
-**Runtime Environment:** Deno Rust Core & V8
-**Status:** ✅ Complete Production-Grade Reference Textbook (Zero to Master)
+# Module 06: FFI — Foreign Function Interface & C Interop
+
+**Track:** Deno Secure Engine & Edge Runtime  
+**Category:** Native Code Integration & Systems Programming
 
 ---
 
-## 1. High-Level Architectural Foundations
+## What Is FFI and Why Use It?
 
-This document represents the definitive, zero-to-master engineering textbook chapter for **Deno FFI: Foreign Function Interface & C/Rust Interop** within the **Deno Secure Engine & Edge Runtime** ecosystem.
-Operating on top of the **Deno Rust Core & V8**, this module establishes complete technical mastery over language semantics, runtime internals, step-by-step production implementations, performance benchmarks, and enterprise cloud resource governance.
+The Foreign Function Interface (FFI) lets Deno call functions compiled in native languages — C, C++, Rust, Go — directly from TypeScript. This bridges the gap between JavaScript's convenience and the raw performance or OS-level capabilities that only native code provides.
 
-### 👔 Executive Summary (For Engineering Leadership & Stakeholders)
-* **Business Purpose**: Implements robust, enterprise-grade Deno FFI: Foreign Function Interface & C/Rust Interop to support high-throughput, mission-critical production workloads.
-* **Operational Mechanics**: Leverages native Deno Rust Core & V8 primitives, compile-time type soundness, and non-blocking asynchronous event pipelines.
-* **Key Value & Financial ROI**: Eliminates runtime crashes, lowers server compute utilization by up to 70%, and provides sub-millisecond response latency.
+Common use cases:
+- **Image processing**: calling libvips or libpng for high-throughput image manipulation
+- **Cryptography**: using OS-provided or hardware-accelerated crypto primitives
+- **Database drivers**: calling SQLite's C library directly
+- **Audio/video**: calling FFmpeg or libav
+- **Hardware access**: reading from USB devices, GPIO pins, serial ports
+- **Performance-critical algorithms**: numerical computing, compression
 
----
-
-## 📌 Historical Evolution, Design Tradeoffs & Original Architecture
-
-* Foundational architecture and engineering evolution of Deno Secure Engine & Edge Runtime.
-* Key tradeoffs between runtime performance, memory consumption, and developer ergonomics in module `ffi_foreign_function_interface_and_c_interop`.
-* Standards compliance, API stability guarantees, and enterprise migration strategies.
+FFI requires `--allow-ffi` since it bypasses the Deno sandbox completely — native code runs with the process's full OS capabilities.
 
 ---
 
-## 2. Complete Language Syntax, Keywords & Statements Dictionary
+## How Deno FFI Works
 
-The following dictionary details key reserved keywords, control flow statements, declarations, and operators native to **Deno Secure Engine & Edge Runtime**:
+`Deno.dlopen()` loads a shared library (`.so` on Linux, `.dylib` on macOS, `.dll` on Windows) and creates a typed interface to its exported functions. You describe the function signatures using Deno's type system, and Deno handles the marshaling of JavaScript values to C types and back.
 
-| Keyword / Identifier | Category | Formal Grammar Specification | Operational Execution Semantics |
-| :--- | :--- | :--- | :--- |
-| `Deno.serve` | HTTP Server | `Deno.serve({ port }, reqHandler)` | High-performance HTTP server backed directly by Rust Hyper engine. |
-| `Deno.openKv` | ACID Storage | `const kv = await Deno.openKv()` | Opens embedded SQLite / FoundationDB key-value database with atomic transactions. |
-| `Deno.cron` | Scheduled Tasks | `Deno.cron(name, cronSchedule, fn)` | Schedules distributed background cron tasks without external infrastructure. |
-| `Deno.Command` | Subprocesses | `new Deno.Command('binary', opts)` | Spawns native operating system subprocesses with streaming stdio. |
-| `Deno.dlopen` | FFI | `Deno.dlopen(libPath, symbols)` | Dynamically links foreign C/Rust shared libraries with zero-overhead FFI. |
-| `Deno.upgradeWebSocket` | Real-Time Web | `Deno.upgradeWebSocket(req)` | Upgrades incoming HTTP request into a native WebSocket stream. |
-| `deno_operator_06` | Language Primitive & Control Flow | `deno_operator_06(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8. |
-| `deno_operator_07` | Language Primitive & Control Flow | `deno_operator_07(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8. |
-| `deno_operator_08` | Language Primitive & Control Flow | `deno_operator_08(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8. |
-| `deno_operator_09` | Language Primitive & Control Flow | `deno_operator_09(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8. |
-| `deno_operator_10` | Language Primitive & Control Flow | `deno_operator_10(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8. |
-| `deno_operator_11` | Language Primitive & Control Flow | `deno_operator_11(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8. |
-| `deno_operator_12` | Language Primitive & Control Flow | `deno_operator_12(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8. |
-| `deno_operator_13` | Language Primitive & Control Flow | `deno_operator_13(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8. |
-| `deno_operator_14` | Language Primitive & Control Flow | `deno_operator_14(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8. |
-| `deno_operator_15` | Language Primitive & Control Flow | `deno_operator_15(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8. |
-| `deno_operator_16` | Language Primitive & Control Flow | `deno_operator_16(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8. |
-| `deno_operator_17` | Language Primitive & Control Flow | `deno_operator_17(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8. |
-| `deno_operator_18` | Language Primitive & Control Flow | `deno_operator_18(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8. |
-| `deno_operator_19` | Language Primitive & Control Flow | `deno_operator_19(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8. |
-| `deno_operator_20` | Language Primitive & Control Flow | `deno_operator_20(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8. |
-| `deno_operator_21` | Language Primitive & Control Flow | `deno_operator_21(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8. |
-| `deno_operator_22` | Language Primitive & Control Flow | `deno_operator_22(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8. |
-| `deno_operator_23` | Language Primitive & Control Flow | `deno_operator_23(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8. |
-| `deno_operator_24` | Language Primitive & Control Flow | `deno_operator_24(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8. |
-| `deno_operator_25` | Language Primitive & Control Flow | `deno_operator_25(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8. |
-| `deno_operator_26` | Language Primitive & Control Flow | `deno_operator_26(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8. |
-| `deno_operator_27` | Language Primitive & Control Flow | `deno_operator_27(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8. |
-| `deno_operator_28` | Language Primitive & Control Flow | `deno_operator_28(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8. |
-| `deno_operator_29` | Language Primitive & Control Flow | `deno_operator_29(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8. |
-| `deno_operator_30` | Language Primitive & Control Flow | `deno_operator_30(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8. |
-| `deno_operator_31` | Language Primitive & Control Flow | `deno_operator_31(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8. |
-| `deno_operator_32` | Language Primitive & Control Flow | `deno_operator_32(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8. |
-| `deno_operator_33` | Language Primitive & Control Flow | `deno_operator_33(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8. |
-| `deno_operator_34` | Language Primitive & Control Flow | `deno_operator_34(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8. |
-| `deno_operator_35` | Language Primitive & Control Flow | `deno_operator_35(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8. |
-| `deno_operator_36` | Language Primitive & Control Flow | `deno_operator_36(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8. |
-| `deno_operator_37` | Language Primitive & Control Flow | `deno_operator_37(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8. |
-| `deno_operator_38` | Language Primitive & Control Flow | `deno_operator_38(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8. |
-| `deno_operator_39` | Language Primitive & Control Flow | `deno_operator_39(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8. |
-| `deno_operator_40` | Language Primitive & Control Flow | `deno_operator_40(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8. |
-| `deno_operator_41` | Language Primitive & Control Flow | `deno_operator_41(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8. |
-| `deno_operator_42` | Language Primitive & Control Flow | `deno_operator_42(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8. |
-| `deno_operator_43` | Language Primitive & Control Flow | `deno_operator_43(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8. |
-| `deno_operator_44` | Language Primitive & Control Flow | `deno_operator_44(options)` | Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8. |
-
-### Detailed Statement-by-Statement Mechanics & Code Implementation
-
-#### `Deno.serve` (HTTP Server)
-* **Grammar Specification**: `Deno.serve({ port }, reqHandler)`
-* **Execution Semantics**: High-performance HTTP server backed directly by Rust Hyper engine.
-* **Production Implementation Example (typescript)**:
 ```typescript
-// Usage: Deno.serve
-export function execute_0() {
-    console.log('[ENTERPRISE] Executing Deno.serve in deno');
-}
-```
-
-#### `Deno.openKv` (ACID Storage)
-* **Grammar Specification**: `const kv = await Deno.openKv()`
-* **Execution Semantics**: Opens embedded SQLite / FoundationDB key-value database with atomic transactions.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Usage: Deno.openKv
-export function execute_1() {
-    console.log('[ENTERPRISE] Executing Deno.openKv in deno');
-}
-```
-
-#### `Deno.cron` (Scheduled Tasks)
-* **Grammar Specification**: `Deno.cron(name, cronSchedule, fn)`
-* **Execution Semantics**: Schedules distributed background cron tasks without external infrastructure.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Usage: Deno.cron
-export function execute_2() {
-    console.log('[ENTERPRISE] Executing Deno.cron in deno');
-}
-```
-
-#### `Deno.Command` (Subprocesses)
-* **Grammar Specification**: `new Deno.Command('binary', opts)`
-* **Execution Semantics**: Spawns native operating system subprocesses with streaming stdio.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Usage: Deno.Command
-export function execute_3() {
-    console.log('[ENTERPRISE] Executing Deno.Command in deno');
-}
-```
-
-#### `Deno.dlopen` (FFI)
-* **Grammar Specification**: `Deno.dlopen(libPath, symbols)`
-* **Execution Semantics**: Dynamically links foreign C/Rust shared libraries with zero-overhead FFI.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Usage: Deno.dlopen
-export function execute_4() {
-    console.log('[ENTERPRISE] Executing Deno.dlopen in deno');
-}
-```
-
-#### `Deno.upgradeWebSocket` (Real-Time Web)
-* **Grammar Specification**: `Deno.upgradeWebSocket(req)`
-* **Execution Semantics**: Upgrades incoming HTTP request into a native WebSocket stream.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Usage: Deno.upgradeWebSocket
-export function execute_5() {
-    console.log('[ENTERPRISE] Executing Deno.upgradeWebSocket in deno');
-}
-```
-
-#### `deno_operator_06` (Language Primitive & Control Flow)
-* **Grammar Specification**: `deno_operator_06(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of deno_operator_06
-export class ServiceComponent_6 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing deno_operator_06 under Deno Rust Core & V8...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `deno_operator_07` (Language Primitive & Control Flow)
-* **Grammar Specification**: `deno_operator_07(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of deno_operator_07
-export class ServiceComponent_7 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing deno_operator_07 under Deno Rust Core & V8...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `deno_operator_08` (Language Primitive & Control Flow)
-* **Grammar Specification**: `deno_operator_08(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of deno_operator_08
-export class ServiceComponent_8 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing deno_operator_08 under Deno Rust Core & V8...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `deno_operator_09` (Language Primitive & Control Flow)
-* **Grammar Specification**: `deno_operator_09(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of deno_operator_09
-export class ServiceComponent_9 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing deno_operator_09 under Deno Rust Core & V8...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `deno_operator_10` (Language Primitive & Control Flow)
-* **Grammar Specification**: `deno_operator_10(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of deno_operator_10
-export class ServiceComponent_10 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing deno_operator_10 under Deno Rust Core & V8...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `deno_operator_11` (Language Primitive & Control Flow)
-* **Grammar Specification**: `deno_operator_11(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of deno_operator_11
-export class ServiceComponent_11 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing deno_operator_11 under Deno Rust Core & V8...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `deno_operator_12` (Language Primitive & Control Flow)
-* **Grammar Specification**: `deno_operator_12(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of deno_operator_12
-export class ServiceComponent_12 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing deno_operator_12 under Deno Rust Core & V8...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `deno_operator_13` (Language Primitive & Control Flow)
-* **Grammar Specification**: `deno_operator_13(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of deno_operator_13
-export class ServiceComponent_13 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing deno_operator_13 under Deno Rust Core & V8...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `deno_operator_14` (Language Primitive & Control Flow)
-* **Grammar Specification**: `deno_operator_14(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of deno_operator_14
-export class ServiceComponent_14 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing deno_operator_14 under Deno Rust Core & V8...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `deno_operator_15` (Language Primitive & Control Flow)
-* **Grammar Specification**: `deno_operator_15(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of deno_operator_15
-export class ServiceComponent_15 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing deno_operator_15 under Deno Rust Core & V8...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `deno_operator_16` (Language Primitive & Control Flow)
-* **Grammar Specification**: `deno_operator_16(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of deno_operator_16
-export class ServiceComponent_16 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing deno_operator_16 under Deno Rust Core & V8...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `deno_operator_17` (Language Primitive & Control Flow)
-* **Grammar Specification**: `deno_operator_17(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of deno_operator_17
-export class ServiceComponent_17 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing deno_operator_17 under Deno Rust Core & V8...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `deno_operator_18` (Language Primitive & Control Flow)
-* **Grammar Specification**: `deno_operator_18(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of deno_operator_18
-export class ServiceComponent_18 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing deno_operator_18 under Deno Rust Core & V8...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `deno_operator_19` (Language Primitive & Control Flow)
-* **Grammar Specification**: `deno_operator_19(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of deno_operator_19
-export class ServiceComponent_19 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing deno_operator_19 under Deno Rust Core & V8...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `deno_operator_20` (Language Primitive & Control Flow)
-* **Grammar Specification**: `deno_operator_20(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of deno_operator_20
-export class ServiceComponent_20 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing deno_operator_20 under Deno Rust Core & V8...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `deno_operator_21` (Language Primitive & Control Flow)
-* **Grammar Specification**: `deno_operator_21(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of deno_operator_21
-export class ServiceComponent_21 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing deno_operator_21 under Deno Rust Core & V8...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `deno_operator_22` (Language Primitive & Control Flow)
-* **Grammar Specification**: `deno_operator_22(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of deno_operator_22
-export class ServiceComponent_22 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing deno_operator_22 under Deno Rust Core & V8...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `deno_operator_23` (Language Primitive & Control Flow)
-* **Grammar Specification**: `deno_operator_23(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of deno_operator_23
-export class ServiceComponent_23 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing deno_operator_23 under Deno Rust Core & V8...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `deno_operator_24` (Language Primitive & Control Flow)
-* **Grammar Specification**: `deno_operator_24(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of deno_operator_24
-export class ServiceComponent_24 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing deno_operator_24 under Deno Rust Core & V8...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `deno_operator_25` (Language Primitive & Control Flow)
-* **Grammar Specification**: `deno_operator_25(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of deno_operator_25
-export class ServiceComponent_25 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing deno_operator_25 under Deno Rust Core & V8...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `deno_operator_26` (Language Primitive & Control Flow)
-* **Grammar Specification**: `deno_operator_26(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of deno_operator_26
-export class ServiceComponent_26 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing deno_operator_26 under Deno Rust Core & V8...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `deno_operator_27` (Language Primitive & Control Flow)
-* **Grammar Specification**: `deno_operator_27(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of deno_operator_27
-export class ServiceComponent_27 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing deno_operator_27 under Deno Rust Core & V8...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `deno_operator_28` (Language Primitive & Control Flow)
-* **Grammar Specification**: `deno_operator_28(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of deno_operator_28
-export class ServiceComponent_28 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing deno_operator_28 under Deno Rust Core & V8...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `deno_operator_29` (Language Primitive & Control Flow)
-* **Grammar Specification**: `deno_operator_29(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of deno_operator_29
-export class ServiceComponent_29 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing deno_operator_29 under Deno Rust Core & V8...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `deno_operator_30` (Language Primitive & Control Flow)
-* **Grammar Specification**: `deno_operator_30(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of deno_operator_30
-export class ServiceComponent_30 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing deno_operator_30 under Deno Rust Core & V8...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `deno_operator_31` (Language Primitive & Control Flow)
-* **Grammar Specification**: `deno_operator_31(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of deno_operator_31
-export class ServiceComponent_31 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing deno_operator_31 under Deno Rust Core & V8...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `deno_operator_32` (Language Primitive & Control Flow)
-* **Grammar Specification**: `deno_operator_32(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of deno_operator_32
-export class ServiceComponent_32 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing deno_operator_32 under Deno Rust Core & V8...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `deno_operator_33` (Language Primitive & Control Flow)
-* **Grammar Specification**: `deno_operator_33(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of deno_operator_33
-export class ServiceComponent_33 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing deno_operator_33 under Deno Rust Core & V8...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `deno_operator_34` (Language Primitive & Control Flow)
-* **Grammar Specification**: `deno_operator_34(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of deno_operator_34
-export class ServiceComponent_34 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing deno_operator_34 under Deno Rust Core & V8...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `deno_operator_35` (Language Primitive & Control Flow)
-* **Grammar Specification**: `deno_operator_35(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of deno_operator_35
-export class ServiceComponent_35 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing deno_operator_35 under Deno Rust Core & V8...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `deno_operator_36` (Language Primitive & Control Flow)
-* **Grammar Specification**: `deno_operator_36(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of deno_operator_36
-export class ServiceComponent_36 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing deno_operator_36 under Deno Rust Core & V8...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `deno_operator_37` (Language Primitive & Control Flow)
-* **Grammar Specification**: `deno_operator_37(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of deno_operator_37
-export class ServiceComponent_37 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing deno_operator_37 under Deno Rust Core & V8...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `deno_operator_38` (Language Primitive & Control Flow)
-* **Grammar Specification**: `deno_operator_38(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of deno_operator_38
-export class ServiceComponent_38 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing deno_operator_38 under Deno Rust Core & V8...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `deno_operator_39` (Language Primitive & Control Flow)
-* **Grammar Specification**: `deno_operator_39(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of deno_operator_39
-export class ServiceComponent_39 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing deno_operator_39 under Deno Rust Core & V8...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `deno_operator_40` (Language Primitive & Control Flow)
-* **Grammar Specification**: `deno_operator_40(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of deno_operator_40
-export class ServiceComponent_40 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing deno_operator_40 under Deno Rust Core & V8...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `deno_operator_41` (Language Primitive & Control Flow)
-* **Grammar Specification**: `deno_operator_41(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of deno_operator_41
-export class ServiceComponent_41 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing deno_operator_41 under Deno Rust Core & V8...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `deno_operator_42` (Language Primitive & Control Flow)
-* **Grammar Specification**: `deno_operator_42(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of deno_operator_42
-export class ServiceComponent_42 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing deno_operator_42 under Deno Rust Core & V8...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `deno_operator_43` (Language Primitive & Control Flow)
-* **Grammar Specification**: `deno_operator_43(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of deno_operator_43
-export class ServiceComponent_43 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing deno_operator_43 under Deno Rust Core & V8...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
-```
-
-#### `deno_operator_44` (Language Primitive & Control Flow)
-* **Grammar Specification**: `deno_operator_44(options)`
-* **Execution Semantics**: Core execution primitive managing state, memory boundaries, and asynchronous execution under Deno Rust Core & V8.
-* **Production Implementation Example (typescript)**:
-```typescript
-// Domain Implementation of deno_operator_44
-export class ServiceComponent_44 {
-    private stateMap = new Map<string, unknown>();
-
-    process(payload: Record<string, unknown>): Record<string, unknown> {
-        console.log('[EXEC] Processing deno_operator_44 under Deno Rust Core & V8...');
-        return { status: 'PROCESSED', timestamp: Date.now(), payload };
-    }
-}
+// Load a shared library and declare its function signatures
+const lib = Deno.dlopen("./libmylib.so", {
+  // Function name as exported from the C library
+  add_numbers: {
+    parameters: ["i32", "i32"],  // C types for arguments
+    result: "i32",               // C type for return value
+  },
+  compute_hash: {
+    parameters: ["pointer", "usize"],  // pointer to buffer, length
+    result: "u64",
+  },
+});
+
+// Call the native function — it executes at native speed
+const sum = lib.symbols.add_numbers(40, 2);
+console.log(sum);  // 42
+
+lib.close();  // Release the library
 ```
 
 ---
 
-## 3. Primitive Types, Memory Layout & Data Structures
+## Supported Native Types
 
-| Data Structure / Type | Memory Layout & Mutability | Time Complexity (Access / Search / Insert / Delete) | Enterprise Use Case |
-| :--- | :--- | :--- | :--- |
-| `Array<T> / Dynamic List` | Contiguous heap buffer with dynamic geometric doubling capacity. | Access: O(1), Search: O(N), Insert: O(N), Push: O(1) amortized | Sequential event batching, queuing, and iterative pipelines. |
-| `Map<K, V> / Hash Table` | Hash table with collision buckets maintaining insertion order. | Get: O(1), Set: O(1), Delete: O(1), Has: O(1) | In-memory caching, routing lookup tables, session registries. |
-| `Set<T> / Unique Hash Set` | Hash table storing unique values with fast membership testing. | Add: O(1), Has: O(1), Delete: O(1), Size: O(1) | Deduplication registries, connection tracking, tag matching. |
-| `WeakMap<K, V>` | Ephemeron hash table holding weak references to object keys. | Get: O(1), Set: O(1), Delete: O(1), Has: O(1) - GC Friendly | Attaching private state to DOM/Objects without memory leaks. |
-| `WeakSet<T>` | Set holding weak references to objects allowing GC collection. | Add: O(1), Has: O(1), Delete: O(1) - GC Friendly | Circular reference detection, object visited tracking in AST. |
-| `Uint8Array / Byte Slab` | Raw typed binary memory buffer allocated directly on heap. | Index: O(1), Slice: O(1) (view) / O(N) (copy) | Network packet framing, cryptographic buffers, file I/O streams. |
-| `Int32Array / Typed Ints` | Contiguous 32-bit signed integer buffer. | Direct memory offset indexing: O(1) | High-speed numerical computing, telemetry time series aggregation. |
-| `Float64Array / Float Slabs` | Contiguous 64-bit IEEE 754 double precision floats. | Direct memory offset indexing: O(1) | Financial market pricing, spatial coordinates, physics simulation. |
-| `SharedArrayBuffer` | Raw shared binary memory buffer accessible across Worker Threads. | Atomic access: O(1) with hardware memory fencing | Zero-copy multithreaded computation and ring buffers. |
-| `Circular Ring Buffer` | Fixed-size circular array with head and tail pointer offsets. | Enqueue: O(1), Dequeue: O(1), Peak: O(1) | High-throughput logging queues and sliding window metrics. |
-| `LRU Cache (Doubly Linked List + Map)` | Hash map paired with doubly linked list for O(1) eviction. | Get: O(1), Put: O(1), Evict: O(1) | Database query result caching with strict memory bounds. |
-| `Min/Max Binary Heap` | Complete binary tree stored contiguously in an array. | Peek: O(1), Insert: O(log N), Extract: O(log N) | Priority task queues, deadline scheduling, SLA task dispatch. |
-| `Trie / Prefix Tree` | Multi-way search tree structured by string character prefixes. | Search: O(K), Insert: O(K), Delete: O(K) where K = string length | URL routing engines, auto-complete, IP routing prefix tables. |
-| `Disjoint Set Union (DSU)` | Tree structure tracking elements partitioned into disjoint subsets. | Find: O(alpha(N)) ~ O(1), Union: O(alpha(N)) ~ O(1) | Network cluster connectivity, cycle detection in microservices. |
-| `Bloom Filter` | Bit array paired with multiple independent hash functions. | Insert: O(K), Lookup: O(K) with zero false negatives | Deduplicating disk cache reads, spam filtering, crawler visited checks. |
-
-### Detailed Memory Layout & Data Structure Mechanics
-
-#### `Array<T> / Dynamic List`
-* **Memory Model**: Contiguous heap buffer with dynamic geometric doubling capacity.
-* **Complexity Guarantees**: Access: O(1), Search: O(N), Insert: O(N), Push: O(1) amortized
-* **Best Practices & Pitfalls**: Sequential event batching, queuing, and iterative pipelines.
-* **Implementation Code (typescript)**:
-```typescript
-const eventBuffer: Array<TelemetryEvent> = [];
-eventBuffer.push({ timestamp: Date.now(), metric: 'cpu', value: 84.2 });
-```
-
-#### `Map<K, V> / Hash Table`
-* **Memory Model**: Hash table with collision buckets maintaining insertion order.
-* **Complexity Guarantees**: Get: O(1), Set: O(1), Delete: O(1), Has: O(1)
-* **Best Practices & Pitfalls**: In-memory caching, routing lookup tables, session registries.
-* **Implementation Code (typescript)**:
-```typescript
-const sessionStore = new Map<string, UserSession>();
-sessionStore.set('sess_9901', { userId: 'usr_12', role: 'ADMIN' });
-```
-
-#### `Set<T> / Unique Hash Set`
-* **Memory Model**: Hash table storing unique values with fast membership testing.
-* **Complexity Guarantees**: Add: O(1), Has: O(1), Delete: O(1), Size: O(1)
-* **Best Practices & Pitfalls**: Deduplication registries, connection tracking, tag matching.
-* **Implementation Code (typescript)**:
-```typescript
-const activeSocketIds = new Set<string>();
-activeSocketIds.add('sock_usr_9021');
-```
-
-#### `WeakMap<K, V>`
-* **Memory Model**: Ephemeron hash table holding weak references to object keys.
-* **Complexity Guarantees**: Get: O(1), Set: O(1), Delete: O(1), Has: O(1) - GC Friendly
-* **Best Practices & Pitfalls**: Attaching private state to DOM/Objects without memory leaks.
-* **Implementation Code (typescript)**:
-```typescript
-const domPrivateData = new WeakMap<HTMLElement, ComponentState>();
-```
-
-#### `WeakSet<T>`
-* **Memory Model**: Set holding weak references to objects allowing GC collection.
-* **Complexity Guarantees**: Add: O(1), Has: O(1), Delete: O(1) - GC Friendly
-* **Best Practices & Pitfalls**: Circular reference detection, object visited tracking in AST.
-* **Implementation Code (typescript)**:
-```typescript
-const visitedNodes = new WeakSet<ASTNode>();
-visitedNodes.add(currentNode);
-```
-
-#### `Uint8Array / Byte Slab`
-* **Memory Model**: Raw typed binary memory buffer allocated directly on heap.
-* **Complexity Guarantees**: Index: O(1), Slice: O(1) (view) / O(N) (copy)
-* **Best Practices & Pitfalls**: Network packet framing, cryptographic buffers, file I/O streams.
-* **Implementation Code (typescript)**:
-```typescript
-const packetHeader = new Uint8Array([0x45, 0x00, 0x00, 0x3C, 0x1C, 0x46]);
-```
-
-#### `Int32Array / Typed Ints`
-* **Memory Model**: Contiguous 32-bit signed integer buffer.
-* **Complexity Guarantees**: Direct memory offset indexing: O(1)
-* **Best Practices & Pitfalls**: High-speed numerical computing, telemetry time series aggregation.
-* **Implementation Code (typescript)**:
-```typescript
-const metricsPoints = new Int32Array(100000);
-metricsPoints[0] = 14820;
-```
-
-#### `Float64Array / Float Slabs`
-* **Memory Model**: Contiguous 64-bit IEEE 754 double precision floats.
-* **Complexity Guarantees**: Direct memory offset indexing: O(1)
-* **Best Practices & Pitfalls**: Financial market pricing, spatial coordinates, physics simulation.
-* **Implementation Code (typescript)**:
-```typescript
-const priceTicks = new Float64Array(50000);
-priceTicks[0] = 184.52;
-```
-
-#### `SharedArrayBuffer`
-* **Memory Model**: Raw shared binary memory buffer accessible across Worker Threads.
-* **Complexity Guarantees**: Atomic access: O(1) with hardware memory fencing
-* **Best Practices & Pitfalls**: Zero-copy multithreaded computation and ring buffers.
-* **Implementation Code (typescript)**:
-```typescript
-const sharedMemory = new SharedArrayBuffer(1024 * 1024);
-const atomicView = new Int32Array(sharedMemory);
-```
-
-#### `Circular Ring Buffer`
-* **Memory Model**: Fixed-size circular array with head and tail pointer offsets.
-* **Complexity Guarantees**: Enqueue: O(1), Dequeue: O(1), Peak: O(1)
-* **Best Practices & Pitfalls**: High-throughput logging queues and sliding window metrics.
-* **Implementation Code (typescript)**:
-```typescript
-class RingBuffer<T> {
-    private buf: (T|null)[]; private head = 0; private tail = 0;
-    constructor(public size: number) { this.buf = new Array(size).fill(null); }
-    push(item: T) { this.buf[this.head] = item; this.head = (this.head + 1) % this.size; }
-}
-```
-
-#### `LRU Cache (Doubly Linked List + Map)`
-* **Memory Model**: Hash map paired with doubly linked list for O(1) eviction.
-* **Complexity Guarantees**: Get: O(1), Put: O(1), Evict: O(1)
-* **Best Practices & Pitfalls**: Database query result caching with strict memory bounds.
-* **Implementation Code (typescript)**:
-```typescript
-class LRUNode<K, V> { constructor(public key: K, public val: V, public prev?: LRUNode<K,V>, public next?: LRUNode<K,V>) {} }
-```
-
-#### `Min/Max Binary Heap`
-* **Memory Model**: Complete binary tree stored contiguously in an array.
-* **Complexity Guarantees**: Peek: O(1), Insert: O(log N), Extract: O(log N)
-* **Best Practices & Pitfalls**: Priority task queues, deadline scheduling, SLA task dispatch.
-* **Implementation Code (typescript)**:
-```typescript
-class PriorityQueue<T> { private heap: T[] = []; /* Heap operations */ }
-```
-
-#### `Trie / Prefix Tree`
-* **Memory Model**: Multi-way search tree structured by string character prefixes.
-* **Complexity Guarantees**: Search: O(K), Insert: O(K), Delete: O(K) where K = string length
-* **Best Practices & Pitfalls**: URL routing engines, auto-complete, IP routing prefix tables.
-* **Implementation Code (typescript)**:
-```typescript
-class TrieNode { children: Map<string, TrieNode> = new Map(); isTerminal = false; }
-```
-
-#### `Disjoint Set Union (DSU)`
-* **Memory Model**: Tree structure tracking elements partitioned into disjoint subsets.
-* **Complexity Guarantees**: Find: O(alpha(N)) ~ O(1), Union: O(alpha(N)) ~ O(1)
-* **Best Practices & Pitfalls**: Network cluster connectivity, cycle detection in microservices.
-* **Implementation Code (typescript)**:
-```typescript
-class DSU { private parent: number[]; constructor(n: number) { this.parent = Array.from({length:n}, (_,i)=>i); } }
-```
-
-#### `Bloom Filter`
-* **Memory Model**: Bit array paired with multiple independent hash functions.
-* **Complexity Guarantees**: Insert: O(K), Lookup: O(K) with zero false negatives
-* **Best Practices & Pitfalls**: Deduplicating disk cache reads, spam filtering, crawler visited checks.
-* **Implementation Code (typescript)**:
-```typescript
-class BloomFilter { private bits: Uint8Array; constructor(size: number) { this.bits = new Uint8Array(size); } }
-```
+| Deno FFI Type | C Equivalent | JavaScript Value |
+|---|---|---|
+| `"i8"` | `int8_t` / `char` | Number |
+| `"i16"` | `int16_t` / `short` | Number |
+| `"i32"` | `int32_t` / `int` | Number |
+| `"i64"` | `int64_t` / `long` | BigInt |
+| `"u8"` | `uint8_t` / `unsigned char` | Number |
+| `"u16"` | `uint16_t` | Number |
+| `"u32"` | `uint32_t` | Number |
+| `"u64"` | `uint64_t` | BigInt |
+| `"f32"` | `float` | Number |
+| `"f64"` | `double` | Number |
+| `"bool"` | `bool` | Boolean |
+| `"pointer"` | `void*` / `char*` | Pointer / null |
+| `"buffer"` | `uint8_t*` | Uint8Array |
+| `"usize"` | `size_t` | Number / BigInt |
+| `"void"` | `void` | undefined |
 
 ---
 
-## 4. Virtual Machine, Bytecode & Compilation Engine Internals
+## Practical Example: Calling SQLite via FFI
 
-Execution of `ffi_foreign_function_interface_and_c_interop` in Deno Secure Engine & Edge Runtime is governed by high-performance virtual machine compilation and optimization pipelines:
+Rather than using the `npm:better-sqlite3` package, you can call SQLite's C API directly:
 
-```
-  +------------------+      +-------------------+      +--------------------+      +--------------------+
-  |   Source Code    | ---> | Lexer & AST Parser| ---> | Bytecode Generator | ---> | Optimizing JIT/AOT |
-  |  (Deno Secure Engine & Edge Runtime) |      |  (Syntax Grammar) |      | (Compact Opcodes)  |      | (Deno Rust Core & V8) |
-  +------------------+      +-------------------+      +--------------------+      +--------------------+
-                                                                                      |
-                                                                                      v
-                                                           +--------------------+      +--------------------+
-                                                           | Host Hardware OS   | <--- | OS Memory Allocator|
-                                                           | (CPU & Kernel I/O) |      | (Young / Old Heap) |
-                                                           +--------------------+      +--------------------+
-```
+```c
+// sqlite_wrapper.c — compiled to libsqlite_wrapper.so
+#include <sqlite3.h>
+#include <string.h>
+#include <stdlib.h>
 
-1. **Lexical Tokenization & AST Parsing**: Source code is verified for grammatical correctness and transformed into a typed Abstract Syntax Tree.
-2. **Bytecode Emission**: The compiler generates compact intermediate bytecode opcodes interpreted by the runtime engine.
-3. **JIT / AOT Machine Code Generation**: Hot execution paths are compiled directly into native x86_64 or ARM64 assembly instructions.
-4. **Generational Garbage Collection**: Nursery allocations are collected in sub-millisecond minor GC sweeps without halting application throughput.
+typedef struct {
+    sqlite3* db;
+} Database;
 
----
+Database* db_open(const char* path) {
+    Database* wrapper = malloc(sizeof(Database));
+    sqlite3_open(path, &wrapper->db);
+    return wrapper;
+}
 
-## 5. Technical Deep Dive & Advanced Architecture
+int db_exec(Database* wrapper, const char* sql) {
+    char* errMsg = NULL;
+    int rc = sqlite3_exec(wrapper->db, sql, NULL, NULL, &errMsg);
+    if (errMsg) sqlite3_free(errMsg);
+    return rc;
+}
 
-In enterprise architectures, `ffi_foreign_function_interface_and_c_interop` serves as a core subsystem of Deno Secure Engine & Edge Runtime:
-
-- **Unidirectional Data Flow & Immutability**: Enforces deterministic state lifecycles to eliminate race conditions.
-- **Asynchronous Non-Blocking Execution**: Yields execution back to the event loop, maximizing concurrent request capacity.
-- **Defensive Schema Validation**: Validates external untrusted network inputs at system boundaries.
-
----
-
-## 6. Hands-On Step-by-Step Production Lab
-
-### Step 1: Domain Data Contracts & Modeling (`domain_contracts.ts`)
-
-```typescript
-// Domain Contracts for Deno FFI: Foreign Function Interface & C/Rust Interop
-export interface IEnterpriseWorkload_06 {
-    id: string;
-    domain: string;
-    timestamp: Date;
-    payload: Record<string, unknown>;
+void db_close(Database* wrapper) {
+    sqlite3_close(wrapper->db);
+    free(wrapper);
 }
 ```
-
-### Step 2: Core Business Logic Service (`business_service.ts`)
-
-```typescript
-// Business Service Implementation for Deno FFI: Foreign Function Interface & C/Rust Interop
-export class Enterprise_FfiForeignFunctionInterfaceAndCInterop_Service {
-    private cache = new Map<string, any>();
-
-    async processWorkload(id: string, payload: Record<string, unknown>) {
-        console.log(`[SERVICE] Processing ffi_foreign_function_interface_and_c_interop for workload: ${id}...`);
-        return {
-            status: 'PROCESSED',
-            id,
-            module: 'ffi_foreign_function_interface_and_c_interop',
-            executedAt: new Date().toISOString()
-        };
-    }
-}
-```
-
-### Step 3: Automated Verification Test Suite (`test_suite.ts`)
-
-```typescript
-// Automated Test Suite for Deno FFI: Foreign Function Interface & C/Rust Interop
-async function runVerification() {
-    console.log('--- Verifying Deno FFI: Foreign Function Interface & C/Rust Interop ---');
-    const service = new Enterprise_FfiForeignFunctionInterfaceAndCInterop_Service();
-    const result = await service.processWorkload('TASK-001', { priority: 'HIGH' });
-    if (result.status !== 'PROCESSED') throw new Error('Assertion failed');
-    console.log('✅ Deno FFI: Foreign Function Interface & C/Rust Interop verification passed cleanly.');
-}
-runVerification();
-```
-
----
-
-## 7. Pure Escaped CLI Snippets (Production Operations)
 
 ```bash
-npx tsc --noEmit --strict --target ES2022 \
-    --module NodeNext docs/deno/06_ffi_foreign_function_interface_and_c_interop.md
+# Compile the wrapper
+gcc -shared -fPIC -o libsqlite_wrapper.so sqlite_wrapper.c -lsqlite3
+```
 
-git add -A && git commit -m 'docs(deno): complete ffi_foreign_function_interface_and_c_interop module' \
-    --no-verify
+```typescript
+// sqlite_ffi.ts
+const lib = Deno.dlopen("./libsqlite_wrapper.so", {
+  db_open: {
+    parameters: ["buffer"],
+    result: "pointer",
+  },
+  db_exec: {
+    parameters: ["pointer", "buffer"],
+    result: "i32",
+  },
+  db_close: {
+    parameters: ["pointer"],
+    result: "void",
+  },
+});
+
+function openDatabase(path: string): Deno.PointerValue {
+  const pathBytes = new TextEncoder().encode(path + "\0"); // null-terminate
+  return lib.symbols.db_open(pathBytes);
+}
+
+function execSQL(db: Deno.PointerValue, sql: string): number {
+  const sqlBytes = new TextEncoder().encode(sql + "\0");
+  return lib.symbols.db_exec(db, sqlBytes) as number;
+}
+
+function closeDatabase(db: Deno.PointerValue): void {
+  lib.symbols.db_close(db);
+}
+
+// Usage
+const db = openDatabase("./mydata.db");
+execSQL(db, "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, name TEXT)");
+execSQL(db, "INSERT INTO users (name) VALUES ('Alice')");
+closeDatabase(db);
 ```
 
 ---
 
-## 8. Detailed Sub-Components & Diagnostics
-
-### Deno Rust Core (deno_core)
-* **Role & Function**: Coordinates asynchronous Rust futures with V8 isolate execution contexts.
-* **Inspection & Verification Command**:
-  ```bash
-  deno run --help
-  ```
-
-### Deno Capability Sandbox
-* **Role & Function**: Enforces fine-grained OS syscall permission flags (--allow-net, --allow-read).
-* **Inspection & Verification Command**:
-  ```bash
-  deno check main.ts
-  ```
-
----
-
-## References
-
-### Official Documentation
-
-* [Deno Official Manual & CLI Reference](https://docs.deno.com/runtime/manual/) - Official specification.
-* [JSR Package Registry Specifications](https://jsr.io/docs) - Official specification.
-* [W3C Web Standards & WHATWG Streams](https://html.spec.whatwg.org/) - Official specification.
-* [V8 Engine Architecture & Sandboxing](https://v8.dev/docs) - Official specification.
-* [Cloud Native Computing Foundation (CNCF)](https://www.cncf.io/) - Official specification.
-
-### Authoritative Engineering Blogs
-
-* [Ryan Dahl: Design Principles of Deno](https://tinyclouds.org/) - Architecture and systems engineering.
-* [Deno Core Team: High-Speed Web Infrastructure](https://deno.com/blog) - Architecture and systems engineering.
-* [Baeldung on Computer Science: Modern JavaScript Runtimes](https://www.baeldung.com/) - Architecture and systems engineering.
-* [Netflix TechBlog: Cloud Native Systems](https://netflixtechblog.com/) - Architecture and systems engineering.
-* [Cloudflare Engineering: V8 Isolates at Scale](https://blog.cloudflare.com/) - Architecture and systems engineering.
-
----
-
-## 9. FinOps & Cloud Resource Cost Governance (500+ Words)
-
-### 1. The Financial Engineering Imperative in Modern Web & Cloud Systems
-
-
-
-Modern cloud computing infrastructure charges enterprises based on three primary vectors: **vCPU compute seconds**, **RAM gigabyte-hours**, and **Network egress bandwidth ($0.09 per GB)**. Without strict architectural discipline, unoptimized web applications trigger runaway autoscaling, leading to monthly cloud bills tens of thousands of dollars higher than budgeted.
-
-
-
-Architectural optimizations implemented within this module directly dictate the financial bottom line of the engineering organization.
-
-
-
-### 2. Compute Right-Sizing & VM Packing Density
-
-
-
-By default, unconfigured runtimes allocate default heap ceilings (e.g. 1.4GB on 64-bit V8). In a Kubernetes pod topology, this forces DevOps engineers to assign 2GB memory requests per container pod. On standard cloud nodes (such as AWS `c6g.2xlarge` with 8 vCPUs and 16GB RAM), an engineering team can pack at most 7 application replicas before exhausting node memory.
-
-
-
-By applying strict buffer pooling, eliminating memory leaks, and tuning `--max-old-space-size=512`, the memory footprint per replica drops to $< 350\text{MB}$. This enables packing **32 application replicas per node**—a **$4.5\times$ increase in compute density**, slashing monthly EC2 instance spend by over 70%.
-
-
-
-| Architecture Configuration | Heap Allocation Ceiling | Pods per AWS c6g.2xlarge (16GB) | Monthly Node Infrastructure Cost |
-
-| :--- | :--- | :--- | :--- |
-
-| **Unoptimized Default** | 1,400 MB | 7 Pods | $1,248 / month (8 Nodes required) |
-
-| **Memory-Tuned Standard** | 512 MB | 24 Pods | $468 / month (3 Nodes required) |
-
-| **High-Density Optimized** | 256 MB | 48 Pods | $156 / month (1 Node required) |
-
-
-
-### 3. Network Egress Cost Reduction via Binary Codecs & Caching
-
-
-
-Transmitting JSON over HTTP introduces massive text serialization overhead. When sending 100,000 requests per second across microservices within an AWS VPC or across availability zones (AZs), AWS charges **$0.01 per GB** for intra-region AZ data transfer and **$0.09 per GB** for internet egress.
-
-
-
-- A standard JSON telemetry payload averages **850 bytes**.
-
-- The equivalent binary Protocol Buffers (Protobuf) or binary TypedArray payload averages **160 bytes** ($81\%$ reduction).
-
-- Across 500 million monthly API transactions, binary serialization reduces data transfer from **425 TB down to 80 TB**, saving over **$31,000 annually** in cloud data transfer fees alone!
-
-
-
-### 4. Garbage Collection Pause Elimination & Latency SLA Protection
-
-
-
-Frequent allocations of short-lived objects in hot API loops trigger repeated Minor GC Scavenger cycles and Major Mark-Sweep-Compact pauses. When a GC pause halts the CPU thread for 40ms, inbound HTTP requests queue in kernel TCP socket buffers, causing p99 latency spikes and triggering false-positive autoscaling triggers.
-
-
-
-Utilizing object pools, reusable Byte Slabs (`Uint8Array`), and static Record types eliminates 95% of dynamic heap allocations, keeping server CPU utilization steady at $< 15\%$ under peak load and preventing premature cloud cluster autoscaling.
-
-
-
-### 5. Summary Cost Governance Checklist
-
-
-
-1. **Enforce Memory Ceilings**: Set strict `--max-old-space-size` and container memory limits.
-
-2. **Implement Binary Serialization**: Use Protobuf or binary TypedArrays for high-throughput inter-service links.
-
-3. **Eliminate Memory Leaks**: Use `WeakMap` and `WeakSet` for object metadata to allow immediate GC reclamation.
-
-4. **Leverage Edge Caching**: Cache static responses at CDN edge nodes to prevent origin server compute invocations.
-
----
-
-
-
-## 10. Troubleshooting, Diagnostic Workflows & Common Anti-Patterns
-
-
-
-When debugging complex distributed systems, engineers must recognize and avoid critical architectural anti-patterns:
-
-
-
-### Common Anti-Patterns & Failure Modes
-
-
-
-1. **Unbounded Memory Leaks via Closures & Global Event Listeners**:
-
-   - *Anti-Pattern*: Attaching event listeners (`socket.on('data')`) without removing them upon connection teardown.
-
-   - *Fix*: Always invoke `.removeListener()` or bind callbacks to an `AbortController` signal.
-
-
-
-2. **The Event Loop Starvation Hazard (Sync in Hot Paths)**:
-
-   - *Anti-Pattern*: Calling synchronous JSON parsing (`JSON.parse`) or regex on 10MB payloads inside main thread request handlers.
-
-   - *Fix*: Offload CPU-heavy parsing to Worker Threads or streaming chunk parsers (`JSONStream`).
-
-
-
-3. **Missing Error Handlers on Asynchronous Streams (Unhandled Exceptions)**:
-
-   - *Anti-Pattern*: Piping readable streams to writable streams without attaching `.on('error')` listeners.
-
-   - *Fix*: Always use `stream.pipeline()` or `finished()` which automatically tears down all streams upon failure.
-
-
-
-### Diagnostic Debugging Cheat-Sheet
-
-
+## Practical Example: Calling a Rust Library
+
+Rust is the most ergonomic choice for writing FFI-callable libraries because it compiles to C-compatible shared libraries with `#[no_mangle]` and `extern "C"`.
+
+```rust
+// src/lib.rs — Rust library compiled to cdylib
+use std::ffi::CStr;
+use std::os::raw::c_char;
+
+/// Compute the Levenshtein distance between two C strings.
+/// Returns -1 if either string is null.
+#[no_mangle]
+pub extern "C" fn levenshtein_distance(a: *const c_char, b: *const c_char) -> i32 {
+    if a.is_null() || b.is_null() {
+        return -1;
+    }
+    let a = unsafe { CStr::from_ptr(a) }.to_string_lossy();
+    let b = unsafe { CStr::from_ptr(b) }.to_string_lossy();
+    compute_distance(&a, &b) as i32
+}
+
+fn compute_distance(a: &str, b: &str) -> usize {
+    let a: Vec<char> = a.chars().collect();
+    let b: Vec<char> = b.chars().collect();
+    let m = a.len();
+    let n = b.len();
+    let mut dp = vec![vec![0usize; n + 1]; m + 1];
+    for i in 0..=m { dp[i][0] = i; }
+    for j in 0..=n { dp[0][j] = j; }
+    for i in 1..=m {
+        for j in 1..=n {
+            dp[i][j] = if a[i-1] == b[j-1] {
+                dp[i-1][j-1]
+            } else {
+                1 + dp[i-1][j].min(dp[i][j-1]).min(dp[i-1][j-1])
+            };
+        }
+    }
+    dp[m][n]
+}
+```
+
+```toml
+# Cargo.toml
+[package]
+name = "string_utils"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+```
 
 ```bash
-
-# 1. Profile CPU bottlenecks with 99Hz sampling rate
-
-node --prof --prof-process isolate-*.log > cpu_profile.txt
-
-
-
-# 2. Inspect active Libuv handles preventing process exit
-
-node --trace-uncaught --trace-warnings --inspect app.js
-
-
-
-# 3. Verify socket file descriptor leaks in Linux kernel
-
-lsof -p $(pgrep -f node) | wc -l
-
+cargo build --release
+# Produces: target/release/libstring_utils.dylib (macOS) or .so (Linux)
 ```
+
+```typescript
+// string_utils_ffi.ts
+const libSuffix = Deno.build.os === "darwin" ? "dylib" : "so";
+const lib = Deno.dlopen(
+  `./target/release/libstring_utils.${libSuffix}`,
+  {
+    levenshtein_distance: {
+      parameters: ["buffer", "buffer"],
+      result: "i32",
+    },
+  }
+);
+
+function levenshteinDistance(a: string, b: string): number {
+  const encoder = new TextEncoder();
+  const aBuf = encoder.encode(a + "\0");
+  const bBuf = encoder.encode(b + "\0");
+  return lib.symbols.levenshtein_distance(aBuf, bBuf) as number;
+}
+
+console.log(levenshteinDistance("kitten", "sitting"));  // 3
+console.log(levenshteinDistance("saturday", "sunday"));  // 3
+```
+
+---
+
+## Async FFI Callbacks
+
+For non-blocking native calls, Deno supports marking FFI functions as non-blocking. The call returns a Promise that resolves when the native function completes on a thread pool:
+
+```typescript
+const lib = Deno.dlopen("./libcompute.so", {
+  expensive_computation: {
+    parameters: ["u64"],
+    result: "u64",
+    // nonblocking: true means Deno will call this on a separate thread
+    // and return a Promise, not blocking the event loop
+    nonblocking: true,
+  },
+});
+
+// This doesn't block the JavaScript event loop
+const result = await lib.symbols.expensive_computation(1_000_000n);
+console.log("Result:", result);
+```
+
+---
+
+## Safety Considerations
+
+FFI bypasses all Deno sandbox protections. Native code:
+- Can read and write any memory in the process
+- Can make any system calls
+- Can crash the entire Deno process with a segfault
+- Can access any file, network, or device regardless of Deno permission flags
+
+Best practices:
+1. Only load libraries you compiled yourself or from trusted, audited sources
+2. Always null-check pointers before dereferencing
+3. Use Rust or C++ with bounds checking rather than raw C where possible
+4. Write thin wrappers that validate inputs before passing to native code
+5. Use `--allow-ffi=./libmylib.so` (path-restricted) rather than `--allow-ffi` (global)
+
+```bash
+# Restrict FFI to a specific library path only
+deno run --allow-ffi=./target/release/libstring_utils.dylib main.ts
+```
+
+---
+
+## Troubleshooting
+
+**`Error: permission denied: Deno.dlopen()`**
+
+Add `--allow-ffi` or `--allow-ffi=./path/to/lib.so` to your run command.
+
+**`Error: cannot open shared object file: No such file or directory`**
+
+The library file doesn't exist at the specified path. Use an absolute path or ensure the relative path is correct from the process working directory.
+
+**`TypeError: lib.symbols.my_func is not a function`**
+
+The function name in the `Deno.dlopen` definition doesn't match the exported symbol name in the compiled library. Run `nm -D libmylib.so | grep my_func` to list actual exported symbols.
+
+**Process segfaults when calling FFI function**
+
+You are passing incorrect data types or null pointers. Check that:
+- String arguments are null-terminated (`str + "\0"`)
+- Buffer lengths match actual buffer sizes
+- Pointer types are correctly defined
+- The library's calling convention is C (`extern "C"` in Rust/C++)
