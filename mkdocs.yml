@@ -14,8 +14,23 @@ use_directory_urls: false
 docs_dir: docs
 
 nav:
-  - NGINX:
-    - index.md
+  - Enterprise NGINX:
+    - Master Index: index.md
+    - 00. Event-Driven Architecture: nginx_enterprise/00_nginx_architecture_event_driven_worker_model.md
+    - 01. Core Configuration Blocks: nginx_enterprise/01_core_configuration_blocks_contexts_and_directives.md
+    - 02. Virtual Hosts & Routing: nginx_enterprise/02_http_server_virtual_hosts_and_location_matching.md
+    - 03. Reverse Proxy & Keepalive: nginx_enterprise/03_reverse_proxy_upstream_routing_and_keepalive.md
+    - 04. Load Balancing Algorithms: nginx_enterprise/04_load_balancing_algorithms_health_checks_and_session_persistence.md
+    - 05. Modern TLS & HTTP/3 QUIC: nginx_enterprise/05_tls_ssl_certificates_ocsp_stapling_and_http2_http3_quic.md
+    - 06. Caching & Microcaching: nginx_enterprise/06_caching_mechanisms_cache_keys_purging_and_microcaching.md
+    - 07. Rate Limiting & DDoS: nginx_enterprise/07_rate_limiting_concurrency_controls_and_ddos_mitigation.md
+    - 08. Security Hardening & Headers: nginx_enterprise/08_security_hardening_headers_cors_waf_and_naxsi.md
+    - 09. API Gateway Patterns: nginx_enterprise/09_api_gateway_patterns_jwt_validation_and_auth_request.md
+    - 10. Layer 4 TCP/UDP Streaming: nginx_enterprise/10_stream_module_tcp_udp_load_balancing.md
+    - 11. Observability & Prometheus: nginx_enterprise/11_logging_metrics_prometheus_exporter_and_observability.md
+    - 12. High Availability (Keepalived): nginx_enterprise/12_high_availability_keepalived_vrrp_and_active_passive.md
+    - 13. Enterprise Master Blueprint: nginx_enterprise/13_real_world_production_case_studies_and_enterprise_blueprints.md
+  - NGINX Classic Guides:
     - Go to Production: production.md
     - Foundational Concepts: foundational.md
     - Performance: performance.md
