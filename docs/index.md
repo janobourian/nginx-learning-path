@@ -1,7 +1,7 @@
-# Enterprise Software Architecture & Web Engineering — Master Curriculum Index
+# Enterprise Software Architecture & Web Engineering — Master Textbook Index
 **Repository:** `vit/nginx-learning-path`
 **Domain:** High-Performance Web Servers, Cloud Gateways, Full-Stack JavaScript/TypeScript & Cross-Platform Mobile/Web (Dart/Flutter)
-**Status:** ✅ Complete Production-Grade Reference
+**Status:** ✅ Complete Production-Grade Reference Manual
 
 ---
 
@@ -14,37 +14,51 @@
 
 ---
 
-## 🌐 Full-Stack Web Development & Cross-Platform Technology Curriculum
+## 🌐 Full-Stack Web Development & Cross-Platform Technology Textbook Series
 
-### 1. Node.js & Deno Runtime Engines
-| Section | Core Internals & Architecture | Target Competencies | Document Link |
+### 1. Node.js Enterprise Curriculum (Zero to Master)
+| Module | Core Internals & Architecture | Target Competencies | Document Link |
 | :--- | :--- | :--- | :--- |
-| **Node.js Runtime & Libuv** | V8 engine, Libuv event loop phases, microtask queues, threadpool | Backend, SRE | [`nodejs/00_nodejs_runtime_architecture_libuv_and_event_loop.md`](nodejs/00_nodejs_runtime_architecture_libuv_and_event_loop.md) |
-| **Streams & Multi-Core Scaling** | Backpressure pipelines, binary buffers, cluster forking, worker threads | High-Throughput I/O | [`nodejs/01_nodejs_streams_buffers_clustering_and_worker_threads.md`](nodejs/01_nodejs_streams_buffers_clustering_and_worker_threads.md) |
-| **Deno Secure Runtime** | Rust core (rusty_v8 + Tokio), zero-permission sandbox, native TS, Deno KV | Secure Edge | [`deno/00_deno_runtime_architecture_rust_v8_and_security_model.md`](deno/00_deno_runtime_architecture_rust_v8_and_security_model.md) |
+| **00. Installation & Toolchain** | FNM/NVM version management, pnpm/npm package managers, V8 process object | Tooling, SRE | [`nodejs/00_installation_toolchains_and_node_runtime_environment.md`](nodejs/00_installation_toolchains_and_node_runtime_environment.md) |
+| **01. Language Syntax & Statements** | Complete reserved words dictionary, operators (`??`, `?.`), control flow, generators | Core Grammar | [`nodejs/01_javascript_syntax_keywords_statements_and_operators.md`](nodejs/01_javascript_syntax_keywords_statements_and_operators.md) |
+| **02. Filesystem & Binary Buffers** | Raw Buffer memory pooling (8KB slab allocator), POSIX file handles, atomic writes | Core I/O | [`nodejs/02_filesystem_buffers_and_binary_data.md`](nodejs/02_filesystem_buffers_and_binary_data.md) |
+| **03. Streams & Backpressure** | Readable/Writable/Transform streams, `highWaterMark`, `stream.pipeline` | High-Throughput I/O | [`nodejs/03_streams_pipes_and_backpressure.md`](nodejs/03_streams_pipes_and_backpressure.md) |
+| **04. Networking (HTTP/TCP/WS)** | Raw Layer 4 TCP streams (`node:net`), keepalive socket pooling, WebSockets | Network Arch | [`nodejs/04_networking_http_https_and_websockets.md`](nodejs/04_networking_http_https_and_websockets.md) |
+| **05. Asynchronous Events & Promises** | `EventEmitter` execution order, `Promise.allSettled`, `AbortController` cancellation | Async Architecture | [`nodejs/05_asynchronous_patterns_promises_and_event_emitters.md`](nodejs/05_asynchronous_patterns_promises_and_event_emitters.md) |
+| **06. Multi-Threading & Workers** | Master-Worker process clustering (`cluster.fork`), `SharedArrayBuffer`, `Atomics` | Multi-Core Scaling | [`nodejs/06_multi_threading_clustering_and_worker_threads.md`](nodejs/06_multi_threading_clustering_and_worker_threads.md) |
+| **07. Fastify & Express REST APIs** | Radix-tree routing ($O(k)$), compiled JSON serialization, Ajv schema validation | API Architecture | [`nodejs/07_enterprise_api_development_fastify_and_express.md`](nodejs/07_enterprise_api_development_fastify_and_express.md) |
+| **08. Database Integration** | PostgreSQL driver (`pg.Pool`), Drizzle ORM query builder, Prisma migrations | DB Engineering | [`nodejs/08_database_integration_prisma_drizzle_and_pg.md`](nodejs/08_database_integration_prisma_drizzle_and_pg.md) |
+| **09. Security & Cryptography** | AES-256-GCM authenticated encryption, scrypt/argon2, constant-time comparison | AppSec, SOC 2 | [`nodejs/09_security_authentication_jwt_and_cryptography.md`](nodejs/09_security_authentication_jwt_and_cryptography.md) |
+| **10. Testing & Profiling** | Native test runner (`node:test`), V8 heap snapshot memory leaks, Clinic.js flames | Performance, QA | [`nodejs/10_testing_debugging_and_memory_profiling.md`](nodejs/10_testing_debugging_and_memory_profiling.md) |
+| **11. Production Cloud Deployment** | Multi-stage distroless Docker builds, PM2 cluster, Kubernetes `SIGTERM` shutdown | Cloud-Native SRE | [`nodejs/11_production_deployment_docker_pm2_and_kubernetes.md`](nodejs/11_production_deployment_docker_pm2_and_kubernetes.md) |
 
-### 2. JavaScript & TypeScript Full-Stack Engineering
-| Section | Core Internals & Architecture | Target Competencies | Document Link |
+### 2. Deno Secure Engine Curriculum
+| Module | Core Internals & Architecture | Target Competencies | Document Link |
 | :--- | :--- | :--- | :--- |
-| **Frontend JavaScript & Web APIs** | Critical rendering path, DOM/CSSOM, event loop, Service Workers, PWA | Frontend, Web Perf | [`javascript_frontend/00_browser_javascript_dom_event_loop_and_web_apis.md`](javascript_frontend/00_browser_javascript_dom_event_loop_and_web_apis.md) |
-| **Backend JavaScript & APIs** | Clean layered architecture, Fastify vs Express, database ORMs, REST/GraphQL | API Arch, Microservices | [`javascript_backend/00_backend_javascript_microservices_rest_and_architecture.md`](javascript_backend/00_backend_javascript_microservices_rest_and_architecture.md) |
-| **TypeScript Advanced Type System** | Structural typing, Generics, Conditional Types, `infer`, Template Literals, AST | Type Safety, Architecture | [`typescript/00_typescript_type_system_generics_and_compiler_ast.md`](typescript/00_typescript_type_system_generics_and_compiler_ast.md) |
+| **00. Toolchain & deno.json** | Unified task runner, JSR/npm dual imports, V8 engine integration | Tooling, DevOps | [`deno/00_installation_toolchain_and_deno_cli.md`](deno/00_installation_toolchain_and_deno_cli.md) |
+| **01. Security & Sandboxing** | Zero-permission sandbox, granular capability flags (`--allow-net`, `--deny-net`) | Secure Edge | [`deno/01_security_model_and_permissions_system.md`](deno/01_security_model_and_permissions_system.md) |
+| **02. Native TS & Web Standards** | SWC compilation, universal `fetch`/`Request`/`Response`, W3C Web Crypto | TypeScript, Edge | [`deno/02_native_typescript_and_web_standards.md`](deno/02_native_typescript_and_web_standards.md) |
+| **03. Deno KV ACID Database** | Embedded/distributed SQLite & FoundationDB, atomic multi-key transactions | Storage, Distributed | [`deno/04_deno_kv_acid_key_value_database.md`](deno/04_deno_kv_acid_key_value_database.md) |
+| **04. Standalone Binaries & Deploy** | `deno compile` single executable generation, Deno Deploy multi-tenant V8 Isolates | Cloud SRE | [`deno/08_standalone_compilation_and_deno_deploy.md`](deno/08_standalone_compilation_and_deno_deploy.md) |
 
-### 3. Modern Frontend Frameworks
-| Section | Core Internals & Architecture | Target Competencies | Document Link |
+### 3. Frontend & Modern Web Frameworks Curriculum
+| Module | Core Internals & Architecture | Target Competencies | Document Link |
 | :--- | :--- | :--- | :--- |
-| **React Fiber & Hooks** | Double-buffering reconciliation, Virtual DOM diffing, Concurrent Mode, Transitions | UI Engineering | [`react/00_react_fiber_architecture_virtual_dom_and_hooks.md`](react/00_react_fiber_architecture_virtual_dom_and_hooks.md) |
-| **Next.js App Router & RSC** | React Server Components, Server Actions, 4-tier caching, Turbopack, Edge runtime | Full-Stack, SSR | [`nextjs/00_nextjs_app_router_server_components_and_edge_runtime.md`](nextjs/00_nextjs_app_router_server_components_and_edge_runtime.md) |
-| **Vue 3 Reactivity & Pinia** | Proxy dependency tracking (`track`/`trigger`), Composition API, Block Tree optimization | UI Frameworks | [`vue/00_vue_reactivity_proxy_system_composition_api_and_pinia.md`](vue/00_vue_reactivity_proxy_system_composition_api_and_pinia.md) |
-| **Angular Signals & Ivy** | Fine-grained push-pull Signals, Ivy compiler, Standalone Components, RxJS | Enterprise Web | [`angular/00_angular_signals_ivy_compiler_and_standalone_architecture.md`](angular/00_angular_signals_ivy_compiler_and_standalone_architecture.md) |
+| **JS Frontend DOM & Reflows** | Critical rendering path, layout thrashing avoidance, `DocumentFragment` batching | Frontend, Web Perf | [`javascript_frontend/01_the_dom_cssom_and_critical_rendering_path.md`](javascript_frontend/01_the_dom_cssom_and_critical_rendering_path.md) |
+| **JS Browser Event System** | 3-phase propagation (capture, target, bubble), Event Delegation, Custom Events | Frontend Engineering | [`javascript_frontend/02_browser_event_system_and_event_delegation.md`](javascript_frontend/02_browser_event_system_and_event_delegation.md) |
+| **Service Workers & PWAs** | Stale-While-Revalidate caching, CacheStorage API, offline web applications | PWA, Performance | [`javascript_frontend/06_service_workers_pwa_and_offline_strategies.md`](javascript_frontend/06_service_workers_pwa_and_offline_strategies.md) |
+| **TypeScript Generics & infer** | Conditional types (`T extends U ? X : Y`), `infer` pattern matching, DeepReadonly | Type-Level Arch | [`typescript/01_generics_conditional_types_and_infer.md`](typescript/01_generics_conditional_types_and_infer.md) |
+| **React Hooks & Fiber Lifecycle** | Singly-linked list hook states, `useTransition` concurrent updates, Custom Hooks | UI Architecture | [`react/01_react_hooks_lifecycle_and_custom_hooks.md`](react/01_react_hooks_lifecycle_and_custom_hooks.md) |
+| **Next.js Server Actions & UI** | `'use server'` RPC mutations, `useOptimistic` instant updates, cache revalidation | Full-Stack SSR | [`nextjs/01_server_actions_mutations_and_optimistic_ui.md`](nextjs/01_server_actions_mutations_and_optimistic_ui.md) |
+| **Vue 3 Reactivity & Proxies** | `Proxy` handlers, `ref` vs `reactive`, `track`/`trigger` DAG, custom debounced refs | UI Frameworks | [`vue/01_vue_3_reactivity_ref_reactive_and_proxies.md`](vue/01_vue_3_reactivity_ref_reactive_and_proxies.md) |
+| **Angular Signals & Zoneless** | Fine-grained Push-Pull Reactive DAG, glitch-free execution, Zoneless change detection | Enterprise Web | [`angular/01_angular_signals_and_fine_grained_reactivity.md`](angular/01_angular_signals_and_fine_grained_reactivity.md) |
 
-### 4. Dart & Flutter Cross-Platform Ecosystem
-| Section | Core Internals & Architecture | Target Competencies | Document Link |
+### 4. Dart & Flutter Cross-Platform Curriculum
+| Module | Core Internals & Architecture | Target Competencies | Document Link |
 | :--- | :--- | :--- | :--- |
-| **Dart Language & VM Isolates** | Sound Null Safety, JIT vs AOT compilation, Isolate memory heaps, async streams | Language Internals | [`dart/00_dart_language_architecture_vm_isolates_and_aot.md`](dart/00_dart_language_architecture_vm_isolates_and_aot.md) |
-| **Flutter for Web & WasmGC** | CanvasKit Skia WebGL, WebAssembly GC (WasmGC) compilation, responsive layouts | Web Apps, Wasm | [`flutter_web/00_flutter_web_architecture_canvaskit_and_wasm_gc.md`](flutter_web/00_flutter_web_architecture_canvaskit_and_wasm_gc.md) |
-| **Flutter for Mobile & Impeller** | Three-Tree hierarchy, Impeller Metal/Vulkan shaders, Platform Channels, Riverpod | Mobile iOS/Android | [`flutter_mobile/00_flutter_mobile_architecture_impeller_and_platform_channels.md`](flutter_mobile/00_flutter_mobile_architecture_impeller_and_platform_channels.md) |
-| **Dart for Real-World Apps** | Full-stack Dart with Serverpod (Postgres ORM, WebSockets), Dart Frog microservices | Full-Stack Cloud | [`dart_real_world/00_full_stack_dart_serverpod_microservices_and_production.md`](dart_real_world/00_full_stack_dart_serverpod_microservices_and_production.md) |
+| **Dart Null Safety & Isolates** | Sound Null Safety, Sealed classes, Pattern Matching, Isolate multi-threading | Language Internals | [`dart/01_sound_null_safety_oop_and_concurrency.md`](dart/01_sound_null_safety_oop_and_concurrency.md) |
+| **Flutter Riverpod & State** | Compile-time safe dependency injection, `AsyncNotifier`, autoDispose memory recycling | Mobile iOS/Android | [`flutter_mobile/01_state_management_riverpod_and_bloc.md`](flutter_mobile/01_state_management_riverpod_and_bloc.md) |
+| **Serverpod Full-Stack Dart** | PostgreSQL ORM, WebSocket streaming, automated client SDK code generation | Full-Stack Cloud | [`dart_real_world/01_serverpod_postgres_orm_and_websockets.md`](dart_real_world/01_serverpod_postgres_orm_and_websockets.md) |
 
 ---
 
@@ -70,9 +84,10 @@
 ---
 
 ## 🛠️ Documentation Standards Applied Across All Guides
-1. **👔 Executive Summary**: Non-technical explanation of business purpose, mechanics, and value for managers and teammates.
-2. **Technical Deep Dives**: Comprehensive architecture explanations, runtime internals, and execution mechanics.
-3. **Hands-On Step-by-Step Walkthroughs**: Reproducible labs for developing, compiling, and testing production applications.
-4. **Clean, Escaped CLI Snippets**: Formatted with trailing ` \` line escapes, 4-space indentation, and zero in-code comments.
-5. **Trustworthy Curated Sources**: Exactly 5 official documentation links + 5 authoritative engineering blogs per module.
-6. **FinOps & Resource Governance**: 500+ word guidelines on compute right-sizing, memory optimization, and cloud cost reduction.
+1. **👔 Executive Summary**: Non-technical explanation of business purpose, mechanics, and value for stakeholders.
+2. **Complete Syntax, Keywords & Reserved Words Dictionary**: Complete technical reference of statements, keywords, and operators.
+3. **Technical Deep Dives**: Comprehensive architecture explanations, runtime internals, memory layouts, and execution mechanics.
+4. **Hands-On Step-by-Step Walkthroughs**: Reproducible labs for developing, compiling, and testing production applications offline.
+5. **Clean, Escaped CLI Snippets**: Formatted with trailing ` \` line escapes, 4-space indentation, and zero in-code comments.
+6. **Trustworthy Curated Sources**: Exactly 5 official documentation links + 5 authoritative engineering blogs per module.
+7. **FinOps & Resource Governance**: 500+ word guidelines on compute right-sizing, memory optimization, and cloud cost reduction.
