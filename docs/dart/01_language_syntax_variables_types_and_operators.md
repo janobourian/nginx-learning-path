@@ -1,6 +1,6 @@
 # Module 01: Language Syntax, Variables, Types & Operators
 
-**Track:** Dart — Language & VM Architecture  
+**Track:** Dart — Language & VM Architecture
 **Category:** Language Fundamentals, Type Hierarchy & Modern Dart 3 Syntax
 
 ---
@@ -9,7 +9,7 @@
 
 Dart is a strongly, statically typed language with powerful local type inference.
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 Variable Declaration Matrix                 │
 ├──────────┬──────────────────────┬───────────────────────────┤
@@ -27,7 +27,7 @@ Dart is a strongly, statically typed language with powerful local type inference
 └──────────┴──────────────────────┴───────────────────────────┘
 ```
 
-### `final` vs `const` Deep Dive:
+### `final` vs `const` Deep Dive
 
 ```dart
 void main() {
@@ -46,7 +46,7 @@ void main() {
 }
 ```
 
-### `late` Initialization & Lazy Evaluation:
+### `late` Initialization & Lazy Evaluation
 
 ```dart
 class DatabaseService {
@@ -66,7 +66,7 @@ class DatabaseService {
 
 In Dart, **everything is an object** (including numbers, booleans, and functions), inheriting from `Object?`.
 
-```
+```json
                   [Object?]  ◄── Top Type (Can be null)
                      │
                   [Object]   ◄── Top Non-Nullable Type
@@ -78,7 +78,7 @@ In Dart, **everything is an object** (including numbers, booleans, and functions
         [Never]              ◄── Bottom Type (Function that throws / terminates)
 ```
 
-### Core Data Types:
+### Core Data Types
 
 | Type | Size / Representation | Example |
 | :--- | :--- | :--- |
@@ -198,6 +198,7 @@ void main() {
 ## Troubleshooting & Best Practices
 
 1. **Avoid `dynamic` — Prefer `Object?`**
+
    - `dynamic`: Completely turns off static type checking. Errors will crash at runtime.
    - `Object?`: Tells the compiler "this can be any value, but you must narrow or cast it safely before calling methods on it".
 

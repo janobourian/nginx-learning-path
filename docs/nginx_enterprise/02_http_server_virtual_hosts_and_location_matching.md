@@ -1,7 +1,7 @@
 # Module 02: HTTP Server, Virtual Hosts & Location Block Matching
 
-**Track:** Enterprise NGINX  
-**Category:** HTTP Server Configuration & URL Routing  
+**Track:** Enterprise NGINX
+**Category:** HTTP Server Configuration & URL Routing
 **Status:** ✅ Production-Grade Reference Textbook (Zero to Master)
 
 ---
@@ -12,7 +12,7 @@ A **virtual host** (or virtual server) allows a single NGINX process to serve **
 
 This is called **Name-Based Virtual Hosting** — the same IP address serves completely different websites based solely on the hostname.
 
-```
+```text
 Browser request: GET / HTTP/1.1
                  Host: api.example.com
                  Connection: keep-alive
@@ -25,6 +25,7 @@ Browser request: GET / HTTP/1.1
              ▼                         ▼
 server_name api.example.com    server_name app.example.com
 (matches! → route to API)      (no match)
+
 ```
 
 ---
@@ -32,6 +33,7 @@ server_name api.example.com    server_name app.example.com
 ## 2. Complete Server Block Anatomy
 
 ```nginx
+
 # /etc/nginx/sites-enabled/example.com.conf
 
 server {
@@ -89,6 +91,7 @@ server {
         try_files $uri $uri/ =404;
     }
 }
+
 ```
 
 ---
@@ -96,7 +99,9 @@ server {
 ## 3. Beginner Lab: Serving a Static Website
 
 ### Step 1: Create website directory
+
 ```bash
+
 # Create document root
 sudo mkdir -p /var/www/mysite.com/html
 
@@ -105,9 +110,11 @@ sudo chown -R www-data:www-data /var/www/mysite.com
 
 # Set read permissions
 sudo chmod -R 755 /var/www/mysite.com
+
 ```
 
 ### Step 2: Create a simple HTML page
+
 ```bash
 cat > /var/www/mysite.com/html/index.html << 'EOF'
 <!DOCTYPE html>
@@ -119,9 +126,11 @@ cat > /var/www/mysite.com/html/index.html << 'EOF'
 </body>
 </html>
 EOF
+
 ```
 
 ### Step 3: Create the server block configuration
+
 ```bash
 cat > /etc/nginx/sites-available/mysite.com << 'EOF'
 server {
@@ -137,10 +146,13 @@ server {
     }
 }
 EOF
+
 ```
 
 ### Step 4: Enable the site and reload
+
 ```bash
+
 # Create symlink in sites-enabled
 sudo ln -s /etc/nginx/sites-available/mysite.com /etc/nginx/sites-enabled/
 
@@ -152,6 +164,7 @@ sudo nginx -s reload
 
 # Test with curl
 curl -I http://mysite.com
+
 ```
 
 ---
@@ -161,8 +174,11 @@ curl -I http://mysite.com
 A production HTTPS virtual host always has two server blocks:
 
 ```nginx
+
 # ─────────────────────────────────────────
+
 # HTTP → HTTPS redirect server
+
 # ─────────────────────────────────────────
 server {
     listen 80;
@@ -174,7 +190,9 @@ server {
 }
 
 # ─────────────────────────────────────────
+
 # HTTPS server (main)
+
 # ─────────────────────────────────────────
 server {
     listen 443 ssl;
@@ -224,6 +242,7 @@ server {
         try_files $uri $uri/ =404;
     }
 }
+
 ```
 
 ---
@@ -231,6 +250,7 @@ server {
 ## 5. Multiple Virtual Hosts on One Server
 
 ```nginx
+
 # /etc/nginx/conf.d/api.conf
 server {
     listen 443 ssl http2;
@@ -257,6 +277,7 @@ server {
 }
 
 # /etc/nginx/conf.d/default.conf
+
 # Catch-all for unmatched domain names
 server {
     listen 80 default_server;
@@ -268,6 +289,7 @@ server {
     # Return empty response — don't reveal server infrastructure
     return 444;
 }
+
 ```
 
 ---
@@ -275,6 +297,7 @@ server {
 ## 6. Advanced Location Matching Patterns
 
 ### Named Locations for Internal Redirects
+
 ```nginx
 server {
     location / {
@@ -289,9 +312,11 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
     }
 }
+
 ```
 
 ### Nested Locations
+
 ```nginx
 server {
     location /api/ {
@@ -305,9 +330,11 @@ server {
         }
     }
 }
+
 ```
 
 ### File Extension Routing
+
 ```nginx
 server {
     root /var/www/html;
@@ -335,6 +362,7 @@ server {
         log_not_found off;
     }
 }
+
 ```
 
 ---
@@ -368,6 +396,7 @@ server {
         add_header Vary "Accept-Encoding";
     }
 }
+
 ```
 
 ---
@@ -375,8 +404,11 @@ server {
 ## 8. Complete CLI Reference for Virtual Host Management
 
 ```bash
+
 # ─────────────────────────────────────────────
+
 # SITE MANAGEMENT (Debian/Ubuntu)
+
 # ─────────────────────────────────────────────
 
 # Create new site configuration
@@ -397,7 +429,9 @@ sudo nginx -t
 sudo nginx -s reload
 
 # ─────────────────────────────────────────────
+
 # SSL CERTIFICATE WITH LET'S ENCRYPT
+
 # ─────────────────────────────────────────────
 
 # Install Certbot
@@ -413,7 +447,9 @@ sudo certbot renew --dry-run
 sudo certbot certificates
 
 # ─────────────────────────────────────────────
+
 # TESTING VIRTUAL HOSTS
+
 # ─────────────────────────────────────────────
 
 # Test HTTP response headers
@@ -431,6 +467,7 @@ openssl s_client \
     -servername example.com \
     </dev/null 2>/dev/null \
     | openssl x509 -noout -subject -dates
+
 ```
 
 ---
@@ -438,12 +475,15 @@ openssl s_client \
 ## 9. FinOps & Cloud Resource Cost Governance
 
 ### Multi-Domain TLS with SNI Eliminates Certificate Costs
+
 Server Name Indication (SNI) allows a single NGINX server to serve **different TLS certificates** for different domains on the same IP address. Before SNI (pre-2003), each domain required a dedicated IP — at $4-$8/month per Elastic IP on AWS. A 20-domain setup saves $80-$160/month.
 
 ### Wildcard Certificates + NGINX = Zero Per-Domain Overhead
+
 Using a single `*.example.com` Let's Encrypt wildcard certificate serves any subdomain without individual certificate management, reducing certificate renewal automation from 20 cron jobs to 1.
 
 ### Aggressive Cache Headers for Static Assets Slash CDN Egress
+
 Setting `expires 1y; add_header Cache-Control "public, immutable"` for Vite/webpack hashed assets means browsers cache them for one year. This eliminates 90%+ of CDN origin fetch requests, reducing Cloudfront origin data transfer from 1 TB/month to 100 GB/month (saving ~$90/month).
 
 ---
@@ -451,22 +491,29 @@ Setting `expires 1y; add_header Cache-Control "public, immutable"` for Vite/webp
 ## 10. Troubleshooting Virtual Host Issues
 
 ### Issue: Wrong Virtual Host Serves the Request
+
 **Symptom**: Requests to `api.example.com` serve content from `www.example.com`.
 **Diagnosis**:
+
 ```bash
 curl -v -H "Host: api.example.com" http://SERVER_IP/ 2>&1 | grep "Server:"
+
 ```
+
 **Root Cause**: NGINX serves the **first server block** when no `server_name` matches.
 **Fix**: Add a `default_server` catch-all block (see section 5 above).
 
 ### Issue: HTTPS Serving HTTP Content
+
 **Symptom**: Browser shows "Mixed Content" warnings.
 **Cause**: Embedded resources (images, scripts) use `http://` URLs.
 **Fix**: Add `add_header Content-Security-Policy "upgrade-insecure-requests";`
 
 ### Issue: ERR_TOO_MANY_REDIRECTS
+
 **Cause**: HTTPS redirect loop — NGINX behind a load balancer receives HTTP but redirects to HTTPS forever.
 **Fix**: Trust the `X-Forwarded-Proto` header:
+
 ```nginx
 server {
     listen 80;
@@ -474,6 +521,7 @@ server {
         return 301 https://$host$request_uri;
     }
 }
+
 ```
 
 ---
@@ -481,6 +529,7 @@ server {
 ## References
 
 ### Official Documentation
+
 * [NGINX HTTP Server Module](https://nginx.org/en/docs/http/ngx_http_core_module.html) — server, location directive reference.
 * [NGINX Server Block Selection](https://nginx.org/en/docs/http/server_names.html) — Official `server_name` matching documentation.
 * [Let's Encrypt Certbot NGINX](https://certbot.eff.org/instructions?ws=nginx) — Official TLS certificate automation guide.
@@ -488,6 +537,7 @@ server {
 * [Mozilla SSL Configuration Generator](https://ssl-config.mozilla.org/#server=nginx) — Recommended cipher suite configurations.
 
 ### Authoritative Engineering Blogs
+
 * [DigitalOcean: How to Set Up NGINX Server Blocks](https://www.digitalocean.com/community/tutorials/how-to-set-up-nginx-server-blocks-virtual-hosts-on-ubuntu-20-04) — Comprehensive virtual host tutorial.
 * [High Performance Browser Networking: TLS](https://hpbn.co/transport-layer-security-tls/) — TLS performance optimization for NGINX.
 * [Cloudflare: TLS 1.3 Performance](https://blog.cloudflare.com/rfc-8446-aka-tls-1-3/) — 0-RTT and TLS 1.3 improvements.

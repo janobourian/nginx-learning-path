@@ -1,17 +1,17 @@
 # Module 00: ECMAScript Evolution, Modern Syntax & TC39 Standards
 
-**Track:** Modern JavaScript — Frontend Architecture & Web APIs  
+**Track:** Modern JavaScript — Frontend Architecture & Web APIs
 **Category:** Language Standards, TC39 Process & Modern Syntax
 
 ---
 
 ## 1. The TC39 Process & ECMAScript Evolution
 
-JavaScript is standardized by **TC39 (Technical Committee 39)** under the **ECMA-262 specification**. 
+JavaScript is standardized by **TC39 (Technical Committee 39)** under the **ECMA-262 specification**.
 
 Before 2015, JavaScript updates took over a decade (ES3 in 1999 to ES5 in 2009). Starting with **ES6 (ES2015)**, TC39 shifted to an annual release cadence using a strict **5-Stage Proposal Process**:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                    The TC39 5-Stage Process                 │
 ├───────────────────┬─────────────────────────────────────────┤

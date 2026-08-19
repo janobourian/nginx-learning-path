@@ -1,6 +1,6 @@
 # Module 14: Dynamic SEO Metadata & OpenGraph Image Generation
 
-**Track:** Next.js — Full-Stack App Router & Edge Architecture  
+**Track:** Next.js — Full-Stack App Router & Edge Architecture
 **Category:** Search Engine Optimization (SEO), Metadata & Social Share Cards
 
 ---

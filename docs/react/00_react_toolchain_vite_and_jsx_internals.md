@@ -1,6 +1,6 @@
 # Module 00: React Toolchain, Vite & JSX/TSX Internals
 
-**Track:** React — Modern UI & Fiber Architecture  
+**Track:** React — Modern UI & Fiber Architecture
 **Category:** Build Toolchain, Transpilation & Virtual DOM Representation
 
 ---
@@ -22,6 +22,7 @@ When state changes, React recalculates the virtual representation of the UI and 
 In modern frontend development, deprecated tools like `create-react-app` (CRA) and Webpack have been superseded by **Vite** for local development speed and optimized Rollup production builds.
 
 ```bash
+
 # Scaffold a new React + TypeScript application with Vite
 npm create vite@latest my-react-app -- --template react-ts
 
@@ -32,7 +33,7 @@ npm run dev
 
 ### Standard React Project Structure
 
-```
+```text
 my-react-app/
 ├── src/
 │   ├── assets/           ← Static images, fonts, global SVGs
@@ -72,7 +73,7 @@ ReactDOM.createRoot(rootElement).render(
 
 ## 3. What Is JSX/TSX? (Compilation & The New JSX Transform)
 
-**JSX (JavaScript XML)** is a syntax extension for JavaScript that allows writing HTML-like markup directly inside JavaScript/TypeScript files. 
+**JSX (JavaScript XML)** is a syntax extension for JavaScript that allows writing HTML-like markup directly inside JavaScript/TypeScript files.
 
 Browsers **cannot execute JSX directly**. It must be transpiled into standard JavaScript function calls before running in the browser.
 
@@ -132,7 +133,7 @@ const reactElement = {
 
 ### Why the `$$typeof: Symbol.for('react.element')` Exists
 
-If a backend server accidentally returns malicious user-provided JSON containing HTML injection payloads, a naive virtual DOM might render it as HTML. 
+If a backend server accidentally returns malicious user-provided JSON containing HTML injection payloads, a naive virtual DOM might render it as HTML.
 
 Because JSON cannot contain JavaScript `Symbol` primitives, any fraudulent object injected via JSON will lack `Symbol.for('react.element')`. React inspects `$$typeof` and immediately rejects fake elements, completely immunizing React apps from JSON-based XSS attacks.
 
@@ -216,10 +217,13 @@ export default defineConfig({
 ## Troubleshooting & Best Practices
 
 1. **`Uncaught ReferenceError: React is not defined`**
+
    - In `tsconfig.json`, ensure `"jsx": "react-jsx"` is set instead of `"jsx": "react"`.
 
 2. **Accidental Object Rendering (`Objects are not valid as a React child`)**
+
    - Attempting to render an object directly inside JSX (`<div>{user}</div>` instead of `<div>{user.name}</div>`) triggers this runtime error. React only accepts strings, numbers, elements, or arrays of elements as JSX children.
 
 3. **`React.StrictMode` Double-Rendering in Development**
+
    - In development, `React.StrictMode` deliberately executes component functions, initializers, and `useEffect` hooks **twice** to help developers detect uncleaned side effects, memory leaks, and non-pure render logic. In production builds, effects run only once.

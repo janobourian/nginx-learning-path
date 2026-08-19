@@ -1,6 +1,6 @@
 # Module 14: Distributed Caching with Redis & Asynchronous Job Queues with BullMQ
 
-**Track:** Node.js — Enterprise Architecture & Libuv Internals  
+**Track:** Node.js — Enterprise Architecture & Libuv Internals
 **Category:** Distributed Systems, In-Memory Caching & Background Task Queues
 
 ---
@@ -33,9 +33,10 @@ redis.on('error', (err) => console.error('[Redis Error]:', err));
 The **Cache-Aside Pattern** checks Redis for cached data before querying the primary database.
 
 ### The Problem: Cache Stampede (Thundering Herd)
+
 When a high-traffic cache key expires, 10,000 concurrent requests simultaneously miss the cache and hit the database at the exact same millisecond, crashing the database.
 
-### Solution: Distributed Mutex Lock (Redlock pattern):
+### Solution: Distributed Mutex Lock (Redlock pattern)
 
 ```javascript
 // src/cache/cache_aside.js
@@ -80,12 +81,13 @@ For asynchronous, long-running tasks (e.g. sending batch emails, generating PDF 
 
 **BullMQ** is a Redis-backed job queue supporting retries, exponential backoffs, rate-limiting, and parent-child workflows:
 
-```
+```text
 BullMQ Queue Pipeline:
 [HTTP POST /checkout] ──► [BullMQ Producer: queue.add('processInvoice')] ──► Returns 202 Accepted (<5ms!)
                                       │
                                       ▼ (Redis Stream Queue)
                            [BullMQ Worker: Background Thread]
+
                            - Auto-Retries (3x Exponential Backoff)
                            - Dead-Letter Queue on Permanent Failure
 ```

@@ -42,7 +42,7 @@ DMS validation compares rows using primary key lookups and verifies that column 
 ```
 
 | Setting | Description |
-|---------|-------------|
+| --------- | ------------- |
 | `ThreadCount` | Number of parallel validation threads (default 5) |
 | `FailureMaxCount` | Stop validation after this many failures across all tables |
 | `TableFailureMaxCount` | Stop validating a table after this many failures |
@@ -52,7 +52,7 @@ DMS validation compares rows using primary key lookups and verifies that column 
 ### Validation States
 
 | State | Meaning |
-|-------|---------|
+| ------- | --------- |
 | `Not enabled` | Validation not turned on for this task |
 | `Pending records` | Validation in progress |
 | `Mismatched records` | Source and target rows don't match |
@@ -64,6 +64,7 @@ DMS validation compares rows using primary key lookups and verifies that column 
 ### Check Validation Results
 
 ```bash
+
 # Show tables that are NOT validated
 aws dms describe-table-statistics \
     --replication-task-arn <task-arn> \
@@ -88,7 +89,7 @@ Use these queries alongside DMS validation for additional confidence.
 
 ### Level 1: Row Count Validation
 
-**Source (SQL Server):**
+### Source (SQL Server)
 
 ```sql
 SELECT
@@ -103,7 +104,7 @@ GROUP BY s.name, t.name
 ORDER BY s.name, t.name;
 ```
 
-**Target (PostgreSQL):**
+### Target (PostgreSQL)
 
 ```sql
 -- Exact counts (slower but accurate)
@@ -289,6 +290,7 @@ FROM information_schema.table_constraints WHERE table_schema = 'public' AND cons
 ### Test Direct Database Connectivity
 
 ```bash
+
 # PostgreSQL (Aurora) — basic connection
 psql -h <aurora-cluster-endpoint> \
      -U dbadmin -d your_database -c "SELECT version();"
@@ -305,6 +307,7 @@ Download the RDS CA certificate bundle from: [Amazon RDS SSL/TLS Certificates](h
 ### Test Network Connectivity
 
 ```bash
+
 # TCP connectivity test
 nc -zv <aurora-cluster-endpoint> 5432
 
@@ -318,7 +321,9 @@ ping <aurora-cluster-endpoint>
 ### Test Application Connectivity
 
 ```bash
+
 # Update application config temporarily to point to target
+
 # Run health check
 curl -s http://localhost:8080/health | jq .
 
@@ -341,10 +346,10 @@ SELECT COUNT(*) FROM pg_stat_activity WHERE state = 'active';
 SELECT COUNT(*) FROM pg_stat_activity WHERE state = 'idle';
 ```
 
-**Aurora PostgreSQL `max_connections` by instance class:**
+### Aurora PostgreSQL `max_connections` by instance class
 
 | Instance Class | Approximate max_connections |
-|----------------|----------------------------|
+| ---------------- | ---------------------------- |
 | db.r6g.large | ~1,600 |
 | db.r6g.xlarge | ~3,200 |
 | db.r6g.2xlarge | ~5,000 |
@@ -373,6 +378,7 @@ SELECT ... -- your critical query here
 ### Load Testing with pgbench
 
 ```bash
+
 # Initialize pgbench tables (creates pgbench_accounts, pgbench_branches, etc.)
 pgbench -i -h <aurora-cluster-endpoint> -U dbadmin -d your_database
 
@@ -388,16 +394,17 @@ pgbench -h <aurora-cluster-endpoint> -U dbadmin -d your_database \
 ### Performance Comparison Matrix
 
 | Metric | Source Baseline | Target Result | Acceptable Threshold | Pass/Fail |
-|--------|----------------|---------------|---------------------|-----------|
-| Average query latency | ___ ms | ___ ms | ≤ 120% of source | |
-| Transactions per second | ___ TPS | ___ TPS | ≥ 80% of source | |
-| P99 query latency | ___ ms | ___ ms | ≤ 150% of source | |
-| Connection time | ___ ms | ___ ms | < 500 ms | |
-| Bulk insert rate | ___ rows/s | ___ rows/s | ≥ 70% of source | |
+| -------- | ---------------- | --------------- | --------------------- | ----------- |
+| Average query latency | ___ ms | ___ ms | ≤ 120% of source |
+| Transactions per second | ___ TPS | ___ TPS | ≥ 80% of source |
+| P99 query latency | ___ ms | ___ ms | ≤ 150% of source |
+| Connection time | ___ ms | ___ ms | < 500 ms |
+| Bulk insert rate | ___ rows/s | ___ rows/s | ≥ 70% of source |
 
 ### Monitor Aurora Performance Insights
 
 ```bash
+
 # Enable Performance Insights on the Aurora instance
 aws rds modify-db-instance \
     --db-instance-identifier migration-target-instance-1 \
@@ -414,33 +421,33 @@ Use the [RDS Performance Insights console](https://docs.aws.amazon.com/AmazonRDS
 
 ### Smoke Tests
 
-- [ ] Application starts and connects to target database
-- [ ] Login/authentication works
-- [ ] Basic CRUD operations succeed (create, read, update, delete)
-- [ ] Reports and dashboards render correctly with accurate data
-- [ ] Search functionality returns expected results
-- [ ] File uploads/downloads work (if LOB-dependent)
-- [ ] Pagination works correctly
-- [ ] Date/time values display correctly (timezone handling)
-- [ ] Special characters and Unicode data display correctly
+* [ ] Application starts and connects to target database
+* [ ] Login/authentication works
+* [ ] Basic CRUD operations succeed (create, read, update, delete)
+* [ ] Reports and dashboards render correctly with accurate data
+* [ ] Search functionality returns expected results
+* [ ] File uploads/downloads work (if LOB-dependent)
+* [ ] Pagination works correctly
+* [ ] Date/time values display correctly (timezone handling)
+* [ ] Special characters and Unicode data display correctly
 
 ### Regression Tests
 
-- [ ] Run full automated test suite against target database
-- [ ] Verify all API endpoints return expected responses
-- [ ] Test batch jobs and scheduled tasks
-- [ ] Test integrations with external systems
-- [ ] Verify audit logging works correctly
-- [ ] Test error handling and edge cases
-- [ ] Verify transaction rollback behavior
+* [ ] Run full automated test suite against target database
+* [ ] Verify all API endpoints return expected responses
+* [ ] Test batch jobs and scheduled tasks
+* [ ] Test integrations with external systems
+* [ ] Verify audit logging works correctly
+* [ ] Test error handling and edge cases
+* [ ] Verify transaction rollback behavior
 
 ### User Acceptance Testing (UAT)
 
-- [ ] Key business workflows validated by end users
-- [ ] Data accuracy confirmed by data owners (spot-check critical records)
-- [ ] Performance acceptable for end users (subjective assessment)
-- [ ] Reports match expected values
-- [ ] Sign-off from application owners
+* [ ] Key business workflows validated by end users
+* [ ] Data accuracy confirmed by data owners (spot-check critical records)
+* [ ] Performance acceptable for end users (subjective assessment)
+* [ ] Reports match expected values
+* [ ] Sign-off from application owners
 
 ---
 

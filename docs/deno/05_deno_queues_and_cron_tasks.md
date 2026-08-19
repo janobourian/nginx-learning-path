@@ -1,6 +1,6 @@
 # Module 05: Deno Queues & Cron Tasks
 
-**Track:** Deno Secure Engine & Edge Runtime  
+**Track:** Deno Secure Engine & Edge Runtime
 **Category:** Background Processing & Scheduled Jobs
 
 ---
@@ -214,13 +214,14 @@ Deno.cron("monthly-billing", "0 0 1 * *", async () => {
 
 ### Cron Expression Reference
 
-```
+```text
 ┌─────── minute      (0 - 59)
 │ ┌───── hour        (0 - 23)
 │ │ ┌─── day-of-month (1 - 31)
 │ │ │ ┌─ month        (1 - 12)
 │ │ │ │ ┌ day-of-week  (0 - 7, 0 and 7 are Sunday)
 │ │ │ │ │
+
 * * * * *
 
 Examples:
@@ -352,6 +353,7 @@ interface User { id: string; digestEnabled: boolean; }
 ```
 
 Run the worker:
+
 ```bash
 deno run \
   --allow-net \
@@ -364,15 +366,15 @@ deno run \
 
 ## Troubleshooting
 
-**`Deno.cron is not a function` or `Deno.cron is not available`**
+### `Deno.cron is not a function` or `Deno.cron is not available`
 
 Cron requires `--unstable-cron` in Deno 1.x. In Deno 2, it is stable. Upgrade Deno or add the flag: `deno run --unstable-cron worker.ts`.
 
-**Queue handler runs but jobs never appear**
+### Queue handler runs but jobs never appear
 
 The `kv.listenQueue()` call must be reached at startup and kept alive. If your program exits before a job arrives, no handler runs. Structure your worker to run indefinitely — Deno keeps the process alive as long as `listenQueue` is active.
 
-**Cron runs overlap — previous invocation still running when next fires**
+### Cron runs overlap — previous invocation still running when next fires
 
 `Deno.cron` does not prevent concurrent invocations. Use a KV-based distributed lock:
 

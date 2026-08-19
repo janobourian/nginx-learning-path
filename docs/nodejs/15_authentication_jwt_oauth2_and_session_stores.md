@@ -1,13 +1,13 @@
 # Module 15: Enterprise Authentication — RS256 JWT, Refresh Tokens & OAuth 2.0 PKCE
 
-**Track:** Node.js — Enterprise Architecture & Libuv Internals  
+**Track:** Node.js — Enterprise Architecture & Libuv Internals
 **Category:** Security Engineering, JWT Signatures & OAuth 2.0 Authorization
 
 ---
 
 ## 1. Authentication Architectural Paradigms
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 Session vs Stateless JWT Tokens             │
 ├────────────────────┬────────────────────────────────────────┤
@@ -30,6 +30,7 @@
 Never sign enterprise JWTs using symmetric HS256 shared secrets (because every microservice verifying the token would need access to the private signing secret!).
 
 Always use **RS256 (RSA Signature with SHA-256)**:
+
 - **Private Key**: Kept exclusively on the Auth Service to sign tokens.
 - **Public Key**: Distributed to all microservices / API gateways to verify tokens locally in **< 1ms with zero database queries**.
 
@@ -47,6 +48,7 @@ const PUBLIC_KEY = fs.readFileSync('certs/jwt_rsa_public.pem', 'utf8');
 
 export class JwtTokenService {
   /**
+
    * Signs a short-lived Access Token (15 Minutes):
    */
   static generateAccessToken(user) {
@@ -68,6 +70,7 @@ export class JwtTokenService {
   }
 
   /**
+
    * Signs a long-lived Refresh Token (7 Days):
    */
   static generateRefreshToken(userId, tokenFamilyId) {
@@ -83,6 +86,7 @@ export class JwtTokenService {
   }
 
   /**
+
    * Verifies an Access Token using the Public Key:
    */
   static verifyAccessToken(token) {
@@ -105,7 +109,7 @@ export class JwtTokenService {
 
 To prevent stolen refresh tokens from providing permanent attacker access, implement **Refresh Token Rotation with Automatic Token Reuse Detection**:
 
-```
+```text
 Token Rotation Flow:
 1. Client sends Refresh Token A.
 2. Server validates Token A, invalidates Token A, and issues Refresh Token B.

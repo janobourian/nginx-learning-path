@@ -1,6 +1,6 @@
 # Module 02: Stateless vs Stateful Widgets & The Complete `State` Lifecycle
 
-**Track:** Flutter — Multi-Platform Architecture & Impeller Engine  
+**Track:** Flutter — Multi-Platform Architecture & Impeller Engine
 **Category:** Component Lifecycles, State Transitions & Memory Cleanup
 
 ---
@@ -9,7 +9,7 @@
 
 In Flutter, UI components inherit from either `StatelessWidget` or `StatefulWidget`:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │              Widget Class Architecture Comparison           │
 ├──────────────────────────┬──────────────────────────────────┤
@@ -34,7 +34,7 @@ In Flutter, UI components inherit from either `StatelessWidget` or `StatefulWidg
 
 The lifecycle of a `State<T>` object moves through an exact sequence of lifecycle stages:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 The Complete State Lifecycle                │
 │                                                             │

@@ -1,6 +1,6 @@
 # Module 04: Advanced Type-Level Programming & Conditional Types
 
-**Track:** TypeScript — Enterprise Type System  
+**Track:** TypeScript — Enterprise Type System
 **Category:** Type-Level Metaprogramming & Type Computation
 
 ---
@@ -66,7 +66,7 @@ Notice that `never` automatically dissolves in union types ($X \cup \emptyset = 
 
 ## 4. Preventing Union Distribution (Tuple Wrapping)
 
-Sometimes you want to test whether the **entire union as a whole** satisfies a constraint, rather than testing each member individually. 
+Sometimes you want to test whether the **entire union as a whole** satisfies a constraint, rather than testing each member individually.
 
 To turn off distribution, wrap both the type parameter and target type in square brackets `[T] extends [U]`:
 
@@ -228,8 +228,10 @@ const users = await selectFrom("users", ["id", "email"]);
 ## Troubleshooting & Compiler Limits
 
 1. **`Type instantiation is excessively deep and possibly infinite (TS2589)`**
+
    - TypeScript has a built-in recursion limit (~1,000 recursive steps) to prevent compiler hangs.
    - For recursive types, always ensure there is a clear base case that resolves to non-recursive primitives.
 
 2. **Unexpected Union Distribution with `never`**
+
    - If `T` in `T extends U ? X : Y` is passed `never`, the entire expression evaluates to `never` without reaching `Y` because distribution over the empty set produces the empty set. Use `[T] extends [never]` to detect `never`.

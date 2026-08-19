@@ -1,6 +1,6 @@
 # Module 15: Native Web APIs — Drag & Drop, Clipboard & File System Access
 
-**Track:** Modern JavaScript — Frontend Architecture & Web APIs  
+**Track:** Modern JavaScript — Frontend Architecture & Web APIs
 **Category:** Native Desktop Web APIs, File System Access & Clipboard
 
 ---
@@ -9,7 +9,7 @@
 
 The HTML5 Drag and Drop API allows elements to be dragged across the screen, between browser tabs, and allows desktop OS files to be dropped directly into the browser:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 HTML5 Drag & Drop Event Pipeline            │
 ├────────────────────┬────────────────────────────────────────┤
@@ -89,7 +89,7 @@ export function initKanbanBoard() {
 
 Modern browsers replace deprecated `document.execCommand('copy')` with the Promise-based **Async Clipboard API**:
 
-### 1. Copying Plain Text:
+### 1. Copying Plain Text
 
 ```javascript
 export async function copyTextToClipboard(text) {
@@ -102,7 +102,7 @@ export async function copyTextToClipboard(text) {
 }
 ```
 
-### 2. Copying Rich PNG Images & Blobs to Clipboard:
+### 2. Copying Rich PNG Images & Blobs to Clipboard
 
 ```javascript
 export async function copyCanvasImageToClipboard(canvas) {
@@ -124,7 +124,7 @@ export async function copyCanvasImageToClipboard(canvas) {
 
 The **File System Access API** allows web applications to open, read, edit, and save files directly on the user's native computer hard drive (used by VS Code Web):
 
-### 1. Open Local File:
+### 1. Open Local File
 
 ```javascript
 export async function openLocalTextFile() {
@@ -147,7 +147,7 @@ export async function openLocalTextFile() {
 }
 ```
 
-### 2. Save / Overwrite Local File Directly on Disk:
+### 2. Save / Overwrite Local File Directly on Disk
 
 ```javascript
 export async function saveLocalFile(fileHandle, updatedContent) {

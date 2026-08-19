@@ -1,6 +1,6 @@
 # Module 01: Asynchronous Control Flow — Promises, Generators & Concurrency Pools
 
-**Track:** Modern JavaScript — Backend Systems & Distributed Architecture  
+**Track:** Modern JavaScript — Backend Systems & Distributed Architecture
 **Category:** Asynchronous Architecture, Concurrency Control & Generators
 
 ---
@@ -9,7 +9,7 @@
 
 Modern JavaScript provides five native Promise combinators for managing concurrent asynchronous workflows:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 The 5 Native Promise Combinators            │
 ├────────────────────┬────────────────────────────────────────┤
@@ -153,6 +153,7 @@ async function processData() {
 
 1. **Always Handle `unhandledRejection` Globally**
    In Node.js, unhandled promise rejections terminate the process with non-zero exit codes. Always register a global crash listener:
+
    ```javascript
    process.on('unhandledRejection', (reason, promise) => {
      console.error('Unhandled Promise Rejection at:', promise, 'reason:', reason);

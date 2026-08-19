@@ -1,6 +1,6 @@
 # Module 03: Complex State Transitions with `useReducer` & State Machines
 
-**Track:** React — Modern UI & Fiber Architecture  
+**Track:** React — Modern UI & Fiber Architecture
 **Category:** State Architecture, Reducer Pipelines & Finite State Machines
 
 ---

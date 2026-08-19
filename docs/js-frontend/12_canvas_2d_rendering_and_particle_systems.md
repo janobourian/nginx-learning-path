@@ -1,6 +1,6 @@
 # Module 12: HTML5 Canvas 2D, Particle Physics & `OffscreenCanvas`
 
-**Track:** Modern JavaScript — Frontend Architecture & Web APIs  
+**Track:** Modern JavaScript — Frontend Architecture & Web APIs
 **Category:** 2D Graphics, Canvas Rendering & High-Performance Particle Physics
 
 ---
@@ -9,7 +9,7 @@
 
 While the DOM represents UI as a hierarchical tree of boxes, the **HTML5 `<canvas>`** element provides an immediate-mode 2D pixel raster surface.
 
-```
+```text
 Canvas 2D Immediate Mode Loop:
 ┌─────────────────────────────────────────────────────────────┐
 │ 1. Clear Frame (`ctx.clearRect(0, 0, width, height)`)       │

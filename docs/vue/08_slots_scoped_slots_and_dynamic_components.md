@@ -1,6 +1,6 @@
 # Module 08: Slots, Scoped Slots & Dynamic Components
 
-**Track:** Vue — Progressive Web Framework  
+**Track:** Vue — Progressive Web Framework
 **Category:** Component Composition & Flexibility
 
 ---
@@ -339,14 +339,14 @@ onDeactivated(() => {
 
 ## Troubleshooting
 
-**Scoped slot variable is `undefined`**
+### Scoped slot variable is `undefined`
 
 The slot attribute in the child must use `:attribute="value"` (bound), not `attribute="value"` (string literal). In `<slot name="row" :data="rowData" />`, the parent accesses it as `<template #row="{ data }">`.
 
-**`<KeepAlive>` is not caching the component**
+### `<KeepAlive>` is not caching the component
 
 `<KeepAlive>` only works with direct children of `<component :is>`, `<RouterView>`, or another single component. It does not work when wrapping multiple elements or when the component is nested deeper. Also ensure the component has a `name` property (set automatically from the filename in `<script setup>`, or set explicitly with `defineOptions({ name: 'MyComponent' })`).
 
-**Dynamic component throws "Failed to resolve component"**
+### Dynamic component throws "Failed to resolve component"
 
 The `:is` prop accepts a component options object (`markRaw(MyComponent)`), a registered name string (if globally registered), or an async component. If using a string like `"TextWidget"`, the component must be globally registered. Use `markRaw(import)` for locally imported components.

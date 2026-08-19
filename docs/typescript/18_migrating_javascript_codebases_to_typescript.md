@@ -1,6 +1,6 @@
 # Module 18: Migrating Legacy JavaScript Codebases to TypeScript
 
-**Track:** TypeScript — Enterprise Type System  
+**Track:** TypeScript — Enterprise Type System
 **Category:** Migration Strategy, JSDoc Typing & Refactoring Playbooks
 
 ---
@@ -11,7 +11,7 @@ Attempting a **"Big Bang" migration** (renaming all 5,000 `.js` files to `.ts` i
 
 The industry standard enterprise approach is an **Incremental 4-Phase Migration** where JavaScript and TypeScript coexist peacefully in the exact same codebase, and features continue shipping without interruption.
 
-```
+```text
 Incremental Migration Roadmap:
 ┌───────────────────────────────┐
 │ Phase 1: Toolchain Setup      │  allowJs: true, checkJs: false (Zero code changes)
@@ -43,7 +43,7 @@ Configure `tsconfig.json` so the TypeScript compiler accepts both JavaScript and
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "outDir": "./dist",
-    
+
     /* ─── Migration Flags ─── */
     "allowJs": true,           /* Allow JavaScript files to be imported and compiled */
     "checkJs": false,          /* Do not report errors in .js files yet */
@@ -66,6 +66,7 @@ Before renaming files to `.ts`, you can type-check existing JavaScript files usi
 // @ts-check
 
 /**
+
  * @typedef {Object} PaymentTransaction
  * @property {string} id
  * @property {number} amount
@@ -73,6 +74,7 @@ Before renaming files to `.ts`, you can type-check existing JavaScript files usi
  */
 
 /**
+
  * Charges a customer credit card.
  * @param {string} customerId - The unique customer identifier
  * @param {number} amountInCents - Positive amount in cents
@@ -99,7 +101,7 @@ export async function executeCharge(customerId, amountInCents, previousTx) {
 
 When converting `.js` files to `.ts`, follow a **Bottom-Up (Leaf to Root)** dependency order:
 
-```
+```text
 Conversion Order:
 1. Leaf Pure Utilities (e.g. `src/utils/math.js`, `src/utils/formatters.js`)
 2. Data Models, Enums & Schemas (e.g. `src/models/*.js`)
@@ -114,6 +116,7 @@ Conversion Order:
 For large repositories, use Airbnb's open-source `ts-migrate` tool to automate file renaming, generate baseline `tsconfig.json` files, and automatically inject `// @ts-expect-error` comments on failing lines so your codebase compiles immediately:
 
 ```bash
+
 # Install ts-migrate
 npm install -g ts-migrate
 
@@ -128,7 +131,7 @@ npx ts-migrate init src
 
 Once all files are `.ts`, enable strict flags one by one in your `tsconfig.json` until full `strict: true` is achieved:
 
-```
+```text
 Strict Flag Rollout Order:
 1. "noImplicitThis": true
 2. "alwaysStrict": true

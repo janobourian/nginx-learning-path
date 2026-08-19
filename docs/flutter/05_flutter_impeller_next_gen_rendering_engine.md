@@ -1,28 +1,31 @@
 # Module 05: Impeller — Next-Generation Rendering Engine & Custom GLSL Shaders
 
-**Track:** Flutter — Multi-Platform Architecture & Impeller Engine  
+**Track:** Flutter — Multi-Platform Architecture & Impeller Engine
 **Category:** GPU Architecture, Graphics Shaders & Impeller Rendering Pipeline
 
 ---
 
 ## 1. What Is Impeller and Why Was Skia Replaced?
 
-For years, Flutter used **Skia** (the 2D graphics engine that also powers Google Chrome and Android OS). 
+For years, Flutter used **Skia** (the 2D graphics engine that also powers Google Chrome and Android OS).
 
 While Skia is a capable general-purpose 2D library, it caused a major issue in Flutter mobile applications: **Shader Compilation Jank**.
 
-### The Root Cause of Shader Compilation Jank in Skia:
+### The Root Cause of Shader Compilation Jank in Skia
+
 - When an app displayed a new visual effect for the very first time (e.g. a blurred bottom navigation bar, a clip shadow, or a gradient swipe), Skia had to compile the corresponding GPU shader program **Just-In-Time (JIT) on the main UI raster thread**.
 - Compiling a shader on a mobile GPU takes **20ms to 100ms+**.
 - Because an 8.3ms (120fps) or 16.6ms (60fps) frame budget was exceeded, the UI visibly froze and dropped frames (jank) during the user's initial interaction.
 
-### How Impeller Eliminates Shader Jank Completely:
+### How Impeller Eliminates Shader Jank Completely
+
 **Impeller** is Flutter's ground-up rewrite of the 2D rendering engine:
+
 1. **Ahead-Of-Time (AOT) Shader Compilation**: All shaders are pre-compiled at **application build time** into native **Metal Shading Language (MSL)** on iOS/macOS and **SPIR-V / Vulkan shaders** on Android.
 2. **Predictable Frame Pacing**: Because shaders are pre-compiled, the GPU executes draw calls with **zero runtime compilation pauses**, guaranteeing smooth 60fps/120fps animations from the very first frame.
 3. **Designed for Modern Explicit GPU APIs**: Built specifically for **Apple Metal** and **Khronos Vulkan**, leveraging modern multi-threaded command encoding.
 
-```
+```text
 Rendering Pipeline Comparison:
 
 Skia (JIT Shader Compilation on First Draw):
@@ -39,7 +42,7 @@ Impeller (AOT Pre-Compiled Shaders):
 
 Impeller is structured into a clean pipeline:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 Impeller Graphics Pipeline                  │
 │                                                             │
@@ -82,6 +85,7 @@ Impeller makes writing and loading custom **GLSL Fragment Shaders** seamless and
 
 ```glsl
 // shaders/ripple.frag
+
 #version 460 core
 
 #include <flutter/runtime_effect.glsl>
@@ -112,6 +116,7 @@ void main() {
 ```yaml
 flutter:
   shaders:
+
     - shaders/ripple.frag
 ```
 
@@ -223,6 +228,7 @@ class _ShaderPainter extends CustomPainter {
 
 1. **Verify Impeller is Enabled on Your Target Device**
    Impeller is enabled by default on iOS, macOS, and modern Android devices. To explicitly verify or toggle Impeller via CLI:
+
    ```bash
    flutter run --enable-impeller
    ```

@@ -1,6 +1,6 @@
 # Module 04: Computed Properties & Cached Getters
 
-**Track:** Vue — Progressive Web Framework  
+**Track:** Vue — Progressive Web Framework
 **Category:** Derived State & Performance
 
 ---
@@ -272,14 +272,14 @@ watchEffect(async () => {
 
 ## Troubleshooting
 
-**Computed value is not updating when I expect it to**
+### Computed value is not updating when I expect it to
 
 Log the dependencies: add `console.log` inside the getter to verify it re-runs. Then check whether the dependency is actually reactive. If you read a non-reactive variable (e.g., a plain array you didn't wrap in `ref()`), changes to it won't trigger the computed.
 
-**Computed getter runs on every render even with no dependency changes**
+### Computed getter runs on every render even with no dependency changes
 
 You may be creating a new object or array inside the getter that Vue sees as a new value on every read. Ensure dependencies are stable reactive refs. Also check for accidental reads of `Date.now()` or `Math.random()` inside the getter — these are not reactive dependencies and don't trigger re-computation, but they DO make every returned value different, causing downstream effects to always see "change".
 
-**Writable computed setter isn't being called**
+### Writable computed setter isn't being called
 
 Ensure you assigned to `computed.value = newValue`. If you wrote `computed = newValue` (without `.value`), you replaced the ref variable itself, not the ref's value.

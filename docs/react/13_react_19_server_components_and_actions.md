@@ -1,6 +1,6 @@
 # Module 13: React 19 — Server Components (RSC), Server Actions & Form Hooks
 
-**Track:** React — Modern UI & Fiber Architecture  
+**Track:** React — Modern UI & Fiber Architecture
 **Category:** Full-Stack Architecture, Server Components & React 19 Standards
 
 ---
@@ -17,9 +17,9 @@ Historically, all React components were **Client Components**: their JavaScript 
 | **Client Bundle Size** | **Zero KB** (Never sent to the browser) | Included in the client JavaScript bundle |
 | **Direct Backend Access** | **Yes** (Direct SQL queries, file system, secrets) | **No** (Must make HTTP API calls) |
 | **React Hooks (`useState`, `useEffect`)** | **No** (Stateless execution per request) | **Yes** (Full interactivity) |
-| **DOM Event Listeners (`onClick`, `onChange`)**| **No** | **Yes** |
+| **DOM Event Listeners (`onClick`, `onChange`)** | **No** | **Yes** |
 
-```
+```text
 ┌───────────────────────────────────────────────────────────────┐
 │                     Server Component Tree                     │
 │  (Direct access to PostgreSQL, Redis, File System, Secrets)   │
@@ -44,6 +44,7 @@ Historically, all React components were **Client Components**: their JavaScript 
 Server Components are **not** compiled into HTML strings like traditional SSR. They are compiled into a specialized streaming data format called the **React Flight Wire Protocol**.
 
 The Flight stream describes the virtual component tree, serializing:
+
 - HTML tag layouts
 - Props passed to Client Components
 - Suspense stream chunks as promises resolve

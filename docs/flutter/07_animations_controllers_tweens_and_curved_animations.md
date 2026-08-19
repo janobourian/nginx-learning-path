@@ -1,6 +1,6 @@
 # Module 07: Explicit Animations — Controllers, Tweens & Staggered Curves
 
-**Track:** Flutter — Multi-Platform Architecture & Impeller Engine  
+**Track:** Flutter — Multi-Platform Architecture & Impeller Engine
 **Category:** Animation Engineering, Tickers, Tweens & Staggered Motion
 
 ---
@@ -8,10 +8,11 @@
 ## 1. The Explicit Animation Architecture
 
 Flutter provides two animation systems:
+
 1. **Implicit Animations** (Module 08): Simple, automated transitions (`AnimatedContainer`, `AnimatedOpacity`).
 2. **Explicit Animations** (This Module): Fine-grained programmatic control over complex, multi-stage, repeating, reversible, or staggered animations.
 
-```
+```text
 Explicit Animation Pipeline:
 ┌─────────────────────────────────────────────────────────────┐
 │ 1. TickerProvider (VSync)                                    │
@@ -116,7 +117,7 @@ _controller.addStatusListener((AnimationStatus status) {
 
 A **Staggered Animation** coordinates multiple animated visual changes (e.g. an element slides in, then expands, then changes color, then fades out) across a single unified `AnimationController` timeline using **`Interval`**:
 
-```
+```text
 Staggered Animation Timeline (Total Duration: 2,000ms):
 [0.0 ──────────── 0.4] ◄── 1. Opacity Fade In (Interval 0.0 to 0.4)
         [0.2 ──────────── 0.7] ◄── 2. Slide Y Translation (Interval 0.2 to 0.7)

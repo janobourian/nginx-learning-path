@@ -1,6 +1,6 @@
 # Module 02: Backend Streams, WHATWG Web Streams & Backpressure Pipelines
 
-**Track:** Modern JavaScript — Backend Systems & Distributed Architecture  
+**Track:** Modern JavaScript — Backend Systems & Distributed Architecture
 **Category:** Stream Processing, WHATWG Standards & Backpressure Mechanics
 
 ---
@@ -8,10 +8,11 @@
 ## 1. Node.js Streams vs WHATWG Web Streams
 
 Modern backend architectures use two stream standards:
+
 1. **Node.js Streams (`node:stream`)**: Built on `EventEmitter` (`Readable`, `Writable`, `Transform`, `pipeline`).
 2. **WHATWG Web Streams Standard**: The unified browser/edge/runtime standard (`ReadableStream`, `WritableStream`, `TransformStream`) native to Deno, Bun, Cloudflare Workers, and Node.js 18+.
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 Stream Standard API Mapping                 │
 ├──────────────────────────┬──────────────────────────────────┤

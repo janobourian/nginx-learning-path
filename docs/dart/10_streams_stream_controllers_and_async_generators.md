@@ -1,6 +1,6 @@
 # Module 10: Reactive Streams, `StreamController` & Asynchronous Generators (`async*`)
 
-**Track:** Dart — Language & VM Architecture  
+**Track:** Dart — Language & VM Architecture
 **Category:** Asynchronous Streams, Reactive Programming & Stream Generators
 
 ---
@@ -9,7 +9,7 @@
 
 While a `Future<T>` represents a single asynchronous computation that returns one value in the future, a **`Stream<T>`** is an asynchronous sequence of multiple data events arriving over time (e.g. WebSocket packets, file read chunks, UI clicks, timer ticks).
 
-```
+```text
 Stream Event Sequence:
 ---[Event 1]---[Event 2]---[Event 3]---[Done (Close)]---|
 ---[Event 1]---[Event 2]---[Error (Exception)]---------|
@@ -148,7 +148,7 @@ void main() async {
 }
 ```
 
-### Custom `StreamTransformer`:
+### Custom `StreamTransformer`
 
 ```dart
 // Custom Transformer: Decodes UTF8 bytes and splits into text lines

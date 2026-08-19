@@ -1,6 +1,6 @@
 # Module 17: Performance Optimization, Compiler Profiling & `skipLibCheck`
 
-**Track:** TypeScript — Enterprise Type System  
+**Track:** TypeScript — Enterprise Type System
 **Category:** Compiler Optimization & Large Codebase Diagnostics
 
 ---
@@ -10,6 +10,7 @@
 In enterprise codebases with hundreds of thousands of lines of code and hundreds of npm dependencies, `tsc` compilation and IDE type-checking can degrade from sub-second responses to 30+ second freezes.
 
 The primary culprits of compiler slowdown:
+
 1. **Redundant Type Checking of Third-Party Dependencies (`node_modules`)**: Checking external `.d.ts` declaration files that have already been validated by package authors.
 2. **Pathological Generic Types**: Recursive conditional types or Cartesian template literal unions that explode combinatorial complexity.
 3. **Massive Non-Discriminated Unions**: Computing union intersections and assignability across large un-tagged object unions ($O(N^2)$ checks).
@@ -28,7 +29,8 @@ npx tsc --noEmit --extendedDiagnostics
 ```
 
 Sample Diagnostic Output:
-```
+
+```text
 Files:                         1,420
 Lines of Library:            145,210
 Lines of Definitions:        380,450
@@ -55,13 +57,15 @@ Generate Chromium-compatible performance trace files:
 npx tsc --noEmit --generateTrace ./tsc-trace
 ```
 
-This generates `trace.json` and `types.json`. 
+This generates `trace.json` and `types.json`.
 
-### Analyzing the Trace:
+### Analyzing the Trace
+
 1. Open Google Chrome and navigate to `chrome://tracing` (or `ui.perfetto.dev`).
 2. Drag and drop `trace.json`.
 3. Locate the widest horizontal blocks under `checkSourceFile` and `checkExpression` to see the exact file and line number causing compiler latency.
 4. Run `@typescript/analyze-trace` to automatically highlight hot spots:
+
    ```bash
    npx @typescript/analyze-trace ./tsc-trace
    ```
@@ -171,6 +175,7 @@ type Action =
 ## Troubleshooting & Best Practices
 
 1. **`JavaScript heap out of memory` during `tsc`**
+
    - For giant legacy codebases, increase Node's max heap: `NODE_OPTIONS="--max-old-space-size=8192" npx tsc`.
    - Then immediately profile with `--generateTrace` to find and fix the runaway generic recursion causing the memory leak.
 

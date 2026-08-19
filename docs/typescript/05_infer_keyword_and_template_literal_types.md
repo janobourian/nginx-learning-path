@@ -1,6 +1,6 @@
 # Module 05: The `infer` Keyword & Template Literal Types
 
-**Track:** TypeScript — Enterprise Type System  
+**Track:** TypeScript — Enterprise Type System
 **Category:** Type Extraction, Pattern Matching & String Metaprogramming
 
 ---

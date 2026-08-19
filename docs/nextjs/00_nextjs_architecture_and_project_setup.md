@@ -1,6 +1,6 @@
 # Module 00: Next.js Architecture, App Router Foundations & Project Setup
 
-**Track:** Next.js — Full-Stack App Router & Edge Architecture  
+**Track:** Next.js — Full-Stack App Router & Edge Architecture
 **Category:** Full-Stack Framework Foundations & Toolchain
 
 ---
@@ -24,7 +24,7 @@
 
 Next.js 13 introduced the **App Router** (built inside the `app/` directory), which fundamentally replaces the legacy **Pages Router** (`pages/` directory):
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 Legacy Pages Router (pages/)                │
 │  • Every component is a Client Component                   │
@@ -48,6 +48,7 @@ Next.js 13 introduced the **App Router** (built inside the `app/` directory), wh
 ## 3. Scaffolding a Next.js Project (`create-next-app`)
 
 ```bash
+
 # Initialize a new Next.js project with App Router and TypeScript
 npx create-next-app@latest my-next-app -- \
   --typescript \
@@ -63,7 +64,7 @@ npm run dev
 
 ### Standard Next.js Directory Layout (`src/app`)
 
-```
+```text
 my-next-app/
 ├── public/                 ← Static files served at root / (favicon, robots.txt)
 ├── src/

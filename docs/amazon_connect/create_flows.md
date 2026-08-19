@@ -41,7 +41,7 @@ Amazon Connect provides sample flows that can be imported into your instance. Th
 There is a lot of options to create a custom flow, the list bellow shows the Blocks and its description:
 
 * **Amazon Q in Connect**
-* **Authenticate Customer** 
+* **Authenticate Customer**
 * **Call phone number**
 * **Cases**
 * **Change routing priority / age**

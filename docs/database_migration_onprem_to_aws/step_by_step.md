@@ -22,6 +22,7 @@ Save the `VpcId` from the output for subsequent commands.
 ### 1.2 Create Private Subnets (two AZs required for RDS/Aurora)
 
 ```bash
+
 # Subnet in AZ-a
 aws ec2 create-subnet \
     --vpc-id <vpc-id> \
@@ -40,6 +41,7 @@ aws ec2 create-subnet \
 ### 1.3 Establish VPN Connectivity to On-Premises
 
 ```bash
+
 # Create Virtual Private Gateway
 aws ec2 create-vpn-gateway --type ipsec.1
 
@@ -67,6 +69,7 @@ aws ec2 create-vpn-connection \
 ### 1.4 Update Route Tables
 
 ```bash
+
 # Enable route propagation from VPN gateway
 aws ec2 enable-vgw-route-propagation \
     --gateway-id <vgw-id> \
@@ -78,10 +81,11 @@ aws ec2 enable-vgw-route-propagation \
 Launch a test EC2 instance in the VPC and verify:
 
 ```bash
+
 # Test connectivity to source database
 nc -zv <source-db-ip> 1433
 
-# Expected output: Connection to <source-db-ip> 1433 port [tcp/ms-sql-s] succeeded!
+# Expected output: Connection to <source-db-ip> 1433 port [tcp/ms-sql-s] succeeded
 ```
 
 ---
@@ -89,7 +93,9 @@ nc -zv <source-db-ip> 1433
 ## Step 2: Create Security Groups
 
 ```bash
+
 # Security group for DMS replication instance
+
 # Per DMS docs: allow all egress for DMS to communicate with source and target
 aws ec2 create-security-group \
     --group-name dms-replication-sg \
@@ -120,6 +126,7 @@ aws ec2 authorize-security-group-ingress \
 If this is your first time using DMS via CLI (the console creates these automatically):
 
 ```bash
+
 # Create dms-vpc-role
 aws iam create-role \
     --role-name dms-vpc-role \
@@ -211,6 +218,7 @@ SELECT name, is_tracked_by_cdc FROM sys.tables WHERE is_tracked_by_cdc = 1;
 ## Step 5: Create Target Aurora PostgreSQL Cluster
 
 ```bash
+
 # Create DB subnet group (requires subnets in at least 2 AZs)
 aws rds create-db-subnet-group \
     --db-subnet-group-name db-migration-subnet-group \
@@ -218,6 +226,7 @@ aws rds create-db-subnet-group \
     --subnet-ids '["<subnet-1a-id>","<subnet-1b-id>"]'
 
 # Create Aurora PostgreSQL cluster
+
 # Note: backups and Multi-AZ disabled during migration for performance
 aws rds create-db-cluster \
     --db-cluster-identifier migration-target-cluster \
@@ -255,6 +264,7 @@ aws rds wait db-instance-available \
 3. Connect to target Aurora PostgreSQL
 4. Right-click source schema → **Convert Schema**
 5. Review the conversion report:
+
     * Green = auto-converted
     * Blue = converted with warnings (review)
     * Red = cannot auto-convert (manual fix required)
@@ -264,7 +274,8 @@ aws rds wait db-instance-available \
 ### Option B: Manual Schema Export/Import
 
 ```bash
-# If you have the schema as SQL files from SCT or manual export:
+
+# If you have the schema as SQL files from SCT or manual export
 psql -h <aurora-cluster-endpoint> \
      -U dbadmin -d your_database \
      -f schema_tables_only.sql
@@ -326,6 +337,7 @@ aws dms create-endpoint \
 ### 7.4 Create Target Endpoint
 
 ```bash
+
 # Get the Aurora cluster endpoint
 AURORA_ENDPOINT=$(aws rds describe-db-clusters \
     --db-cluster-identifier migration-target-cluster \
@@ -346,6 +358,7 @@ aws dms create-endpoint \
 ### 7.5 Test Endpoint Connections
 
 ```bash
+
 # Get replication instance ARN
 REP_ARN=$(aws dms describe-replication-instances \
     --filters "Name=replication-instance-id,Values=onprem-to-aurora-replication" \
@@ -507,6 +520,7 @@ Create `task-settings.json`:
 ### 7.8 Create and Start Migration Task
 
 ```bash
+
 # Create the task
 aws dms create-replication-task \
     --replication-task-identifier full-load-and-cdc-task \
@@ -545,6 +559,7 @@ aws dms start-replication-task \
 ### 8.1 Check Task Status
 
 ```bash
+
 # Overall task status and progress
 aws dms describe-replication-tasks \
     --filters "Name=replication-task-arn,Values=$TASK_ARN" \
@@ -578,6 +593,7 @@ aws dms describe-table-statistics \
 ### 8.3 Monitor Replication Instance Metrics
 
 ```bash
+
 # Check CPU utilization
 aws cloudwatch get-metric-statistics \
     --namespace "AWS/DMS" \
@@ -606,6 +622,7 @@ aws cloudwatch get-metric-statistics \
 ### 9.1 Pre-Cutover Validation
 
 ```bash
+
 # Verify all tables are validated
 aws dms describe-table-statistics \
     --replication-task-arn $TASK_ARN \
@@ -615,6 +632,7 @@ aws dms describe-table-statistics \
         Pending:ValidationPendingRecords,
         Failed:ValidationFailedRecords
     }"
+
 # Expected: empty result (all tables validated)
 ```
 
@@ -680,6 +698,7 @@ aws dms describe-table-statistics \
 ## Step 10: Post-Cutover
 
 ```bash
+
 # Re-enable automated backups (increase retention)
 aws rds modify-db-cluster \
     --db-cluster-identifier migration-target-cluster \
@@ -703,6 +722,7 @@ aws rds create-db-instance \
 After the rollback window (7–14 days):
 
 ```bash
+
 # Delete DMS resources
 aws dms delete-replication-task --replication-task-arn $TASK_ARN
 aws dms delete-endpoint --endpoint-arn $SOURCE_ARN

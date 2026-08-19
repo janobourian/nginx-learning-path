@@ -1,6 +1,6 @@
 # Module 03: Deno Standard Library & JSR Registry
 
-**Track:** Deno Secure Engine & Edge Runtime  
+**Track:** Deno Secure Engine & Edge Runtime
 **Category:** Modules, Imports & Package Ecosystem
 
 ---
@@ -27,6 +27,7 @@ There is no separate lock file step. `deno.lock` is automatically maintained by 
 ### 1. JSR (JavaScript Registry) — `jsr:` specifier
 
 JSR (jsr.io) is the modern registry for TypeScript-native packages. It is the successor to `deno.land/x`. Packages on JSR:
+
 - Are authored in TypeScript and distributed with type declarations
 - Cannot contain lifecycle scripts (`postinstall`, etc.) that could run arbitrary code
 - Have provenance verification (package content linked to a git commit)
@@ -301,6 +302,7 @@ describe("UserService", () => {
 ## Managing the Module Cache
 
 ```bash
+
 # Show the Deno cache directory
 deno info
 
@@ -318,6 +320,7 @@ deno cache src/main.ts
 ```
 
 The module cache is located at:
+
 - Linux/macOS: `~/.cache/deno/`
 - Windows: `%LOCALAPPDATA%\deno\`
 
@@ -351,6 +354,7 @@ Commit `deno.lock` to version control. When other developers or CI runs your pro
 ```typescript
 // my-module/mod.ts — the main export file
 /**
+
  * A utility library for working with ISO 8601 durations.
  * @module
  */
@@ -374,6 +378,7 @@ export type { Duration } from "./types.ts";
 ```
 
 ```bash
+
 # Publish to JSR (requires authentication)
 deno publish
 
@@ -385,17 +390,18 @@ deno publish --dry-run
 
 ## Troubleshooting
 
-**`Module not found "jsr:@std/assert@^1"`**
+### `Module not found "jsr:@std/assert@^1"`
 
 Ensure you have internet access during the first run. If behind a corporate proxy, set `HTTPS_PROXY` and `HTTP_PROXY` environment variables. Deno respects these when fetching modules.
 
-**`Lock file is out of date`**
+### `Lock file is out of date`
 
 The lock file references a version that no longer exists or has changed integrity. Run `deno cache --reload deno.json` to regenerate the lock file.
 
-**npm package has no type definitions**
+### npm package has no type definitions
 
 For npm packages without bundled types, add the `@types/` package to `deno.json`:
+
 ```json
 {
   "imports": {

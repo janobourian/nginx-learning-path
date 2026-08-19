@@ -1,6 +1,6 @@
 # Module 13: Real-World Production Case Studies & Enterprise Blueprints
 
-**Track:** Enterprise NGINX  
+**Track:** Enterprise NGINX
 **Category:** Production Architecture & Applied Patterns
 
 ---
@@ -15,7 +15,8 @@ This module assembles everything from the preceding modules into complete, deplo
 
 An e-commerce platform with 2 million daily users. The stack: React SPA served as static files, a Node.js API backend, and a PostgreSQL database proxied through NGINX's stream module.
 
-**Requirements:**
+### Requirements
+
 - Static assets: CDN-cached for 1 year with hashed filenames (Vite build output)
 - Product catalog API: cached at NGINX for 5 minutes
 - Checkout API: never cached, full authentication required
@@ -23,6 +24,7 @@ An e-commerce platform with 2 million daily users. The stack: React SPA served a
 - TLS with HTTP/2, OCSP stapling
 
 ```nginx
+
 # /etc/nginx/nginx.conf
 worker_processes auto;
 worker_cpu_affinity auto;
@@ -89,9 +91,11 @@ stream {
         proxy_socket_keepalive on;
     }
 }
+
 ```
 
 ```nginx
+
 # /etc/nginx/conf.d/ecommerce.conf
 
 server {
@@ -201,6 +205,7 @@ server {
     access_log /var/log/nginx/shop.access.json json;
     error_log  /var/log/nginx/shop.error.log warn;
 }
+
 ```
 
 ---
@@ -210,6 +215,7 @@ server {
 A B2B SaaS platform with 12 microservices. Each service owns its domain: users, billing, notifications, reports, etc. NGINX acts as the API gateway with JWT authentication via `auth_request`.
 
 ```nginx
+
 # /etc/nginx/conf.d/api-gateway.conf
 
 # All upstream microservices (internal Kubernetes services in this example)
@@ -314,6 +320,7 @@ server {
 
     access_log /var/log/nginx/api-gateway.json json;
 }
+
 ```
 
 ---
@@ -372,6 +379,7 @@ server {
         proxy_read_timeout 30s;
     }
 }
+
 ```
 
 ---
@@ -381,6 +389,7 @@ server {
 Before taking any NGINX configuration to production, verify these items:
 
 ```bash
+
 # 1. Syntax check (always — before every reload)
 nginx -t
 
@@ -397,6 +406,7 @@ curl -I https://domain.com | grep -E "Strict-Transport|X-Frame|X-Content"
 for i in $(seq 1 30); do curl -s -o /dev/null -w "%{http_code} " https://domain.com/api/; done
 
 # 6. Test backend failover (mark one server down, verify traffic routes to others)
+
 # Edit upstream, set server ... down; reload; check access.log
 
 # 7. Confirm gzip is active
@@ -410,6 +420,7 @@ ab -n 10000 -c 100 https://domain.com/api/products
 
 # 10. Monitor error rate during and after deployment
 tail -f /var/log/nginx/access.json | jq -r 'select(.status >= 500) | "\(.status) \(.uri)"'
+
 ```
 
 ---

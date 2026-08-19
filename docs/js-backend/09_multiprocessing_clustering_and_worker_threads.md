@@ -1,13 +1,13 @@
 # Module 09: Multiprocessing, Clustering & Worker Thread Pools
 
-**Track:** Modern JavaScript — Backend Systems & Distributed Architecture  
+**Track:** Modern JavaScript — Backend Systems & Distributed Architecture
 **Category:** Concurrency Architecture, Multiprocessing & Multi-Threading
 
 ---
 
 ## 1. Concurrency Architecture: Processes vs Threads
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 Processes vs Worker Threads Matrix          │
 ├────────────────────┬────────────────────────────────────────┤

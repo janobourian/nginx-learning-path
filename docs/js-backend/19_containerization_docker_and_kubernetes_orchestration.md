@@ -1,6 +1,6 @@
 # Module 19: Enterprise Containerization, Multi-Stage Docker & Kubernetes Orchestration
 
-**Track:** Modern JavaScript — Backend Systems & Distributed Architecture  
+**Track:** Modern JavaScript — Backend Systems & Distributed Architecture
 **Category:** DevOps Engineering, Container Security & Kubernetes Orchestration
 
 ---
@@ -8,6 +8,7 @@
 ## 1. Multi-Stage Docker Build for Modern JavaScript Runtimes
 
 ```dockerfile
+
 # ─── Stage 1: Dependency Builder ───
 FROM node:20-alpine AS deps
 WORKDIR /app
@@ -30,12 +31,12 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=8080
 
-# Copy production artifacts from builder stages:
+# Copy production artifacts from builder stages
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package.json ./package.json
 
-# Distroless runs automatically as unprivileged non-root user (nonroot:nonroot)!
+# Distroless runs automatically as unprivileged non-root user (nonroot:nonroot)
 EXPOSE 8080
 CMD ["dist/main.js"]
 ```
@@ -48,7 +49,7 @@ When Kubernetes scales down or rolls out a new deployment, it sends a **`SIGTERM
 
 If the application terminates abruptly, active user HTTP requests, payments, and database transactions will be aborted.
 
-### Enterprise Graceful Shutdown Implementation:
+### Enterprise Graceful Shutdown Implementation
 
 ```javascript
 // src/lifecycle/graceful_shutdown.js
@@ -123,10 +124,12 @@ spec:
     spec:
       terminationGracePeriodSeconds: 30 # Give 30s for graceful shutdown
       containers:
+
         - name: backend-service
           image: ghcr.io/acme/enterprise-backend:v2.1.0
           imagePullPolicy: IfNotPresent
           ports:
+
             - containerPort: 8080
           resources:
             requests:

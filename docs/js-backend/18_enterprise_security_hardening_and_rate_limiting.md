@@ -1,13 +1,13 @@
 # Module 18: Enterprise Security Hardening, ReDoS Defense & Rate Limiting
 
-**Track:** Modern JavaScript — Backend Systems & Distributed Architecture  
+**Track:** Modern JavaScript — Backend Systems & Distributed Architecture
 **Category:** Application Security, Rate Limiting & ReDoS Elimination
 
 ---
 
 ## 1. The Enterprise Security Defense Matrix
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 Backend Security Threat Matrix              │
 ├────────────────────┬────────────────────────────────────────┤
@@ -28,11 +28,11 @@
 
 ## 2. Eliminating Regular Expression Denial of Service (ReDoS)
 
-A **ReDoS vulnerability** occurs when a regex contains nested quantifiers with overlapping capture groups (e.g. `(a+)+$`). 
+A **ReDoS vulnerability** occurs when a regex contains nested quantifiers with overlapping capture groups (e.g. `(a+)+$`).
 
 When evaluated against a string of 30 "a" characters ending in an exclamation mark, V8's regex backtracking engine executes **$2^{30}$ calculations, completely freezing the entire Node.js / Deno event loop for over 5 minutes!**
 
-### Dangerous vs Safe Regex Comparison:
+### Dangerous vs Safe Regex Comparison
 
 ```javascript
 // ❌ CRITICAL REDOS VULNERABILITY (Exponential Backtracking O(2^N)):
@@ -55,6 +55,7 @@ import Redis from 'ioredis';
 const redis = new Redis(process.env.REDIS_URL);
 
 /**
+
  * Token Bucket Rate Limiter:
  * - Max Capacity: 100 tokens
  * - Refill Rate: 10 tokens per second

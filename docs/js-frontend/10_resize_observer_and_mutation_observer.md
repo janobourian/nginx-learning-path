@@ -1,6 +1,6 @@
 # Module 10: DOM Observers — `ResizeObserver`, `MutationObserver` & Container Queries
 
-**Track:** Modern JavaScript — Frontend Architecture & Web APIs  
+**Track:** Modern JavaScript — Frontend Architecture & Web APIs
 **Category:** Observer APIs, Element Resizing & DOM Mutation Tracking
 
 ---
@@ -9,7 +9,7 @@
 
 While `IntersectionObserver` (Module 09) tracks viewport visibility, modern web applications rely on two additional observer APIs:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 DOM Observer API Matrix                     │
 ├────────────────────┬────────────────────────────────────────┤

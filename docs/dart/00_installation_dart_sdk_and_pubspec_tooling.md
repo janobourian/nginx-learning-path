@@ -1,6 +1,6 @@
 # Module 00: Dart SDK Installation, Toolchain & `pubspec.yaml` Mastery
 
-**Track:** Dart — Language & VM Architecture  
+**Track:** Dart — Language & VM Architecture
 **Category:** Toolchain, Package Management & Development Environment
 
 ---
@@ -9,9 +9,11 @@
 
 **Dart** is a client-optimized, object-oriented language developed by Google, designed for high-speed multi-platform development across web, server, desktop, and mobile (powers the Flutter UI framework).
 
-### Key Architectural Pillars of Dart 3:
+### Key Architectural Pillars of Dart 3
+
 1. **100% Sound Null Safety**: Types cannot contain `null` unless explicitly marked (e.g. `String?`), allowing the compiler to perform aggressive optimizations and eliminate `NullPointerExceptions` at runtime.
 2. **Dual-Compilation Modes**:
+
    - **JIT (Just-In-Time Compilation)** with Kernel AST in development for instant **Stateful Hot Reload**.
    - **AOT (Ahead-Of-Time Compilation)** in production for native machine code binaries (ARM64 / x86_64) with zero VM warm-up latency.
 3. **Modern Language Primitives (Dart 3)**: Sealed class hierarchies, Records, Pattern Matching, Destructuring, and Mixin class inheritance.
@@ -22,6 +24,7 @@
 ## 2. Installing the Dart SDK
 
 ```bash
+
 # macOS (Homebrew)
 brew tap dart-lang/dart
 brew install dart
@@ -32,7 +35,7 @@ wget -qO- https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo gpg --dea
 echo 'deb [signed-by=/usr/share/keyrings/dart.gpg] https://storage.googleapis.com/download.dartlang.org/linux/debian stable main' | sudo tee /etc/apt/sources.list.d/dart_stable.list
 sudo apt-get update && sudo apt-get install -y dart
 
-# Verify installation:
+# Verify installation
 dart --version
 ```
 
@@ -41,6 +44,7 @@ dart --version
 ## 3. The Dart CLI Command Suite
 
 ```bash
+
 # 1. Create a new Dart console project
 dart create -t console-full my_dart_project
 cd my_dart_project
@@ -86,24 +90,24 @@ dependencies:
   # High-performance async HTTP router
   shelf: ^1.4.1
   shelf_router: ^1.1.4
-  
+
   # Cryptography and hashing
   crypto: ^3.0.3
-  
+
   # JSON serialization & schema
   json_annotation: ^4.9.0
-  
+
   # PostgreSQL database driver
   postgres: ^3.1.2
 
 dev_dependencies:
   # Official Google linter rules
   lints: ^3.0.0
-  
+
   # Code generation runner
   build_runner: ^2.4.9
   json_serializable: ^6.8.0
-  
+
   # Unit testing & mock library
   test: ^1.25.2
   mockito: ^5.4.4
@@ -116,6 +120,7 @@ dev_dependencies:
 Enforce strict type rules and style consistency:
 
 ```yaml
+
 # analysis_options.yaml
 include: package:lints/recommended.yaml
 
@@ -131,6 +136,7 @@ analyzer:
 
 linter:
   rules:
+
     - always_declare_return_types
     - avoid_empty_else
     - avoid_relative_lib_imports
@@ -158,7 +164,7 @@ import 'dart:io';
 
 void main(List<String> arguments) {
   final startTime = DateTime.now();
-  
+
   stdout.writeln('========================================');
   stdout.writeln('🚀 Starting Enterprise Dart 3 Engine...');
   stdout.writeln('========================================');

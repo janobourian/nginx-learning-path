@@ -1,6 +1,6 @@
 # Module 16: Redux Toolkit (RTK) & RTK Query Architecture
 
-**Track:** React — Modern UI & Fiber Architecture  
+**Track:** React — Modern UI & Fiber Architecture
 **Category:** Enterprise State Management & Server-State Caching
 
 ---
@@ -11,7 +11,8 @@
 
 Before RTK, legacy Redux required massive boilerplate: manual action types (`const ADD_TODO = 'ADD_TODO'`), action creators, switch-case reducers, manual immutable spreads (`{ ...state, items: [...state.items] }`), and configuring Redux Thunk middleware.
 
-### What RTK Standardizes:
+### What RTK Standardizes
+
 1. **`createSlice`**: Combines action creators and reducers into a single concise declaration.
 2. **Built-in Immer**: Allows writing direct "mutating" syntax (`state.count++`) which Immer converts into safe immutable updates under the hood.
 3. **`configureStore`**: Automatically sets up Redux Thunk, Redux DevTools, and runtime immutability/serializability checks.

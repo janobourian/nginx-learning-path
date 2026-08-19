@@ -1,13 +1,13 @@
 # Module 05: Mixins, Extension Methods & Operator Overloading
 
-**Track:** Dart — Language & VM Architecture  
+**Track:** Dart — Language & VM Architecture
 **Category:** Metaprogramming, Linearization & Zero-Cost Abstractions
 
 ---
 
 ## 1. What Are Mixins?
 
-A **Mixin** is a way of reusing a class's code in multiple class hierarchies without single-inheritance constraints. 
+A **Mixin** is a way of reusing a class's code in multiple class hierarchies without single-inheritance constraints.
 
 Unlike standard inheritance (which creates a rigid vertical parent-child relationship), mixins allow horizontally composing behavioral capabilities (e.g. logging, serialization, validation) onto any class via the **`with`** keyword:
 
@@ -98,7 +98,7 @@ extension IntTimeUnits on int {
 }
 ```
 
-### Consuming Extension Methods:
+### Consuming Extension Methods
 
 ```dart
 void main() {
@@ -108,7 +108,7 @@ void main() {
   final longText = 'This is an enterprise Dart 3 language architectural manual.';
   print(longText.truncate(20)); // Prints: This is an enterpris...
 
-  print('Dart! ' * 3); // Prints: Dart! Dart! Dart! 
+  print('Dart! ' * 3); // Prints: Dart! Dart! Dart!
 
   final timeout = 30.seconds; // Duration(seconds: 30)
   print('Timeout: ${timeout.inSeconds}s');

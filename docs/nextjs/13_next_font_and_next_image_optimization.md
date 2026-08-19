@@ -1,6 +1,6 @@
 # Module 13: Asset Optimization — `next/font`, `next/image` & Core Web Vitals
 
-**Track:** Next.js — Full-Stack App Router & Edge Architecture  
+**Track:** Next.js — Full-Stack App Router & Edge Architecture
 **Category:** Media Processing, Font Subsetting & Web Vitals Optimization
 
 ---
@@ -8,11 +8,13 @@
 ## 1. Zero-Layout-Shift Font Optimization with `next/font`
 
 Historically, loading external fonts (e.g. from `fonts.googleapis.com`) caused significant performance issues:
+
 1. **Network Latency & Privacy Concerns**: An extra DNS lookup and HTTP connection to Google's servers on every page load.
 2. **Flash of Invisible Text (FOIT)** or **Flash of Unstyled Text (FOUT)**.
 3. **Cumulative Layout Shift (CLS)**: When the custom font finally loaded, text changed size and reflowed the entire page layout.
 
 **`next/font`** automatically:
+
 - **Downloads and self-hosts font files at build time** (zero requests sent to Google at runtime).
 - **Subsets the font** (only includes characters for selected languages, e.g. `latin`, reducing file size by 80%).
 - **Computes CSS fallback metrics (`size-adjust`)** so the fallback system font matches the exact dimensions of the custom font, **guaranteeing Cumulative Layout Shift (CLS) = 0!**
@@ -53,6 +55,7 @@ export const customBrandFont = localFont({
 The HTML `<img>` tag delivers uncompressed, full-resolution images regardless of the user's screen size. Loading a 4MB 4000x3000px image on a mobile phone wastes user mobile data and ruins Largest Contentful Paint (LCP).
 
 The **`next/image`** component automatically:
+
 1. **Converts images to modern WebP and AVIF formats** on-the-fly.
 2. **Resizes images** to the exact viewport dimension of the requesting device.
 3. **Lazy-loads offscreen images** natively as the user scrolls.
@@ -92,6 +95,7 @@ export function HeroBanner() {
 ### Understanding the `sizes` Attribute
 
 The `sizes` attribute tells the browser how wide the image will be on different screen sizes:
+
 - `(max-width: 768px) 100vw`: On mobile screens (<768px), the image spans 100% of the viewport width.
 - `50vw`: On desktop, the image spans 50% width in a 2-column grid.
 

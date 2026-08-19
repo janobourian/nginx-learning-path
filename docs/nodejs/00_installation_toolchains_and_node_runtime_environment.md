@@ -1,9 +1,9 @@
 # Module 00: Installation, Version Management (FNM/NVM) & V8 Process Object
 
-**Track:** Node.js Enterprise Backend & Runtime  
-**Directory:** `docs/nodejs/`  
-**File:** `00_installation_toolchains_and_node_runtime_environment.md`  
-**Category:** Tooling & Runtime Environment  
+**Track:** Node.js Enterprise Backend & Runtime
+**Directory:** `docs/nodejs/`
+**File:** `00_installation_toolchains_and_node_runtime_environment.md`
+**Category:** Tooling & Runtime Environment
 **Status:** ✅ Production-Grade Reference Textbook (Zero to Master)
 
 ---
@@ -12,7 +12,7 @@
 
 Node.js is an open-source, cross-platform JavaScript runtime environment executing on Google's **V8 JavaScript Engine** and the **Libuv asynchronous I/O platform abstraction library**. Built upon an event-driven, non-blocking I/O model, Node.js runs application JavaScript on a single OS main thread while offloading disk operations, cryptographic computations, DNS lookups, and zlib compression tasks to an internal multi-threaded C/C++ thread pool managed by Libuv.
 
-```
+```text
 +-----------------------------------------------------------------------------------+
 |                              Node.js Application                                  |
 +-----------------------------------------------------------------------------------+
@@ -32,6 +32,7 @@ Node.js is an open-source, cross-platform JavaScript runtime environment executi
 ```
 
 ### 👔 Executive Summary
+
 * **Business Purpose**: Standardizes reproducible runtime execution environments across developer workstations, automated CI/CD runners, and containerized Kubernetes clusters.
 * **How It Works**: Employs Fast Node Manager (`fnm`, written in Rust) to enforce LTS runtime versions via `.node-version` files, and tunes the V8 process memory ceiling (`--max-old-space-size`) to prevent out-of-memory container crashes.
 * **Key Value & ROI**: Eliminates environment discrepancies between staging and production, handles POSIX process signals gracefully to prevent data corruption, and increases container packing density by 4x.
@@ -61,11 +62,11 @@ The global `process` object provides direct access to operating system facilitie
 | `process.cpuUsage([prev])` | CPU Profiling | `process.cpuUsage(prev?: CpuUsage): CpuUsage` | Returns user and system CPU time consumed by the process in microseconds. |
 | `process.hrtime.bigint()` | High-Res Timer | `process.hrtime.bigint(): bigint` | Returns the current high-resolution monotonic system time in nanoseconds. |
 | `process.uptime()` | Lifecycle Duration | `process.uptime(): number` | Returns the number of seconds the Node.js process has been running. |
-| `process.cwd()` | File System Context| `process.cwd(): string` | Returns the current working directory of the Node.js process. |
-| `process.chdir(directory)` | File System Context| `process.chdir(dir: string): void` | Changes the current working directory of the process. |
+| `process.cwd()` | File System Context | `process.cwd(): string` | Returns the current working directory of the Node.js process. |
+| `process.chdir(directory)` | File System Context | `process.chdir(dir: string): void` | Changes the current working directory of the process. |
 | `process.kill(pid, [signal])` | POSIX Signaling | `process.kill(pid: number, sig?: string): boolean` | Sends an operating system signal to a target process identifier. |
 | `process.resourceUsage()` | System Diagnostics | `process.resourceUsage(): ResourceUsage` | Returns POSIX `getrusage` statistics (page faults, voluntary/involuntary context switches). |
-| `process.report.getReport()`| Diagnostic Dump | `process.report.getReport(): object` | Returns a detailed diagnostic JSON report with native V8 stack frames and OS stats. |
+| `process.report.getReport()` | Diagnostic Dump | `process.report.getReport(): object` | Returns a detailed diagnostic JSON report with native V8 stack frames and OS stats. |
 | `process.report.writeReport([filename])` | Diagnostic Dump | `process.report.writeReport(file?: string): string` | Writes a diagnostic crash report to disk synchronously. |
 | `process.setUncaughtExceptionCaptureCallback(fn)` | Safety Hook | `process.setUncaughtExceptionCaptureCallback(fn): void` | Intercepts all uncaught exceptions, preventing default process termination. |
 
@@ -75,7 +76,7 @@ The global `process` object provides direct access to operating system facilitie
 
 Execution order in Node.js is strictly governed by the interplay between V8's microtask queues and Libuv's event loop phases:
 
-```
+```json
    [ Synchronous JavaScript Call Stack ]
                     |
                     v
@@ -87,7 +88,7 @@ Execution order in Node.js is strictly governed by the interplay between V8's mi
                     v
 +---------------------------------------------------------------------+
 |                      Libuv Event Loop Phases                        |
-|                                                                     |
+|
 |  1. Timers Phase:        Executes callbacks for setTimeout/setInterval|
 |  2. Pending I/O Phase:   Executes I/O callbacks deferred from prev tick|
 |  3. Idle, Prepare Phase: Internal Libuv subsystem bookkeeping       |
@@ -98,6 +99,7 @@ Execution order in Node.js is strictly governed by the interplay between V8's mi
 ```
 
 ### Execution Priority Demonstration
+
 ```typescript
 import { performance } from 'node:perf_hooks';
 
@@ -143,7 +145,7 @@ Node.js manages memory across separate V8 heap spaces and native C++ off-heap al
 | **Old Data Space** | Raw payload data | Mark-Sweep-Compact GC | Contains raw payload data (strings, numbers, boxed primitive arrays) with no outgoing pointers. |
 | **Code Space** | JIT Machine Code | Dedicated Allocator | Executable memory pages holding TurboFan-compiled native CPU instructions. |
 | **Large Object Space** | Big allocations | Direct Page Allocations | Objects exceeding standard page limits (> 512KB). Bypasses young generation Scavenger GC. |
-| **Native System Heap (Off-Heap)**| Binary byte slabs | Explicit `free()` / Finalizers | Raw binary buffers allocated via `Buffer.allocUnsafe()`. Bypasses V8 heap size ceilings entirely. |
+| **Native System Heap (Off-Heap)** | Binary byte slabs | Explicit `free()` / Finalizers | Raw binary buffers allocated via `Buffer.allocUnsafe()`. Bypasses V8 heap size ceilings entirely. |
 
 ---
 
@@ -151,7 +153,8 @@ Node.js manages memory across separate V8 heap spaces and native C++ off-heap al
 
 In modern containerized deployments (Kubernetes, Amazon ECS, Docker Swarm), when a container is scheduled for termination, the orchestration plane sends a **`SIGTERM` (signal 15)** to the process. If the process does not terminate within the configured grace period (typically 30 seconds), the kernel sends **`SIGKILL` (signal 9)**, which forcibly terminates the process, immediately aborting active client TCP sockets and database transactions.
 
-### Graceful Teardown Sequence:
+### Graceful Teardown Sequence
+
 1. Intercept `SIGTERM` / `SIGINT` via `process.on()`.
 2. Stop accepting new inbound HTTP connections (`server.close()`).
 3. Set readiness probes to return HTTP 503 so upstream load balancers remove the pod from rotation.
@@ -167,11 +170,13 @@ In modern containerized deployments (Kubernetes, Amazon ECS, Docker Swarm), when
 This production lab creates a fully runnable, standalone HTTP service with complete signal handling, health probes, and memory telemetry.
 
 ### File 1: `.node-version`
+
 ```text
 20.18.0
 ```
 
 ### File 2: `src/server.ts`
+
 ```typescript
 import http from 'node:http';
 import { performance } from 'node:perf_hooks';
@@ -246,7 +251,7 @@ export class EnterpriseHttpService {
         // Standard Application Workload Endpoint
         if (url === '/api/workload') {
             const startTime = performance.now();
-            
+
             // Simulate 50ms async task (e.g. database query)
             setTimeout(() => {
                 const duration = (performance.now() - startTime).toFixed(3);
@@ -332,6 +337,7 @@ service.start();
 ## 7. Pure Escaped CLI Snippets (Production Operations)
 
 ```bash
+
 # 1. Install Fast Node Manager (FNM) and set up deterministic Node.js LTS
 curl -fsSL https://fnm.vercel.app/install | bash \
     && export PATH="$HOME/.local/share/fnm:$PATH" \
@@ -366,17 +372,21 @@ kill -15 $(pgrep -f "dist/server.js")
 ## 8. Detailed Sub-Components & Diagnostics
 
 ### V8 Heap Sizing & Memory Page Allocator
+
 * **Role & Architectural Function**: Allocates system memory pages (typically 512KB on 64-bit platforms) from the host OS kernel and manages pointer references across New Space semi-spaces and Old Space page tables.
 * **Runtime Mechanics**: Automatically triggers Mark-Sweep-Compact cycles when heap usage approaches `--max-old-space-size`.
 * **Inspection & Verification Command**:
+
   ```bash
   node --trace-gc --trace-gc-verbose dist/server.js
   ```
 
 ### Libuv POSIX Signal Watcher Subsystem
+
 * **Role & Architectural Function**: Registers signal watchers via `signalfd` (Linux) or `EVFILT_SIGNAL` kqueue (macOS/BSD) to integrate OS signals into the event loop without preempting running C++ worker threads.
 * **Runtime Mechanics**: Traps incoming signals, queues corresponding microtask events, and dispatches them on the main thread.
 * **Inspection & Verification Command**:
+
   ```bash
   node --trace-uncaught --trace-warnings dist/server.js
   ```
@@ -386,6 +396,7 @@ kill -15 $(pgrep -f "dist/server.js")
 ## References
 
 ### Official Documentation
+
 * [Node.js Process Architecture Documentation](https://nodejs.org/docs/latest/api/process.html) — Node.js core specification.
 * [V8 Engine Memory Layout & Garbage Collection](https://v8.dev/blog/trash-talk) — Google V8 team.
 * [Libuv Design and Event Loop Architecture](https://docs.libuv.org/en/v1.x/design.html) — Libuv engineering manual.
@@ -393,6 +404,7 @@ kill -15 $(pgrep -f "dist/server.js")
 * [POSIX Signal Standards (IEEE Std 1003.1)](https://man7.org/linux/man-pages/man7/signal.7.html) — Linux kernel signal specifications.
 
 ### Authoritative Engineering Blogs
+
 * [Brendan Gregg: Systems Performance & Node.js Profiling](https://www.brendangregg.com/blog/2014-09-17/node-flame-graphs-on-illumos.html) — Kernel-level inspection and flamegraphs.
 * [Netflix TechBlog: Node.js in Containerized Environments](https://netflixtechblog.com/making-netflix-com-faster-f8d9b158022) — Container memory sizing and signal handling.
 * [Matteo Collina: The Cost of Logging and Node.js Event Loop Architecture](https://noders.com/) — Fastify author on high-throughput design.
@@ -406,11 +418,13 @@ kill -15 $(pgrep -f "dist/server.js")
 *Explicit V8 memory ceilings and graceful connection draining reduce Kubernetes compute provisioning by up to 75%.*
 
 ### 1. Compute Right-Sizing & VM Packing Density
+
 On 64-bit architectures, Node.js defaults its V8 Old Space heap limit to approximately 1.4GB. In unconfigured Kubernetes clusters, DevOps teams frequently set container memory limits to 2GB to prevent unexpected OOMKilled events. On a standard cloud node (such as AWS `c6g.2xlarge` with 8 vCPUs and 16GB RAM at ~$240/month), a cluster can host only **7 application pods** before exhausting node memory.
 
 By setting `--max-old-space-size=384` and container requests to 512MB, the same virtual machine can host **28 application replicas**—a **$4\times$ increase in compute density**. For a fleet of 100 replicas, this optimization reduces required cloud nodes from 15 down to 4, slashing monthly EC2 instance spend from $3,600/month to $960/month.
 
 ### 2. Preventing False-Positive Autoscaler Cascades
+
 When processes crash abruptly from unhandled signals or OOM events, pending HTTP requests fail with HTTP 502 Bad Gateway. Client applications immediately trigger retry storms, sending hundreds of redundant requests. This artificial traffic surge triggers Kubernetes Horizontal Pod Autoscalers (HPA) to provision unnecessary nodes, driving up cloud infrastructure bills. Proper graceful draining ensures zero 502 errors during rolling deployments.
 
 ---
@@ -420,20 +434,24 @@ When processes crash abruptly from unhandled signals or OOM events, pending HTTP
 ### Common Anti-Patterns & Failure Modes
 
 1. **Abrupt Termination via `process.exit()` in Business Logic**:
-   - *Anti-Pattern*: Calling `process.exit(1)` inside error-handling middleware while HTTP responses are still in flight.
-   - *Fix*: Call `server.close()` to stop accepting new requests, allow active responses to finish writing to client sockets, and let the process exit naturally.
+
+   * *Anti-Pattern*: Calling `process.exit(1)` inside error-handling middleware while HTTP responses are still in flight.
+   * *Fix*: Call `server.close()` to stop accepting new requests, allow active responses to finish writing to client sockets, and let the process exit naturally.
 
 2. **Uncaught Rejections Crashing Strict Node.js Runtimes**:
-   - *Anti-Pattern*: Leaving Promises unhandled (`new Promise((_, reject) => reject(new Error()))`). In Node.js 16+, unhandled rejections terminate the process with exit code 1.
-   - *Fix*: Always register `process.on('unhandledRejection', ...)` for logging and use structured `try/catch` blocks inside async route handlers.
+
+   * *Anti-Pattern*: Leaving Promises unhandled (`new Promise((_, reject) => reject(new Error()))`). In Node.js 16+, unhandled rejections terminate the process with exit code 1.
+   * *Fix*: Always register `process.on('unhandledRejection', ...)` for logging and use structured `try/catch` blocks inside async route handlers.
 
 3. **Event Loop Starvation via Synchronous JSON / File I/O**:
-   - *Anti-Pattern*: Calling `fs.readFileSync()` or parsing 50MB JSON payloads synchronously inside HTTP request handlers.
-   - *Fix*: Use `node:fs/promises` or stream parsers (`JSONStream`) to prevent blocking the event loop.
+
+   * *Anti-Pattern*: Calling `fs.readFileSync()` or parsing 50MB JSON payloads synchronously inside HTTP request handlers.
+   * *Fix*: Use `node:fs/promises` or stream parsers (`JSONStream`) to prevent blocking the event loop.
 
 ### Diagnostic Debugging Cheat-Sheet
 
 ```bash
+
 # 1. Profile CPU bottlenecks with 99Hz sampling
 node --prof --prof-process isolate-*.log > cpu_profile.txt \
     && head -n 50 cpu_profile.txt

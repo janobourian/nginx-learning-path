@@ -1,6 +1,6 @@
 # Module 14: Subprocess Management & OS Signals
 
-**Track:** Deno Secure Engine & Edge Runtime  
+**Track:** Deno Secure Engine & Edge Runtime
 **Category:** Process Control & System Integration
 
 ---
@@ -293,7 +293,7 @@ function updateConfig(_config: unknown): void { /* apply config */ }
 ## Available Signals
 
 | Signal | Typical Meaning | Available on Windows |
-|---|---|---|
+| --- | --- | --- |
 | `SIGTERM` | Polite shutdown request | ❌ |
 | `SIGINT` | Ctrl+C interrupt | ✅ |
 | `SIGHUP` | Reload config | ❌ |
@@ -343,14 +343,14 @@ console.log("Uptime:", performance.now(), "ms");
 
 ## Troubleshooting
 
-**`PermissionDenied: Requires run access to "git"`**
+### `PermissionDenied: Requires run access to "git"`
 
 Add `--allow-run=git` to your command. To allow a specific set of commands: `--allow-run=git,deno,node`. To allow all commands: `--allow-run`.
 
-**`Deno.Command` child process hangs indefinitely**
+### `Deno.Command` child process hangs indefinitely
 
 The child process is waiting for stdin input. Set `stdin: "null"` if the command doesn't need input, or close the stdin writer after sending data.
 
-**Signal handlers not called on Ctrl+C**
+### Signal handlers not called on Ctrl+C
 
 If you're using `--no-check` or running in a non-interactive mode, signals may behave differently. Ensure you're adding the listener before any `await` that might keep the process alive differently. Also note: `SIGINT` is always available; other signals require a Unix-like OS.

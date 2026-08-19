@@ -1,15 +1,16 @@
 # Module 10: Declaration Files (`.d.ts`), Ambient Namespaces & Global Augmentation
 
-**Track:** TypeScript — Enterprise Type System  
+**Track:** TypeScript — Enterprise Type System
 **Category:** Type Definitions, Interop & Library Publishing
 
 ---
 
 ## 1. What Are Declaration Files (`.d.ts`)?
 
-A **Declaration File** (with the `.d.ts` extension) contains **only type metadata** and zero executable JavaScript implementation code. 
+A **Declaration File** (with the `.d.ts` extension) contains **only type metadata** and zero executable JavaScript implementation code.
 
 Declaration files serve two primary roles in the TypeScript ecosystem:
+
 1. **Providing Type Definitions for Untyped JavaScript**: Describing the shapes of npm packages, legacy scripts, or browser global APIs written in plain JavaScript.
 2. **Library Output Artifacts**: When you publish a TypeScript library with `"declaration": true`, `tsc` generates `.d.ts` files alongside `.js` files so consumers get complete type definitions without needing your original `.ts` source files.
 
@@ -46,7 +47,7 @@ declare enum LogLevel {
 
 ## 3. Global Augmentation (`declare global`)
 
-In TypeScript files that contain `import` or `export` statements (which makes them ES modules), top-level declarations are scoped locally to that module. 
+In TypeScript files that contain `import` or `export` statements (which makes them ES modules), top-level declarations are scoped locally to that module.
 
 To add or augment types in the **global scope** (such as `window`, `process.env`, or `NodeJS.Process`), use the `declare global` block:
 
@@ -125,6 +126,7 @@ declare module "*.module.css" {
 ```
 
 Now you can write:
+
 ```typescript
 import Chart, { getVersion } from "legacy-chart-engine";
 import logoUrl from "./assets/logo.svg";

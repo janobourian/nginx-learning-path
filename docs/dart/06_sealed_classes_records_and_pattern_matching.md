@@ -1,6 +1,6 @@
 # Module 06: Dart 3 Modern Primitives — Sealed Classes, Records & Pattern Matching
 
-**Track:** Dart — Language & VM Architecture  
+**Track:** Dart — Language & VM Architecture
 **Category:** Modern Type Primitives, Algebraic Data Types & Pattern Matching
 
 ---
@@ -8,6 +8,7 @@
 ## 1. The Dart 3 Language Revolution
 
 Dart 3 represents the largest evolution of the Dart language since Sound Null Safety, introducing:
+
 1. **Records**: Anonymous, aggregate, immutable tuple types with built-in value equality.
 2. **Sealed Classes**: Closed class hierarchies enabling Algebraic Data Types (ADTs).
 3. **Pattern Matching & Destructuring**: Ergonomic extraction and inspection of complex data structures.
@@ -38,7 +39,7 @@ Before Dart 3, returning multiple values from a function required either creatin
 }
 ```
 
-### Accessing Record Fields & Destructuring:
+### Accessing Record Fields & Destructuring
 
 ```dart
 void main() {
@@ -116,7 +117,7 @@ String renderStatusMessage(NetworkResult<String> result) {
 
 Pattern matching allows unpacking complex nested data (JSON, Maps, Lists, Objects) declaratively:
 
-### 1. JSON Destructuring with `if-case`:
+### 1. JSON Destructuring with `if-case`
 
 ```dart
 void processIncomingWebhook(Map<String, dynamic> json) {
@@ -135,7 +136,7 @@ void processIncomingWebhook(Map<String, dynamic> json) {
 }
 ```
 
-### 2. List Pattern Matching with Rest Elements (`...`):
+### 2. List Pattern Matching with Rest Elements (`...`)
 
 ```dart
 void analyzeLogSequence(List<String> logs) {
@@ -152,7 +153,7 @@ void analyzeLogSequence(List<String> logs) {
 }
 ```
 
-### 3. Object Pattern Matching & Field Extractors:
+### 3. Object Pattern Matching & Field Extractors
 
 ```dart
 class Point {

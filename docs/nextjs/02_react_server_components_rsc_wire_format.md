@@ -1,6 +1,6 @@
 # Module 02: React Server Components (RSC) & Flight Wire Format
 
-**Track:** Next.js — Full-Stack App Router & Edge Architecture  
+**Track:** Next.js — Full-Stack App Router & Edge Architecture
 **Category:** Server Component Architecture & Network Serialization Protocols
 
 ---
@@ -10,12 +10,13 @@
 In traditional Single Page Applications, all components are client-side JavaScript. To render a markdown blog post, the browser had to download the React runtime, the component tree, and heavy markdown parsing libraries (e.g. `marked`, `highlight.js`, `sanitize-html` totaling 250KB+).
 
 With **React Server Components (RSC)**:
+
 1. Components execute **strictly on the server**.
 2. Heavy libraries (`marked`, `shiki`, Prisma ORM) execute on the server and are **completely stripped from the client bundle (0 KB sent to client)**.
 3. The server streams a lightweight virtual description of the UI called the **Flight Wire Format**.
 4. The client merges this stream directly into the live DOM tree.
 
-```
+```text
 Traditional Client Bundle vs RSC Execution:
 Traditional SPA:
   Server ──► [250KB JS Bundle + Markdown Parser + DB Fetch Code] ──► Browser parses & renders
@@ -39,7 +40,8 @@ J0:["$","div",null,{"className":"product-page","children":[
 ]}]
 ```
 
-### Decoding the Flight Protocol:
+### Decoding the Flight Protocol
+
 - **`M1` (Module Reference)**: Tells the client that component `$L1` is a **Client Component** located in `AddToCartButton.tsx` and tells the browser to load `client-chunk-123.js`.
 - **`J0` (JSON Node Descriptor)**: Describes the virtual DOM tree (`["$", "tag", key, props]`).
 - Notice that static HTML tags (`h1`, `p`, `div`) are serialized as plain descriptors, while interactive islands are marked with module references (`$L1`).
@@ -84,13 +86,14 @@ Because `CodeBlockServer` is a Server Component, the multi-megabyte `shiki` WebA
 
 A common question in App Router architecture: *Can a Client Component import a Server Component?*
 
-### The Golden Composition Rules:
+### The Golden Composition Rules
 
 1. **Server Components CAN directly import and render Client Components**:
+
    ```tsx
    // Server Component (app/page.tsx)
    import { ClientInteractiveChart } from "@/components/ClientInteractiveChart"; // Valid!
-   
+
    export default async function Page() {
      const data = await db.query();
      return <ClientInteractiveChart initialData={data} />;
@@ -98,6 +101,7 @@ A common question in App Router architecture: *Can a Client Component import a S
    ```
 
 2. **Client Components CANNOT directly import Server Components**:
+
    ```tsx
    "use client";
    // ❌ INVALID: Importing a Server Component into a Client Component converts it to a Client Component!
@@ -105,9 +109,10 @@ A common question in App Router architecture: *Can a Client Component import a S
    ```
 
 3. **Client Components CAN accept Server Components as `children` or props!** (The Slot Pattern):
+
    ```tsx
    "use client";
-   
+
    // Client Component acting as an interactive container / modal:
    export function InteractiveModal({ children }: { children: React.ReactNode }) {
      const [isOpen, setIsOpen] = useState(false);

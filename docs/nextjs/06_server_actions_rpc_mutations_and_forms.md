@@ -1,6 +1,6 @@
 # Module 06: Server Actions — RPC Mutations, Security & File Uploads
 
-**Track:** Next.js — Full-Stack App Router & Edge Architecture  
+**Track:** Next.js — Full-Stack App Router & Edge Architecture
 **Category:** Server Mutations, Security Architecture & File Streaming
 
 ---
@@ -10,6 +10,7 @@
 **Server Actions** are asynchronous JavaScript functions that execute strictly on the server environment. They can be called directly from Client Components or passed to standard HTML `<form>` elements without manually defining API routes (`/api/mutate`) or managing `fetch` boilerplate.
 
 Under the hood:
+
 - Next.js automatically assigns a unique RPC endpoint hash to the action.
 - Next.js sends a `POST` request with encrypted Action ID headers.
 - Next.js runs the action on the server and streams back revalidated RSC payloads.

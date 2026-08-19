@@ -1,6 +1,6 @@
 # Module 07: Service Workers, PWAs & Offline Caching Strategies
 
-**Track:** Modern JavaScript — Frontend Architecture & Web APIs  
+**Track:** Modern JavaScript — Frontend Architecture & Web APIs
 **Category:** Progressive Web Apps, Service Workers & Offline Resiliency
 
 ---
@@ -9,13 +9,14 @@
 
 A **Service Worker** is an event-driven background worker script registered by the browser that runs completely independent of web pages.
 
-### Architectural Capabilities:
+### Architectural Capabilities
+
 1. **Network Interception**: Acts as a client-side programmable network proxy, intercepting all HTTP requests made by the page.
 2. **Offline Caching (Cache API)**: Serves static assets and API data even when there is zero internet connectivity.
 3. **Background Sync**: Queues failed mutations (e.g. form submits while offline) and retries when internet returns.
 4. **Push Notifications**: Displays native OS push notifications even when the browser tab is closed!
 
-```
+```text
 Service Worker Proxy Architecture:
 [Browser Web Page] ──► [fetch('/api/feed')]
                              │
@@ -35,7 +36,7 @@ Service Worker Proxy Architecture:
 
 ## 2. The Complete Service Worker Lifecycle
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 Service Worker Lifecycle Flow               │
 │                                                             │
@@ -56,7 +57,7 @@ Service Worker Proxy Architecture:
 
 ## 3. The 5 Core Offline Caching Strategies
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                     Caching Strategy Matrix                 │
 ├────────────────────┬────────────────────────────────────────┤

@@ -1,6 +1,6 @@
 # Module 15: Server-Side Rendering (SSR) & Non-Destructive Hydration
 
-**Track:** Angular — Signals Platform & Ivy Architecture  
+**Track:** Angular — Signals Platform & Ivy Architecture
 **Category:** Server-Side Rendering, Hydration & Event Replay
 
 ---
@@ -8,17 +8,19 @@
 ## 1. The Evolution of Angular SSR
 
 Historically (Angular v2–v15), Server-Side Rendering via Angular Universal suffered from **Destructive Hydration**:
+
 1. The Node.js server pre-rendered the application into HTML.
 2. The browser received the HTML and painted it on screen.
 3. When client-side Angular loaded, it **completely destroyed all server-rendered DOM nodes** and re-created brand new DOM elements from scratch.
 4. This caused visible layout flicker, lost focus in text inputs, and dropped user clicks.
 
 In modern Angular (v16+):
+
 - **Non-Destructive Hydration**: Angular inspects the existing server-rendered DOM nodes and attaches event listeners directly to them without re-creating a single DOM element!
 - **Event Replay (`withEventReplay()`)**: Captures user clicks and form interactions that occurred *before* the client JavaScript finished downloading and replays them seamlessly once hydrated.
 - **HTTP Transfer State Cache**: Caches server-side HTTP GET requests in the HTML payload, preventing the client browser from making duplicate API calls on startup.
 
-```
+```text
 Destructive Hydration (Legacy):
 [Server HTML Painted] ──► [Client JS Boots] ──► [Wipes DOM & Re-creates Nodes! 💥 (Flicker)]
 

@@ -1,6 +1,6 @@
 # Module 01: Components, Props & Pure Render Functions
 
-**Track:** React — Modern UI & Fiber Architecture  
+**Track:** React — Modern UI & Fiber Architecture
 **Category:** Component Fundamentals, Prop Interfaces & Render Purity
 
 ---
@@ -11,7 +11,7 @@ In React, a **Function Component** is a JavaScript function that accepts an inpu
 
 The core tenet of React's architecture is **Component Purity**:
 
-> **A React component must behave like a pure mathematical function:**  
+> **A React component must behave like a pure mathematical function:**
 > Given the exact same inputs (`props` and `state`), it must always return the exact same output (JSX), and rendering must cause **zero side effects**.
 
 ```tsx
@@ -152,9 +152,10 @@ export function GoodComponent({
 
 During the **Render Phase**, React executes your component function to construct the virtual tree. React can call your component function multiple times, pause it, or abort it in concurrent mode.
 
-### What is Forbidden During Rendering:
+### What is Forbidden During Rendering
 
 1. **Mutating Pre-existing Variables / Objects**:
+
    ```tsx
    // ❌ MUTATION ANTI-PATTERN:
    let guestCount = 0; // External variable
@@ -163,15 +164,20 @@ During the **Render Phase**, React executes your component function to construct
      return <h2>Tea cup for guest #{guestCount}</h2>;
    }
    ```
+
 2. **Performing Network Requests (`fetch()`) in the Component Body**:
    Network calls belong inside `useEffect()` or event handlers, never naked in the render body.
+
 3. **Setting Timers (`setTimeout`, `setInterval`) Directly in the Body**:
    Creates thousands of orphaned timers on every re-render.
+
 4. **Mutating the Real DOM Directly (`document.body.appendChild(...)`)**:
    Breaks React's reconciliation engine.
 
-### Safe Operations During Rendering:
+### Safe Operations During Rendering
+
 - **Local Variable Mutation**: Mutating variables created *inside* the current render function is 100% pure because no other component can observe them:
+
   ```tsx
   export function ShoppingList({ items }: { items: string[] }) {
     const listItems = []; // Created locally during this render
@@ -188,7 +194,7 @@ During the **Render Phase**, React executes your component function to construct
 
 In enterprise React codebases, separate your components into two distinct layers:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │              Container Component (Smart / Stateful)         │
 │  • Manages useState, useQuery, custom hooks                 │
@@ -214,6 +220,7 @@ In enterprise React codebases, separate your components into two distinct layers
 
 2. **Conditional Rendering Gotcha with `0`**
    In JavaScript, `0 && <Component />` evaluates to `0` (which React renders as a literal `"0"` text on screen!). Always convert numbers to booleans:
+
    ```tsx
    // ❌ Renders '0' on screen when count is 0:
    // {count && <MessageList count={count} />}

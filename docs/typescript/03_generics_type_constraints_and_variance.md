@@ -1,6 +1,6 @@
 # Module 03: Generics, Type Constraints & Type Variance
 
-**Track:** TypeScript — Enterprise Type System  
+**Track:** TypeScript — Enterprise Type System
 **Category:** Type-Level Abstraction & Variance Theory
 
 ---
@@ -8,6 +8,7 @@
 ## 1. What Are Generics and Why Are They Essential?
 
 In statically typed languages, writing reusable code presents a dilemma:
+
 - If you use concrete types (`number`, `string`), a function is restricted to that single type.
 - If you use `any` or `unknown`, you lose type safety and input-to-output relationship tracking.
 
@@ -160,7 +161,7 @@ const typedResponse: ApiResponse<{ userId: string }, { cached: boolean; timestam
 
 Given: `Dog extends Animal` (Subtype `Dog` is assignable to Supertype `Animal`):
 
-```
+```text
 ┌─────────────────┬──────────────────────────────────┬─────────────────────────────┐
 │ Variance Mode   │ Mathematical Relation            │ Common TypeScript Scenario  │
 ├─────────────────┼──────────────────────────────────┼─────────────────────────────┤
@@ -295,6 +296,7 @@ bus.emit("order:created", {
 ## Troubleshooting & Best Practices
 
 1. **Do not create generic parameters when they are used only once**
+
    ```typescript
    // ❌ Unnecessary generic:
    function printName<T extends { name: string }>(obj: T): void {

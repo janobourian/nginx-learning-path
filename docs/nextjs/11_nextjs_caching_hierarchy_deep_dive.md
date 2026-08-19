@@ -1,6 +1,6 @@
 # Module 11: Next.js Caching Architecture — 4-Tier Hierarchy Deep Dive
 
-**Track:** Next.js — Full-Stack App Router & Edge Architecture  
+**Track:** Next.js — Full-Stack App Router & Edge Architecture
 **Category:** Caching Architecture, Memory Invalidation & Performance Tuning
 
 ---
@@ -9,7 +9,7 @@
 
 Next.js App Router employs an advanced **4-Tier Caching System** that coordinates caching across the server memory, persistent disk storage, Edge CDNs, and the client browser:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                    The 4-Tier Next.js Caching Pyramid                   │
 │                                                                         │
@@ -72,7 +72,7 @@ revalidateTag('products');
 
 At build time (`next build`), Next.js identifies routes that do not rely on dynamic request-time data (no cookies, no headers, no un-cached fetches) and pre-renders their HTML and RSC payloads into the **Full Route Cache**.
 
-### What Makes a Route Dynamic (Opting Out of Full Route Cache):
+### What Makes a Route Dynamic (Opting Out of Full Route Cache)
 
 A route automatically switches from **Static (Cached)** to **Dynamic (Rendered per-request)** if any of the following occur:
 
@@ -93,7 +93,7 @@ As the user navigates between routes, Next.js stores the RSC payloads of visited
 - **Dynamic Routes**: Cached for 30 seconds.
 - When the user clicks the browser "Back" button, the page restores **instantly from client memory with 0ms network latency**.
 
-### Purging the Client Router Cache:
+### Purging the Client Router Cache
 
 ```tsx
 "use client";
@@ -138,6 +138,7 @@ export const revalidate = 0; // 0 = dynamic, >0 = ISR
 
 2. **Debugging Cache Hits via Response Headers**
    In production, Next.js attaches the `x-nextjs-cache` header to responses:
+
    - `HIT`: Served from Data Cache / Full Route Cache.
    - `MISS`: First request fetched from origin and populated into cache.
    - `STALE`: Served stale cache while background ISR regeneration occurs.

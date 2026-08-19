@@ -1,7 +1,7 @@
 # Module 03: Reverse Proxy, Upstream Routing & Keepalive Connection Pools
 
-**Track:** Enterprise NGINX  
-**Category:** Reverse Proxy Architecture & Upstream Connection Management  
+**Track:** Enterprise NGINX
+**Category:** Reverse Proxy Architecture & Upstream Connection Management
 **Status:** ✅ Production-Grade Reference Textbook (Zero to Master)
 
 ---
@@ -10,7 +10,7 @@
 
 A **reverse proxy** sits in front of application servers and forwards client requests to them. From the client's perspective, they are talking directly to NGINX — they never see the backend servers. This is different from a **forward proxy** (which represents clients, like a corporate internet gateway).
 
-```
+```text
 WITHOUT Reverse Proxy:
   Client ──────────────────────────> Node.js :3000
   Client ──────────────────────────> Node.js :3001  (different servers!)
@@ -19,9 +19,11 @@ WITH NGINX Reverse Proxy:
   Client ──> NGINX :443 ──> Node.js :3000  (client sees only NGINX)
                        ──> Node.js :3001  (load balanced)
                        ──> Node.js :3002
+
 ```
 
-**Why use a reverse proxy?**
+### Why use a reverse proxy?
+
 - **TLS termination**: NGINX handles encryption; backends use plain HTTP
 - **Load balancing**: Distribute requests across multiple backend instances
 - **Caching**: Cache backend responses, reducing backend load
@@ -91,6 +93,7 @@ server {
         proxy_buffers 8 4k;
     }
 }
+
 ```
 
 ---
@@ -134,12 +137,14 @@ http {
         }
     }
 }
+
 ```
 
 ### Why Keepalive Is Critical for Performance
 
 **Without keepalive** (every request):
-```
+
+```text
 Client → NGINX → [TCP SYN] → Backend
                 ← [SYN-ACK]
                 → [ACK]
@@ -147,17 +152,21 @@ Client → NGINX → [TCP SYN] → Backend
                 ← [HTTP response]
                 → [FIN]
 Total: 3 extra round trips per request!
+
 ```
 
 **With keepalive** (after first connection):
-```
+
+```text
 Client → NGINX → [existing TCP connection]
                 → [HTTP request]
                 ← [HTTP response]
 Total: 0 extra round trips!
+
 ```
 
 At 1,000 RPS with 1ms round-trip latency to the backend:
+
 - Without keepalive: 3,000ms wasted on handshakes/second
 - With keepalive: ~0ms overhead
 
@@ -168,13 +177,16 @@ At 1,000 RPS with 1ms round-trip latency to the backend:
 A common pattern is stripping the path prefix before forwarding:
 
 ```nginx
+
 # Pattern 1: Strip /api prefix before forwarding
+
 # Request: GET /api/users → Backend receives: GET /users
 location /api/ {
     proxy_pass http://backend:3000/;  # Trailing slash strips prefix
 }
 
 # Pattern 2: Keep the /api prefix
+
 # Request: GET /api/users → Backend receives: GET /api/users
 location /api/ {
     proxy_pass http://backend:3000;   # No trailing slash keeps prefix
@@ -187,10 +199,12 @@ location /legacy/ {
 }
 
 # Pattern 4: Proxy to a subpath on backend
+
 # Request: GET /data → Backend receives: GET /internal/v1/data
 location /data {
     proxy_pass http://backend:3000/internal/v1/data;
 }
+
 ```
 
 ---
@@ -200,6 +214,7 @@ location /data {
 A production-ready proxy headers snippet:
 
 ```nginx
+
 # /etc/nginx/snippets/proxy-headers.conf
 proxy_http_version 1.1;
 proxy_set_header Connection "";
@@ -209,6 +224,7 @@ proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 proxy_set_header X-Forwarded-Proto $scheme;
 proxy_set_header X-Forwarded-Host $server_name;
 proxy_set_header X-Request-Id $request_id;  # Unique ID per request (NGINX Plus)
+
 ```
 
 ```nginx
@@ -218,6 +234,7 @@ server {
         proxy_pass http://node_app;
     }
 }
+
 ```
 
 ---
@@ -227,6 +244,7 @@ server {
 WebSocket connections require a special upgrade handshake:
 
 ```nginx
+
 # Map to handle WebSocket upgrade header properly
 map $http_upgrade $connection_upgrade {
     default upgrade;
@@ -250,6 +268,7 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
     }
 }
+
 ```
 
 ---
@@ -257,6 +276,7 @@ server {
 ## 7. Production Proxy Configuration (Complete Example)
 
 ```nginx
+
 # /etc/nginx/conf.d/production-api.conf
 
 upstream api_backend {
@@ -333,6 +353,7 @@ server {
         proxy_set_header Host $host;
     }
 }
+
 ```
 
 ---
@@ -340,8 +361,11 @@ server {
 ## 8. CLI Commands for Proxy Troubleshooting
 
 ```bash
+
 # ─────────────────────────────────────────────
+
 # TESTING PROXY BEHAVIOR
+
 # ─────────────────────────────────────────────
 
 # Test proxy with custom headers
@@ -363,7 +387,9 @@ curl \
     http://api.example.com/ws/
 
 # ─────────────────────────────────────────────
+
 # MONITORING UPSTREAM HEALTH
+
 # ─────────────────────────────────────────────
 
 # View NGINX upstream status (requires ngx_http_upstream_module)
@@ -376,7 +402,9 @@ watch -n 1 'ss -s | grep -E "estab|ESTAB"'
 ss -tn dst 10.0.0.1:8080 | wc -l
 
 # ─────────────────────────────────────────────
+
 # ERROR LOG MONITORING
+
 # ─────────────────────────────────────────────
 
 # Monitor proxy errors in real time
@@ -384,6 +412,7 @@ sudo tail -f /var/log/nginx/error.log | grep -E "upstream|connect"
 
 # Count upstream connection failures
 grep "connect() failed" /var/log/nginx/error.log | wc -l
+
 ```
 
 ---
@@ -391,9 +420,11 @@ grep "connect() failed" /var/log/nginx/error.log | wc -l
 ## 9. FinOps & Cloud Resource Cost Governance
 
 ### Keepalive Connections Reduce Backend Server Count
+
 Without keepalive, an NGINX proxy to a Node.js backend requires Node.js to handle 3 TCP operations per request. At 5,000 RPS with 20 backend instances, enabling `keepalive 64` reduces backend CPU overhead from TLS/TCP handshakes by ~20%, allowing removal of 4 backend instances (saving $400-$800/month on t3.medium instances).
 
 ### `proxy_next_upstream` Eliminates Client-Visible Failures
+
 Automatically retrying failed upstream requests transparently prevents error responses to clients during rolling deployments, eliminating the need for external health check systems that cost $50-$200/month in managed services.
 
 ---
@@ -401,9 +432,12 @@ Automatically retrying failed upstream requests transparently prevents error res
 ## 10. Troubleshooting Reverse Proxy Issues
 
 ### Issue: 502 Bad Gateway
+
 **Cause**: NGINX cannot reach the backend server.
 **Diagnosis**:
+
 ```bash
+
 # Check if backend is running
 curl http://10.0.0.1:3000/health
 
@@ -412,25 +446,34 @@ tail -100 /var/log/nginx/error.log | grep "connect() failed"
 
 # Test network connectivity
 nc -zv 10.0.0.1 3000
+
 ```
 
 ### Issue: Requests Hang (504 Gateway Timeout)
+
 **Cause**: Backend is processing too slowly; `proxy_read_timeout` expires.
 **Diagnosis**: Monitor backend response times:
+
 ```bash
 tail -f /var/log/nginx/access.log | awk '{print $NF}'  # Print request_time
+
 ```
+
 **Fix**: Increase timeout for slow endpoints:
+
 ```nginx
 location /api/slow-report {
     proxy_read_timeout 300s;  # 5 minutes for heavy reports
     proxy_pass http://api_backend;
 }
+
 ```
 
 ### Issue: Missing Real Client IP in Backend Logs
+
 **Cause**: Backend reads `REMOTE_ADDR` (NGINX's IP) instead of `X-Real-IP`.
 **Fix**: Configure backend to trust proxy headers:
+
 - Express.js: `app.set('trust proxy', 1)`
 - Fastify: `app.register(fastify-ip)` or configure `trustProxy`
 
@@ -439,15 +482,17 @@ location /api/slow-report {
 ## References
 
 ### Official Documentation
-* [NGINX Reverse Proxy Guide](https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/) — Official reverse proxy tutorial.
-* [NGINX `proxy_pass` Directive](https://nginx.org/en/docs/http/ngx_http_proxy_module.html) — Complete proxy module reference.
-* [NGINX Upstream Module](https://nginx.org/en/docs/http/ngx_http_upstream_module.html) — upstream block directive reference.
-* [NGINX WebSocket Proxying](https://nginx.org/en/docs/http/websocket.html) — Official WebSocket guide.
-* [NGINX `proxy_next_upstream`](https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_next_upstream) — Failover configuration.
+
+- [NGINX Reverse Proxy Guide](https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/) — Official reverse proxy tutorial.
+- [NGINX `proxy_pass` Directive](https://nginx.org/en/docs/http/ngx_http_proxy_module.html) — Complete proxy module reference.
+- [NGINX Upstream Module](https://nginx.org/en/docs/http/ngx_http_upstream_module.html) — upstream block directive reference.
+- [NGINX WebSocket Proxying](https://nginx.org/en/docs/http/websocket.html) — Official WebSocket guide.
+- [NGINX `proxy_next_upstream`](https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_next_upstream) — Failover configuration.
 
 ### Authoritative Engineering Blogs
-* [NGINX Blog: NGINX as a WebSocket Proxy](https://www.nginx.com/blog/websocket-nginx/) — Official WebSocket proxying guide.
-* [Dropbox Engineering: Making Backend Applications Faster](https://dropbox.tech/) — Keepalive connection pool optimization at scale.
-* [Netflix TechBlog: NGINX at Netflix](https://netflixtechblog.com/) — Reverse proxy at internet scale.
-* [Envoy Proxy vs NGINX: A Performance Comparison](https://www.envoyproxy.io/) — Understanding proxy architectures.
-* [Brendan Gregg: HTTP Latency Profiling](https://www.brendangregg.com/blog/2014-09-17/node-flame-graphs-on-linux.html) — Profiling reverse proxy bottlenecks.
+
+- [NGINX Blog: NGINX as a WebSocket Proxy](https://www.nginx.com/blog/websocket-nginx/) — Official WebSocket proxying guide.
+- [Dropbox Engineering: Making Backend Applications Faster](https://dropbox.tech/) — Keepalive connection pool optimization at scale.
+- [Netflix TechBlog: NGINX at Netflix](https://netflixtechblog.com/) — Reverse proxy at internet scale.
+- [Envoy Proxy vs NGINX: A Performance Comparison](https://www.envoyproxy.io/) — Understanding proxy architectures.
+- [Brendan Gregg: HTTP Latency Profiling](https://www.brendangregg.com/blog/2014-09-17/node-flame-graphs-on-linux.html) — Profiling reverse proxy bottlenecks.

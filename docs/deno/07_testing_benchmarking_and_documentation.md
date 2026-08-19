@@ -1,6 +1,6 @@
 # Module 07: Testing, Benchmarking & Documentation
 
-**Track:** Deno Secure Engine & Edge Runtime  
+**Track:** Deno Secure Engine & Edge Runtime
 **Category:** Quality Assurance & Developer Tooling
 
 ---
@@ -223,6 +223,7 @@ function assertNotEquals<T>(a: T, b: T): void {
 ## Code Coverage
 
 ```bash
+
 # Run tests and collect coverage data
 deno test --coverage=coverage_data
 
@@ -234,11 +235,13 @@ deno coverage coverage_data --lcov --output=coverage.lcov
 
 # Generate an HTML report
 deno coverage coverage_data --html
+
 # Open coverage/index.html in a browser
 ```
 
 Coverage output example:
-```
+
+```text
 cover https://example.com/mod.ts ... 95.24% (40/42)
 cover https://example.com/utils.ts ... 100.00% (23/23)
 cover https://example.com/db.ts ... 71.43% (10/14)
@@ -293,7 +296,8 @@ deno bench string_bench.ts
 ```
 
 Output:
-```
+
+```text
 benchmark                   time/iter (avg)        iter/s      (min … max)
 --------------------------- ------------------- ----------- ---------------
 base64 encode 1KB                   542 ns     1,845,018 (530 ns … 601 ns)
@@ -313,11 +317,14 @@ Deno generates documentation from JSDoc comments in your source files:
 
 ```typescript
 /**
+
  * Computes the SHA-256 hash of a string.
  *
+
  * @param input - The string to hash.
  * @returns A hex-encoded SHA-256 digest.
  *
+
  * @example
  * ```ts
  * const hash = await sha256("Hello, World!");
@@ -332,8 +339,10 @@ export async function sha256(input: string): Promise<string> {
 }
 
 /**
+
  * Represents a paginated response from the API.
  *
+
  * @template T - The type of items in the page.
  */
 export interface PagedResponse<T> {
@@ -351,6 +360,7 @@ export interface PagedResponse<T> {
 ```
 
 ```bash
+
 # Show docs in the terminal
 deno doc mod.ts
 
@@ -385,14 +395,14 @@ The `ci` task runs everything in sequence: formatting check, lint, type check, t
 
 ## Troubleshooting
 
-**Tests pass locally but fail in CI with permission errors**
+### Tests pass locally but fail in CI with permission errors
 
 CI runs without `-A`. Enumerate the exact permissions your tests need in the `deno test` command or in per-test `permissions` objects. Run locally with the same flags as CI to reproduce.
 
-**`deno bench` shows high variance results**
+### `deno bench` shows high variance results
 
 Benchmarks are sensitive to JIT warmup and CPU throttling. Use `--warmup` to run warmup iterations, and ensure your machine isn't under CPU throttling during benchmarks. The `(min … max)` column in the output shows spread — high variance indicates inconsistent results.
 
-**Coverage shows 0% for a file that clearly runs during tests**
+### Coverage shows 0% for a file that clearly runs during tests
 
 Ensure the file is imported at least once by the test suite. Files that are never imported don't appear in coverage. Also confirm the file is under the coverage collection path.

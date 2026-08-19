@@ -1,6 +1,6 @@
 # Module 09: `IntersectionObserver` — Lazy Loading, Infinite Scroll & Viewability
 
-**Track:** Modern JavaScript — Frontend Architecture & Web APIs  
+**Track:** Modern JavaScript — Frontend Architecture & Web APIs
 **Category:** Observer APIs, Viewport Intersection & Performance Engineering
 
 ---
@@ -18,7 +18,7 @@ window.addEventListener('scroll', () => {
 
 The **`IntersectionObserver`** API executes **asynchronously on the browser compositor thread**, notifying your JavaScript code only when an element enters or exits a specified viewport threshold with **zero main-thread scroll jank**:
 
-```
+```text
 IntersectionObserver Mechanics:
 [Scrollable Viewport (Root)]
        │

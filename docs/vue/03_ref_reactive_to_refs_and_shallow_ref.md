@@ -1,6 +1,6 @@
 # Module 03: `ref`, `reactive`, `toRefs` & `shallowRef`
 
-**Track:** Vue — Progressive Web Framework  
+**Track:** Vue — Progressive Web Framework
 **Category:** Reactivity API Mastery
 
 ---
@@ -364,14 +364,14 @@ const { email, password, confirmPassword } = toRefs(fields);
 
 ## Troubleshooting
 
-**`ref.value` is undefined inside a template expression**
+### `ref.value` is undefined inside a template expression
 
 The ref must be returned from `setup()` (Options API) or declared at the top level of `<script setup>`. Refs declared inside functions or conditionals inside `<script setup>` are not accessible in the template.
 
-**Mutating a `reactive` object's nested array doesn't trigger updates**
+### Mutating a `reactive` object's nested array doesn't trigger updates
 
 It should. `reactive()` wraps all nested objects and arrays in proxies. If mutations are not triggering updates, the array may have been replaced with a non-reactive version somewhere. Use `console.log(isReactive(state.myArray))` to verify.
 
-**`triggerRef` doesn't seem to cause an update**
+### `triggerRef` doesn't seem to cause an update
 
 Ensure you're calling `triggerRef(myRef)`, not `triggerRef(myRef.value)`. Also verify that the template is actually reading `.value` (or the unwrapped ref) — if the template never reads the ref, there's no subscriber to notify.

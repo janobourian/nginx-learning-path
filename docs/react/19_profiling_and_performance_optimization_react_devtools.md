@@ -1,6 +1,6 @@
 # Module 19: Profiling, Performance Optimization & React DevTools
 
-**Track:** React — Modern UI & Fiber Architecture  
+**Track:** React — Modern UI & Fiber Architecture
 **Category:** Performance Profiling, Virtualization & Core Web Vitals
 
 ---
@@ -9,13 +9,13 @@
 
 The **React DevTools Profiler** is the primary diagnostic tool for measuring render duration and discovering wasteful re-renders.
 
-### Key Profiler Views:
+### Key Profiler Views
 
 1. **Flamegraph Chart**: Shows the component tree hierarchy for each committed render frame. The width of a component bar represents its render time, and colors indicate activity (yellow/orange = expensive render, blue/teal = fast render, gray = skipped render).
 2. **Ranked Chart**: Orders all components rendered in a commit by their execution duration, immediately highlighting performance bottlenecks.
 3. **"Why Did This Render?"**: Enabling *"Record why each component rendered while profiling"* in DevTools settings displays the exact props or state hooks that triggered the render.
 
-```
+```text
 Flamegraph Visualization:
 [App (12.4ms)]
   ├── [Sidebar (0.2ms - Skipped)]
@@ -76,7 +76,7 @@ When rendering 10,000+ items, the browser DOM becomes bloated with thousands of 
 
 **List Virtualization (Windowing)** renders **only the visible items in the user's viewport** (plus a small overscan buffer), recycling DOM nodes as the user scrolls:
 
-```
+```text
 Virtualization Concept:
 Total Dataset: 10,000 items
 Viewport Height: 600px
@@ -179,16 +179,18 @@ export function AppRoutes() {
 
 ## 6. The React Compiler (React Forget)
 
-In React 19, the React team introduced the **React Compiler (React Forget)**. 
+In React 19, the React team introduced the **React Compiler (React Forget)**.
 
 The React Compiler is a build-time Babel/Vite plugin that automatically analyzes JavaScript semantics and **memoizes component trees, objects, and function callbacks automatically at build time**.
 
 With the React Compiler:
+
 - You no longer need to write `useMemo`, `useCallback`, or `React.memo` manually!
 - The compiler optimizes fine-grained memoization at the variable expression level.
 
 ```bash
-# Installing the React Compiler ESLint plugin to verify compiler rules:
+
+# Installing the React Compiler ESLint plugin to verify compiler rules
 npm install -D eslint-plugin-react-compiler
 ```
 

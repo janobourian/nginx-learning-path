@@ -1,6 +1,6 @@
 # Module 16: Type Testing — `tsd` & Vitest `expectTypeOf`
 
-**Track:** TypeScript — Enterprise Type System  
+**Track:** TypeScript — Enterprise Type System
 **Category:** Type Quality Assurance & Compiler-Level Testing
 
 ---
@@ -10,6 +10,7 @@
 When building utility libraries, SDKs, design systems, or enterprise domain models, **unit testing runtime JavaScript is only half the battle**.
 
 Consider a generic type utility like `DeepReadonly<T>` or an API router like `tRPC`:
+
 - Runtime tests verify that functions return the correct JavaScript values.
 - **Type tests** verify that the compiler computes the exact expected static types, catches illegal assignments, and emits compile errors when given invalid arguments.
 
@@ -104,7 +105,7 @@ describe("Type-Level Test Suite", () => {
     // Verify Assignability:
     expectTypeOf<{ success: true; value: { token: string } }>().toBeAssignableTo<AuthResult>();
     expectTypeOf<{ success: false; error: Error }>().toBeAssignableTo<AuthResult>();
-    
+
     // Invalid discriminant is NOT assignable:
     expectTypeOf<{ success: "maybe"; value: null }>().not.toBeAssignableTo<AuthResult>();
   });
@@ -153,7 +154,8 @@ npx tsd
 ```
 
 Output:
-```
+
+```text
 ✔ All type definitions pass type checks!
 ```
 
@@ -162,6 +164,7 @@ Output:
 ## 5. Automated CI/CD Type Testing Workflow
 
 ```yaml
+
 # .github/workflows/type-test.yml
 name: Type Regression & Verification
 
@@ -175,6 +178,7 @@ jobs:
   type-tests:
     runs-on: ubuntu-latest
     steps:
+
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
@@ -199,6 +203,7 @@ jobs:
 ## Troubleshooting & Best Practices
 
 1. **`toEqualTypeOf` vs `toMatchTypeOf` in Vitest**
+
    - `toEqualTypeOf<A>()`: Requires **exact bidirectional structural identity** ($A \subseteq B \land B \subseteq A$).
    - `toMatchTypeOf<A>()`: Requires **unidirectional assignability** (Subtyping / $A \subseteq B$).
 

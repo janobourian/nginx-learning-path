@@ -1,6 +1,6 @@
 # Module 00: Vue Foundations & Vite Toolchain
 
-**Track:** Vue — Progressive Web Framework  
+**Track:** Vue — Progressive Web Framework
 **Category:** Getting Started & Build System
 
 ---
@@ -20,6 +20,7 @@ Vue is **reactive by default**: when data changes, the DOM updates automatically
 Vite (French for "fast") is the official build tool for Vue projects. It uses native ES modules during development (no bundling — the browser imports each file directly) and Rollup for optimized production builds.
 
 ```bash
+
 # Create a new Vue project (interactive)
 npm create vue@latest
 
@@ -38,7 +39,8 @@ npm run dev
 ```
 
 The `create vue` scaffolder generates:
-```
+
+```text
 my-app/
 ├── src/
 │   ├── assets/           ← Static assets (fonts, images, global CSS)
@@ -147,12 +149,14 @@ export default defineConfig({
 ```
 
 Environment variables in `.env`:
-```
+
+```text
 VITE_API_URL=https://api.example.com
 VITE_APP_NAME=My App
 ```
 
 Access in code:
+
 ```typescript
 const apiUrl = import.meta.env.VITE_API_URL;
 const isDev  = import.meta.env.DEV;    // true in development
@@ -318,6 +322,7 @@ function increment() { count.value++; }
 ```
 
 ```bash
+
 # Development server with hot module replacement
 npm run dev
 
@@ -362,14 +367,14 @@ npm run lint
 
 ## Troubleshooting
 
-**Vite dev server starts but the page is blank**
+### Vite dev server starts but the page is blank
 
 Open the browser console. The most common cause is a JavaScript error in `main.ts` or `App.vue`. Check that `#app` exists in `index.html` and that `createApp().mount("#app")` is called.
 
-**TypeScript errors for `.vue` imports**
+### TypeScript errors for `.vue` imports
 
 Add `/// <reference types="vite/client" />` to `src/vite-env.d.ts`. This declares the module type for `.vue` files and Vite environment variables.
 
-**Hot Module Replacement (HMR) doesn't work — full page reload instead**
+### Hot Module Replacement (HMR) doesn't work — full page reload instead
 
 HMR breaks if a component's `<script setup>` throws an error during reload. Check the terminal (Vite logs HMR errors) and fix the root cause. Also ensure you haven't added `@vite/plugin-legacy` without the HMR workaround it provides.

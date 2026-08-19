@@ -1,6 +1,6 @@
 # Module 01: High-Performance DOM Manipulation, Traversal & Tree Mutations
 
-**Track:** Modern JavaScript — Frontend Architecture & Web APIs  
+**Track:** Modern JavaScript — Frontend Architecture & Web APIs
 **Category:** DOM Architecture, Tree Traversals & Batch Mutations
 
 ---
@@ -9,7 +9,7 @@
 
 The **Document Object Model (DOM)** is a tree structure representing an HTML document:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 DOM Node Hierarchy Hierarchy                │
 ├────────────────────┬────────────────────────────────────────┤
@@ -24,7 +24,7 @@ The **Document Object Model (DOM)** is a tree structure representing an HTML doc
 └────────────────────┴────────────────────────────────────────┘
 ```
 
-```
+```text
 DOM Tree Structure:
 [Document]
    └── [Element: <html>]
@@ -176,6 +176,7 @@ export function parseSafeHtml(htmlString) {
 ## Troubleshooting & Best Practices
 
 1. **`HTMLCollection` (Live) vs `NodeList` (Static)**
+
    - `getElementsByClassName()` returns a **Live `HTMLCollection`** (modifying the DOM while iterating over it will alter the array length during the loop!).
    - `querySelectorAll()` returns a **Static `NodeList`** (safe for `forEach` iteration).
 

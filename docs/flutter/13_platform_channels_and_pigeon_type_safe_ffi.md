@@ -1,6 +1,6 @@
 # Module 13: Platform Channels, Pigeon & Type-Safe Native FFI
 
-**Track:** Flutter — Multi-Platform Architecture & Impeller Engine  
+**Track:** Flutter — Multi-Platform Architecture & Impeller Engine
 **Category:** Native Interop, Platform Channels & Type-Safe Pigeon Generators
 
 ---
@@ -9,7 +9,7 @@
 
 When a Flutter app needs access to platform-specific hardware or OS features (Bluetooth, Camera, Apple HealthKit, Android Biometrics, Battery Telemetry), it communicates across the **Platform Channel Architecture**:
 
-```
+```text
 Platform Channel Architecture:
 [Flutter Dart Framework]
         │
@@ -38,6 +38,7 @@ Platform Channel Architecture:
 ## 3. The Problem with Legacy `MethodChannel`
 
 Traditional `MethodChannel` code is **stringly-typed and fragile**:
+
 ```dart
 // ❌ Legacy MethodChannel:
 final int battery = await channel.invokeMethod('getBattery', {'mode': 'fast'});
@@ -52,7 +53,7 @@ final int battery = await channel.invokeMethod('getBattery', {'mode': 'fast'});
 
 **Pigeon** is Google's official code-generation tool for Flutter that generates **100% type-safe compile-time interfaces in Dart, Swift (iOS), and Kotlin (Android)** from a single schema definition!
 
-```
+```text
 Pigeon Workflow:
 [pigeons/battery_service.dart (Schema)]
                    │
@@ -95,6 +96,7 @@ abstract class NativeBatteryApi {
 ```
 
 Run code generator:
+
 ```bash
 dart run pigeon --input pigeons/battery_service.dart
 ```
@@ -134,7 +136,7 @@ class BatteryApiImplementation: NativeBatteryApi {
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
     let controller : FlutterViewController = window?.rootViewController as! FlutterViewController
-    
+
     // Register the Pigeon generated API:
     NativeBatteryApiSetup.setUp(binaryMessenger: controller.binaryMessenger, api: BatteryApiImplementation())
 

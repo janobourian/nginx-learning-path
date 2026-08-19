@@ -1,6 +1,6 @@
 # Module 19: Production Patterns — Performance, Observability & Edge Architecture
 
-**Track:** Deno Secure Engine & Edge Runtime  
+**Track:** Deno Secure Engine & Edge Runtime
 **Category:** Production Engineering & Systems Design
 
 ---
@@ -81,6 +81,7 @@ export const logger = {
 ```
 
 Usage:
+
 ```typescript
 import { logger } from "./logger.ts";
 
@@ -427,14 +428,14 @@ function userRoutes(_pool: Pool): Hono {
 
 ## Troubleshooting
 
-**Memory usage grows indefinitely (memory leak)**
+### Memory usage grows indefinitely (memory leak)
 
 Check for unbounded caches, event listeners not removed, and circular references keeping objects alive. Use `Deno.memoryUsage()` tracked over time to confirm the trend. Common culprits in Deno: `kv.watch()` iterators not cancelled when clients disconnect, `setInterval` handlers accumulating state, and large arrays retained in module scope.
 
-**p99 latency spikes periodically**
+### p99 latency spikes periodically
 
 V8's garbage collector causes periodic pauses, especially when heap grows large. If your service creates many short-lived objects per request, GC pressure is high. Reduce allocation by reusing buffers and response objects. Monitor `heapUsed/heapTotal` ratio — when it consistently exceeds 80%, GC runs more aggressively.
 
-**Graceful shutdown takes too long**
+### Graceful shutdown takes too long
 
 If `server.shutdown()` hangs, there are WebSocket or SSE connections keeping the server alive indefinitely. Track all long-lived connections and close them explicitly in the shutdown handler before calling `server.shutdown()`.

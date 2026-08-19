@@ -1,13 +1,13 @@
 # Module 14: Distributed Caching & Cache Stampede Defense (XFetch, Bloom Filters & Redlock)
 
-**Track:** Modern JavaScript — Backend Systems & Distributed Architecture  
+**Track:** Modern JavaScript — Backend Systems & Distributed Architecture
 **Category:** Distributed Caching, Cache Stampede & Distributed Mutexes
 
 ---
 
 ## 1. The 3 Cache Catastrophes (And Architectural Defenses)
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 The 3 Cache Breakdown Catastrophes          │
 ├────────────────────┬────────────────────────────────────────┤
@@ -54,6 +54,7 @@ import Redis from 'ioredis';
 const redis = new Redis(process.env.REDIS_URL);
 
 /**
+
  * XFetch Probabilistic Cache Refresh:
  * Formula: delta * beta * ln(rand()) <= (now - expiry)
  */

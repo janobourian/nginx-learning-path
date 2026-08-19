@@ -1,6 +1,6 @@
 # Module 04: Side Effects, the `useEffect` Lifecycle & Synchronization
 
-**Track:** React — Modern UI & Fiber Architecture  
+**Track:** React — Modern UI & Fiber Architecture
 **Category:** Side Effects, Browser Synchronization & Cleanup Lifecycle
 
 ---
@@ -8,6 +8,7 @@
 ## 1. What Is a Side Effect in React?
 
 A **Side Effect** is any operation that interacts with the world outside the local React rendering boundary:
+
 - Making asynchronous HTTP requests (`fetch`, Axios).
 - Setting up event listeners on `window` or `document`.
 - Starting and stopping timers (`setInterval`, `setTimeout`).
@@ -22,7 +23,7 @@ In React, rendering must be kept pure. Side effects are declared using the **`us
 
 Unlike render logic (which executes synchronously before DOM updates), `useEffect` runs **asynchronously after the browser has committed the DOM and painted the screen**. This ensures that heavy side-effect work does not block user interactions or frame animations.
 
-```
+```text
 React Component Execution Lifecycle:
 1. Render Phase ──────► Component function executes, JSX / Virtual DOM evaluated
 2. Commit Phase ──────► React updates real DOM nodes to match Virtual DOM
@@ -60,6 +61,7 @@ useEffect(() => {
 If your effect sets up an ongoing resource (event listener, timer, WebSocket), it **must return a cleanup function**.
 
 React runs the cleanup function:
+
 1. **Before executing the effect again** (when dependencies change).
 2. **When the component unmounts** from the DOM.
 
@@ -169,6 +171,7 @@ export function AutoCompleteSearch({ query }: { query: string }) {
 In older React codebases, developers overused `useEffect` for things that should not be effects.
 
 ### 1. Do NOT use `useEffect` to transform data for rendering
+
 ```tsx
 // ❌ WRONG: Unnecessary state and effect causing extra render cycle
 const [items, setItems] = useState([]);
@@ -182,6 +185,7 @@ const filteredItems = items.filter((i) => i.active);
 ```
 
 ### 2. Do NOT use `useEffect` to handle user event reactions
+
 ```tsx
 // ❌ WRONG: Triggering side effect via state watch
 const [isSubmitted, setIsSubmitted] = useState(false);
@@ -203,6 +207,7 @@ function handleSubmit() {
    Never ignore the ESLint exhaustive-deps rule. If a variable or function is referenced inside `useEffect`, it **must** be listed in the dependency array, or moved inside the effect, or stabilized with `useCallback`.
 
 2. **Infinite Re-render Loop**
+
    ```tsx
    // ❌ INFINITE LOOP: Setting state inside effect with no dependency array
    useEffect(() => {

@@ -5,9 +5,11 @@ AWS Service Catalog enables organizations to create and manage catalogs of IT se
 ## Core Concepts
 
 ### Products
+
 Pre-configured CloudFormation templates that define AWS resources.
 
 ```yaml
+
 # nginx-product.yaml
 AWSTemplateFormatVersion: '2010-09-09'
 Description: 'NGINX Web Server Product'
@@ -17,7 +19,7 @@ Parameters:
     Type: String
     Default: t3.micro
     AllowedValues: [t3.micro, t3.small, t3.medium]
-  
+
   Environment:
     Type: String
     Default: dev
@@ -37,8 +39,10 @@ Resources:
           systemctl start nginx
           systemctl enable nginx
       Tags:
+
         - Key: Environment
           Value: !Ref Environment
+
         - Key: Product
           Value: NGINX-WebServer
 
@@ -52,9 +56,11 @@ Outputs:
 ```
 
 ### Portfolios
+
 Collections of products organized by business unit or use case.
 
 ```bash
+
 # Create portfolio
 aws servicecatalog create-portfolio \
     --display-name "Web Infrastructure" \
@@ -63,6 +69,7 @@ aws servicecatalog create-portfolio \
 ```
 
 ### Constraints
+
 Rules that control how products can be launched.
 
 ```json
@@ -88,7 +95,9 @@ Rules that control how products can be launched.
 ## Setting Up Service Catalog
 
 ### Create Product
+
 ```bash
+
 # Upload template to S3
 aws s3 cp nginx-product.yaml s3://service-catalog-templates/
 
@@ -102,7 +111,9 @@ aws servicecatalog create-product \
 ```
 
 ### Associate with Portfolio
+
 ```bash
+
 # Get product and portfolio IDs
 PRODUCT_ID=$(aws servicecatalog search-products --filters FullTextSearch="NGINX" --query 'ProductViewSummaries[0].ProductId' --output text)
 PORTFOLIO_ID=$(aws servicecatalog list-portfolios --query 'PortfolioDetails[?DisplayName==`Web Infrastructure`].Id' --output text)
@@ -114,7 +125,9 @@ aws servicecatalog associate-product-with-portfolio \
 ```
 
 ### Grant Access
+
 ```bash
+
 # Grant access to IAM group
 aws servicecatalog associate-principal-with-portfolio \
     --portfolio-id $PORTFOLIO_ID \
@@ -125,7 +138,9 @@ aws servicecatalog associate-principal-with-portfolio \
 ## End User Experience
 
 ### Launch Product (CLI)
+
 ```bash
+
 # Search available products
 aws servicecatalog search-products --query 'ProductViewSummaries[*].[Name,ProductId]' --output table
 
@@ -138,6 +153,7 @@ aws servicecatalog provision-product \
 ```
 
 ### Launch Product (Python SDK)
+
 ```python
 import boto3
 
@@ -177,6 +193,7 @@ print(f"Provisioned Product ID: {response['RecordDetail']['ProvisionedProductId'
 ## Advanced Product Templates
 
 ### Multi-Tier NGINX Application
+
 ```yaml
 AWSTemplateFormatVersion: '2010-09-09'
 Description: 'Multi-tier NGINX application with RDS backend'
@@ -185,11 +202,11 @@ Parameters:
   VpcId:
     Type: AWS::EC2::VPC::Id
     Description: VPC for deployment
-  
+
   SubnetIds:
     Type: List<AWS::EC2::Subnet::Id>
     Description: Subnets for load balancer
-  
+
   DBPassword:
     Type: String
     NoEcho: true
@@ -202,7 +219,7 @@ Resources:
       Type: application
       Subnets: !Ref SubnetIds
       SecurityGroups: [!Ref ALBSecurityGroup]
-  
+
   LaunchTemplate:
     Type: AWS::EC2::LaunchTemplate
     Properties:
@@ -218,7 +235,7 @@ Resources:
             amazon-linux-extras install nginx1 -y
             systemctl start nginx
             systemctl enable nginx
-  
+
   AutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
@@ -230,7 +247,7 @@ Resources:
       DesiredCapacity: 2
       VPCZoneIdentifier: !Ref SubnetIds
       TargetGroupARNs: [!Ref TargetGroup]
-  
+
   Database:
     Type: AWS::RDS::DBInstance
     Properties:
@@ -248,28 +265,31 @@ Resources:
       GroupDescription: ALB Security Group
       VpcId: !Ref VpcId
       SecurityGroupIngress:
+
         - IpProtocol: tcp
           FromPort: 80
           ToPort: 80
           CidrIp: 0.0.0.0/0
-  
+
   WebSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Web Server Security Group
       VpcId: !Ref VpcId
       SecurityGroupIngress:
+
         - IpProtocol: tcp
           FromPort: 80
           ToPort: 80
           SourceSecurityGroupId: !Ref ALBSecurityGroup
-  
+
   DBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Database Security Group
       VpcId: !Ref VpcId
       SecurityGroupIngress:
+
         - IpProtocol: tcp
           FromPort: 3306
           ToPort: 3306
@@ -287,6 +307,7 @@ Outputs:
 ## Governance and Compliance
 
 ### Launch Constraints
+
 ```json
 {
   "Type": "LAUNCH",
@@ -310,7 +331,9 @@ Outputs:
 ```
 
 ### Tag Options
+
 ```bash
+
 # Create tag option
 aws servicecatalog create-tag-option \
     --key "CostCenter" \
@@ -323,6 +346,7 @@ aws servicecatalog associate-tag-option-with-resource \
 ```
 
 ### Budget Constraints
+
 ```json
 {
   "Type": "RESOURCE_UPDATE",
@@ -352,12 +376,13 @@ aws servicecatalog associate-tag-option-with-resource \
 ## Monitoring and Management
 
 ### CloudTrail Integration
+
 ```python
 import boto3
 
 def track_service_catalog_usage():
     cloudtrail = boto3.client('cloudtrail')
-    
+
     response = cloudtrail.lookup_events(
         LookupAttributes=[
             {
@@ -367,7 +392,7 @@ def track_service_catalog_usage():
         ],
         StartTime=datetime.now() - timedelta(days=7)
     )
-    
+
     for event in response['Events']:
         print(f"Event: {event['EventName']}")
         print(f"User: {event['Username']}")
@@ -375,19 +400,20 @@ def track_service_catalog_usage():
 ```
 
 ### Cost Tracking
+
 ```python
 import boto3
 
 def get_provisioned_product_costs():
     servicecatalog = boto3.client('servicecatalog')
     ce = boto3.client('ce')
-    
+
     # Get provisioned products
     response = servicecatalog.scan_provisioned_products()
-    
+
     for product in response['ProvisionedProducts']:
         product_name = product['Name']
-        
+
         # Get cost data
         cost_response = ce.get_cost_and_usage(
             TimePeriod={
@@ -403,7 +429,7 @@ def get_provisioned_product_costs():
                 }
             ]
         )
-        
+
         print(f"Product: {product_name}")
         for result in cost_response['ResultsByTime']:
             for group in result['Groups']:
@@ -415,6 +441,7 @@ def get_provisioned_product_costs():
 ## Self-Service Portal
 
 ### Custom Web Interface
+
 ```python
 from flask import Flask, render_template, request, jsonify
 import boto3
@@ -431,7 +458,7 @@ def catalog():
 @app.route('/launch', methods=['POST'])
 def launch_product():
     data = request.json
-    
+
     try:
         response = servicecatalog.provision_product(
             ProductId=data['product_id'],
@@ -439,12 +466,12 @@ def launch_product():
             ProvisionedProductName=data['name'],
             ProvisioningParameters=data['parameters']
         )
-        
+
         return jsonify({
             'status': 'success',
             'record_id': response['RecordDetail']['RecordId']
         })
-    
+
     except Exception as e:
         return jsonify({
             'status': 'error',
@@ -463,24 +490,28 @@ def check_status(record_id):
 ## Best Practices
 
 ### Template Design
+
 - Use parameters for customization
 - Implement proper resource tagging
 - Include comprehensive outputs
 - Add resource dependencies
 
 ### Portfolio Organization
+
 - Group by business function
 - Implement approval workflows
 - Use descriptive naming conventions
 - Regular template updates
 
 ### Access Control
+
 - Principle of least privilege
 - Role-based access patterns
 - Regular access reviews
 - Audit trail monitoring
 
 ### Cost Management
+
 - Set budget constraints
 - Monitor usage patterns
 - Implement cost allocation tags

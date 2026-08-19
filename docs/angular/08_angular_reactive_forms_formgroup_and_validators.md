@@ -1,6 +1,6 @@
 # Module 08: Strictly Typed Reactive Forms & Custom Validators
 
-**Track:** Angular — Signals Platform & Ivy Architecture  
+**Track:** Angular — Signals Platform & Ivy Architecture
 **Category:** Form Engineering, Type Safety & Validation Pipelines
 
 ---
@@ -10,6 +10,7 @@
 Historically in Angular, `FormGroup.value` was typed as `any`. Accessing `form.get('email').value` returned an untyped value with zero IDE autocomplete or compile-time typo detection.
 
 Modern Angular features **Strictly Typed Reactive Forms**:
+
 - `FormControl<T>` enforces exact primitive or object types.
 - `FormGroup<T>` infers the shape of all child controls.
 - `FormArray<T>` provides typed dynamic array management.
@@ -132,7 +133,7 @@ export class CustomValidators {
 
 ## 4. Debounced Asynchronous Validators (`AsyncValidatorFn`)
 
-Asynchronous validators (e.g. verifying whether a username is already taken in the database) must return an `Observable<ValidationErrors | null>`. 
+Asynchronous validators (e.g. verifying whether a username is already taken in the database) must return an `Observable<ValidationErrors | null>`.
 
 Always debounce async validators to prevent hitting the backend on every single keystroke:
 
@@ -241,6 +242,7 @@ export class UserValidationService {
 ## Troubleshooting & Best Practices
 
 1. **`getRawValue()` vs `.value`**
+
    - `form.value`: Excludes any controls that are currently **disabled** (`disabled: true`).
    - `form.getRawValue()`: Includes the values of **all controls, including disabled ones**. In 99% of enterprise scenarios, submit using `getRawValue()`.
 

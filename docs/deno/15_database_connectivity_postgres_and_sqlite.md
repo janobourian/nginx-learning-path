@@ -1,6 +1,6 @@
 # Module 15: Database Connectivity — PostgreSQL & SQLite
 
-**Track:** Deno Secure Engine & Edge Runtime  
+**Track:** Deno Secure Engine & Edge Runtime
 **Category:** Persistence & Data Access
 
 ---
@@ -418,14 +418,14 @@ export class UserRepository {
 
 ## Troubleshooting
 
-**`Error: Connection refused — is the database running?`**
+### `Error: Connection refused — is the database running?`
 
 Verify PostgreSQL is running: `pg_isready -h localhost -p 5432`. Check that the hostname, port, database name, and credentials in your connection config match. For Docker-based PostgreSQL: ensure the container is started and the port is mapped.
 
-**Pool connection exhausted — queries time out**
+### Pool connection exhausted — queries time out
 
 Increase the pool size or add a query timeout. All 20 connections are in use simultaneously, likely indicating slow queries or connection leaks (forgetting `client.release()`). Always use try/finally to ensure release.
 
-**SQLite `SQLITE_BUSY` error under concurrent writes**
+### SQLite `SQLITE_BUSY` error under concurrent writes
 
 SQLite only allows one writer at a time. Enable WAL mode (`PRAGMA journal_mode = WAL`) which allows concurrent reads alongside one write. If you have high write concurrency, switch to PostgreSQL.

@@ -1,6 +1,6 @@
 # Module 05: DOM Measurements, `useLayoutEffect` & `useInsertionEffect`
 
-**Track:** React — Modern UI & Fiber Architecture  
+**Track:** React — Modern UI & Fiber Architecture
 **Category:** Layout Synchronization, DOM Metrics & Render Timing
 
 ---
@@ -23,7 +23,7 @@ This visible flash of misplaced content is called **Visual Flickering (Layout Th
 
 `useLayoutEffect` has the exact same signature and dependency rules as `useEffect`, but **different execution timing**:
 
-```
+```text
 Render & Paint Timing Pipeline:
 1. Render Phase ──────► Virtual DOM calculated
 2. Commit Phase ──────► Real DOM nodes updated / inserted
@@ -108,7 +108,7 @@ export const useIsomorphicLayoutEffect =
 
 ## 5. `useInsertionEffect` (React 18+ for CSS-in-JS Libraries)
 
-Introduced in React 18, **`useInsertionEffect`** executes **before any DOM mutations occur**. 
+Introduced in React 18, **`useInsertionEffect`** executes **before any DOM mutations occur**.
 
 It is designed exclusively for CSS-in-JS library authors (such as styled-components or Emotion) to inject `<style>` tags or CSS rules into the document `<head>` before the layout is computed, avoiding recalculating styles during layout measurement:
 

@@ -1,6 +1,6 @@
 # Module 13: Enterprise Database Connectivity — PostgreSQL & MongoDB
 
-**Track:** Node.js — Enterprise Architecture & Libuv Internals  
+**Track:** Node.js — Enterprise Architecture & Libuv Internals
 **Category:** Data Persistence, Connection Pooling & ACID Transactions
 
 ---

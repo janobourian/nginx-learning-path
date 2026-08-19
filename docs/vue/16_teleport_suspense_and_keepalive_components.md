@@ -1,6 +1,6 @@
 # Module 16: Built-in Special Components — `Teleport`, `Suspense` & `KeepAlive`
 
-**Track:** Vue — Progressive Web Framework  
+**Track:** Vue — Progressive Web Framework
 **Category:** Component Architecture & Rendering Pipelines
 
 ---
@@ -21,6 +21,7 @@ Vue 3 ships with several high-performance, compiler-aware built-in components th
 ### Why Teleport Is Necessary
 
 In CSS, positioning a modal or popover inside a deeply nested component can fail if any ancestor element has:
+
 - `overflow: hidden` (clips the modal content)
 - `transform`, `perspective`, or `filter` (creates a new stacking context, breaking `position: fixed`)
 - `z-index` layering constraints

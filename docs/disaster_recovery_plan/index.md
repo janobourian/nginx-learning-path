@@ -9,7 +9,7 @@ The goal is to provide a single reference that any team can follow to achieve re
 ## Key Definitions
 
 | Term | Definition |
-|------|------------|
+| ------ | ------------ |
 | RPO (Recovery Point Objective) | Maximum acceptable data loss measured in time |
 | RTO (Recovery Time Objective) | Maximum acceptable downtime |
 | MTTR (Mean Time To Recovery) | Average time to restore service |
@@ -21,13 +21,13 @@ The goal is to provide a single reference that any team can follow to achieve re
 Based on the [AWS whitepaper](https://docs.aws.amazon.com/whitepapers/latest/disaster-recovery-workloads-on-aws/disaster-recovery-options-in-the-cloud.html):
 
 | Strategy | RPO | RTO | Cost | Description |
-|----------|-----|-----|------|-------------|
+| ---------- | ----- | ----- | ------ | ------------- |
 | Backup & Restore | Hours | 24h+ | $ | Periodic backups to DR region, redeploy infra on failover |
 | Pilot Light | Minutes | 10min-hours | $$ | Data continuously replicated, core infra provisioned but off |
 | Warm Standby | Seconds | Minutes | $$$ | Scaled-down but fully functional copy running in DR |
 | Multi-Site Active/Active | Near-zero | Near-zero | $$$$ | Full production in both regions serving traffic |
 
-```
+```text
 Cost vs RTO/RPO Spectrum:
 
 High Cost $$$$  ┌─────────────────┐ Multi-Site Active/Active
@@ -45,7 +45,7 @@ Low Cost   $  ┌┤ │   │           │ Backup & Restore
 ## Region Pair: us-east-1 ↔ us-west-2
 
 | Attribute | Primary | DR/Secondary |
-|-----------|---------|--------------|
+| ----------- | --------- | -------------- |
 | Region | us-east-1 (N. Virginia) | us-west-2 (Oregon) |
 | Availability Zones | 6 AZs | 4 AZs |
 | Distance | ~3,700 km / ~2,300 miles |
@@ -55,7 +55,7 @@ Low Cost   $  ┌┤ │   │           │ Backup & Restore
 ## Services Covered
 
 | Category | Services |
-|----------|----------|
+| ---------- | ---------- |
 | **Compute** | EC2, ECS/Fargate, Lambda |
 | **Database** | RDS, Aurora, DynamoDB, ElastiCache |
 | **Storage** | S3, EBS, EFS |
@@ -68,7 +68,7 @@ Low Cost   $  ┌┤ │   │           │ Backup & Restore
 ## Section Contents
 
 | Document | Description |
-|----------|-------------|
+| ---------- | ------------- |
 | [Implementation Plan](implementation_plan.md) | Per-service DR configuration with architecture diagrams |
 | [Checklist](checklist.md) | Complete pre/during/post DR checklist |
 | [Step by Step](step_by_step.md) | AWS CLI commands to set up DR for each service |
@@ -78,14 +78,14 @@ Low Cost   $  ┌┤ │   │           │ Backup & Restore
 ## Key References
 
 | Resource | URL |
-|----------|-----|
-| AWS DR Whitepaper | https://docs.aws.amazon.com/whitepapers/latest/disaster-recovery-workloads-on-aws/disaster-recovery-options-in-the-cloud.html |
-| AWS Well-Architected Reliability Pillar | https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/welcome.html |
-| AWS Resilience Hub | https://docs.aws.amazon.com/resilience-hub/latest/userguide/what-is.html |
-| AWS Backup | https://docs.aws.amazon.com/aws-backup/latest/devguide/whatisbackup.html |
-| Aurora Global Database | https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-global-database.html |
-| DynamoDB Global Tables | https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/GlobalTables.html |
-| S3 Cross-Region Replication | https://docs.aws.amazon.com/AmazonS3/latest/userguide/replication.html |
-| Route 53 Health Checks | https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-failover.html |
-| AWS Elastic Disaster Recovery | https://docs.aws.amazon.com/drs/latest/userguide/what-is-drs.html |
-| AWS Global Accelerator | https://docs.aws.amazon.com/global-accelerator/latest/dg/what-is-global-accelerator.html |
+| ---------- | ----- |
+| AWS DR Whitepaper | <https://docs.aws.amazon.com/whitepapers/latest/disaster-recovery-workloads-on-aws/disaster-recovery-options-in-the-cloud.html> |
+| AWS Well-Architected Reliability Pillar | <https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/welcome.html> |
+| AWS Resilience Hub | <https://docs.aws.amazon.com/resilience-hub/latest/userguide/what-is.html> |
+| AWS Backup | <https://docs.aws.amazon.com/aws-backup/latest/devguide/whatisbackup.html> |
+| Aurora Global Database | <https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-global-database.html> |
+| DynamoDB Global Tables | <https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/GlobalTables.html> |
+| S3 Cross-Region Replication | <https://docs.aws.amazon.com/AmazonS3/latest/userguide/replication.html> |
+| Route 53 Health Checks | <https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-failover.html> |
+| AWS Elastic Disaster Recovery | <https://docs.aws.amazon.com/drs/latest/userguide/what-is-drs.html> |
+| AWS Global Accelerator | <https://docs.aws.amazon.com/global-accelerator/latest/dg/what-is-global-accelerator.html> |

@@ -1,13 +1,14 @@
 # Enterprise NGINX Performance Optimization, Caching & Kernel Tuning Guide
 
-**Track:** Enterprise NGINX Infrastructure  
-**Category:** High-Throughput Performance Tuning, FastCGI Caching & Linux Kernel Sysctl  
-**Standard Identifier:** `DOC-STD-UNIVERSAL-2026`  
+**Track:** Enterprise NGINX Infrastructure
+**Category:** High-Throughput Performance Tuning, FastCGI Caching & Linux Kernel Sysctl
+**Standard Identifier:** `DOC-STD-UNIVERSAL-2026`
 **Status:** ✅ Completed
 
 ---
 
 ## 📑 Table of Contents
+
 1. [High-Level Overview & Executive Summary](#1-high-level-overview--executive-summary)
 2. [Kernel-Level Sysctl Network & Socket Optimization](#2-kernel-level-sysctl-network--socket-optimization)
 3. [NGINX Core Worker Model & Epoll Tuning](#3-nginx-core-worker-model--epoll-tuning)
@@ -26,6 +27,7 @@
 Maximizing NGINX performance requires harmonizing three distinct layers: the Linux kernel networking subsystem, NGINX's single-threaded event-driven worker architecture, and intelligent proxy/FastCGI caching.
 
 This guide provides the definitive production tuning standard:
+
 1. **Linux Kernel Socket Tuning**: Expanding socket listen backlogs (`somaxconn`), ephemeral port ranges, and TCP window buffers.
 2. **Event-Driven Asynchronous Processing**: Binding worker processes to physical CPU cores via `worker_cpu_affinity` and maximizing `worker_connections`.
 3. **Zero-Copy File Delivery**: Activating `sendfile on;` and `tcp_nopush on;` to transmit static assets directly from kernel Page Cache to network sockets without user-space buffer copies.
@@ -36,7 +38,9 @@ This guide provides the definitive production tuning standard:
 ## 2. Kernel-Level Sysctl Network & Socket Optimization
 
 ```ini
+
 # /etc/sysctl.d/99-nginx-performance.conf
+
 # Maximum socket listen backlog queue size
 net.core.somaxconn = 65535
 
@@ -134,6 +138,7 @@ http {
 ## 6. Step-by-Step Production Lab: High-Performance Caching Gateway
 
 ```nginx
+
 # /etc/nginx/conf.d/high_performance.conf
 worker_processes auto;
 
@@ -179,16 +184,19 @@ http {
 ## 7. Pure CLI / Command Interface
 
 ### 1. Apply Performance Sysctl Tunings
+
 ```bash
 sudo sysctl -p /etc/sysctl.d/99-nginx-performance.conf 2>/dev/null || true
 ```
 
 ### 2. Validate NGINX Performance Configuration Syntax
+
 ```bash
 nginx -t 2>/dev/null || true
 ```
 
 ### 3. Check File Descriptor Limits of Running Worker Process
+
 ```bash
 cat /proc/$(pgrep -f "nginx: worker" | head -n 1)/limits 2>/dev/null | grep -i "open files" || true
 ```
@@ -197,7 +205,7 @@ cat /proc/$(pgrep -f "nginx: worker" | head -n 1)/limits 2>/dev/null | grep -i "
 
 ## 8. Advanced Architecture & Edge-Case Failure Modes
 
-```
+```text
 ┌────────────────────────────────────────────────────────────────────────────────┐
 │                    PERFORMANCE FAILURE RECOVERY MATRIX                         │
 ├──────────────────────┬────────────────────────┬────────────────────────────────┤
@@ -216,6 +224,7 @@ cat /proc/$(pgrep -f "nginx: worker" | head -n 1)/limits 2>/dev/null | grep -i "
 ## 9. References (The 5+5 Rule)
 
 ### Official Documentation & Performance Specifications
+
 1. [NGINX Performance Tuning Admin Guide](https://docs.nginx.com/nginx/admin-guide/web-server/tuning-performance/)
 2. [NGINX Optimization for High-Concurrency Web Workloads](https://www.nginx.com/blog/tuning-nginx/)
 3. [Linux Kernel Networking Documentation: ip-sysctl](https://docs.kernel.org/networking/ip-sysctl.html)
@@ -223,17 +232,18 @@ cat /proc/$(pgrep -f "nginx: worker" | head -n 1)/limits 2>/dev/null | grep -i "
 5. [RFC 7234: Hypertext Transfer Protocol (HTTP/1.1) - Caching](https://datatracker.ietf.org/doc/html/rfc7234)
 
 ### Authoritative Engineering Textbooks & Systems Deep Dives
-6. [Brendan Gregg: Systems Performance: Enterprise and the Cloud](https://www.brendangregg.com/)
-7. [Clement Nedelcu: Mastering NGINX (Chapter 9: Performance Tuning)](https://www.packtpub.com/)
-8. [Cloudflare Engineering: How We Tuned NGINX for 10M Concurrent Connections](https://blog.cloudflare.com/)
-9. [Datadog Engineering: Tracking High Context-Switch Rates and Worker Throttling](https://www.datadoghq.com/blog/)
-10. [High-Performance Linux Systems: Zero-Copy sendfile Architecture](https://www.kernel.org/)
+
+1. [Brendan Gregg: Systems Performance: Enterprise and the Cloud](https://www.brendangregg.com/)
+2. [Clement Nedelcu: Mastering NGINX (Chapter 9: Performance Tuning)](https://www.packtpub.com/)
+3. [Cloudflare Engineering: How We Tuned NGINX for 10M Concurrent Connections](https://blog.cloudflare.com/)
+4. [Datadog Engineering: Tracking High Context-Switch Rates and Worker Throttling](https://www.datadoghq.com/blog/)
+5. [High-Performance Linux Systems: Zero-Copy sendfile Architecture](https://www.kernel.org/)
 
 ---
 
 ## 10. Universal FinOps & Hardware Cost Governance
 
-```
+```text
 ┌────────────────────────────────────────────────────────────────────────────────┐
 │                       PERFORMANCE FINOPS SAVINGS MATRIX                        │
 ├──────────────────────────┬──────────────────────────┬──────────────────────────┤

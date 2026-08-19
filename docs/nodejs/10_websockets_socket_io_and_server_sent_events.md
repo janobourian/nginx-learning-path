@@ -1,6 +1,6 @@
 # Module 10: Real-Time WebSockets, Socket.IO & Server-Sent Events (SSE)
 
-**Track:** Node.js — Enterprise Architecture & Libuv Internals  
+**Track:** Node.js — Enterprise Architecture & Libuv Internals
 **Category:** Real-Time Protocols, WebSockets & Server-Sent Events
 
 ---
@@ -98,7 +98,7 @@ When scaling across 10 Kubernetes Pods, a client connected to Pod A cannot send 
 
 Use **Redis Pub/Sub** as a global message bus:
 
-```
+```text
 Horizontal WebSocket Scaling with Redis:
 [Client 1] ──► [Node.js Pod A] ──► [Redis Channel: "chat:global"]
                                             │

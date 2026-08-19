@@ -15,26 +15,26 @@ Este documento contiene las preguntas que cada equipo debe responder antes de in
 - [ ] Para cada base de datos, proporcionar:
 
 | Atributo | Respuesta |
-|----------|-----------|
-| Nombre de la base de datos | |
-| Motor y versión exacta (ej. SQL Server 2019 Enterprise SP2) | |
-| Tamaño total (datos + índices + logs) en GB/TB | |
-| Número de esquemas | |
-| Número de tablas | |
-| Número de vistas | |
-| Número de stored procedures | |
-| Número de funciones | |
-| Número de triggers | |
-| Número de jobs programados (SQL Agent, cron, etc.) | |
-| Collation / Character Set | |
-| ¿Usa encriptación TDE (Transparent Data Encryption)? | |
-| ¿Usa encriptación a nivel de columna? | |
-| ¿Tiene tablas con columnas LOB (TEXT, IMAGE, BLOB, CLOB)? ¿Cuántas? | |
-| Tamaño promedio y máximo de los LOBs | |
-| ¿Tiene tablas sin llave primaria? ¿Cuáles? | |
-| ¿Usa linked servers o cross-database queries? ¿A dónde apuntan? | |
-| ¿Tiene replicación configurada (Always On, Log Shipping, etc.)? | |
-| ¿Usa particionamiento de tablas? ¿En cuáles tablas? | |
+| ---------- | ----------- |
+| Nombre de la base de datos |
+| Motor y versión exacta (ej. SQL Server 2019 Enterprise SP2) |
+| Tamaño total (datos + índices + logs) en GB/TB |
+| Número de esquemas |
+| Número de tablas |
+| Número de vistas |
+| Número de stored procedures |
+| Número de funciones |
+| Número de triggers |
+| Número de jobs programados (SQL Agent, cron, etc.) |
+| Collation / Character Set |
+| ¿Usa encriptación TDE (Transparent Data Encryption)? |
+| ¿Usa encriptación a nivel de columna? |
+| ¿Tiene tablas con columnas LOB (TEXT, IMAGE, BLOB, CLOB)? ¿Cuántas? |
+| Tamaño promedio y máximo de los LOBs |
+| ¿Tiene tablas sin llave primaria? ¿Cuáles? |
+| ¿Usa linked servers o cross-database queries? ¿A dónde apuntan? |
+| ¿Tiene replicación configurada (Always On, Log Shipping, etc.)? |
+| ¿Usa particionamiento de tablas? ¿En cuáles tablas? |
 
 ### Rendimiento y Carga
 
@@ -76,27 +76,27 @@ Este documento contiene las preguntas que cada equipo debe responder antes de in
 - [ ] Para cada aplicación:
 
 | Atributo | Respuesta |
-|----------|-----------|
-| Nombre de la aplicación | |
-| Lenguaje de programación / Framework | |
-| ¿Es aplicación web, API, servicio, batch, desktop? | |
-| ¿Dónde está desplegada actualmente? (on-premises, EC2, ECS, Lambda) | |
-| ¿Usa connection pooling? ¿Qué librería? | |
-| ¿El connection string está hardcodeado o en configuración? | |
-| ¿Usa un ORM? ¿Cuál? (Entity Framework, Hibernate, SQLAlchemy, etc.) | |
-| ¿Tiene queries SQL nativas (raw SQL) además del ORM? | |
-| ¿Usa features específicos del motor? (ej. T-SQL, PL/SQL, extensiones) | |
-| ¿Tiene pruebas automatizadas? ¿Qué porcentaje de cobertura? | |
-| ¿Tiene pipeline de CI/CD? ¿Qué herramienta? | |
+| ---------- | ----------- |
+| Nombre de la aplicación |
+| Lenguaje de programación / Framework |
+| ¿Es aplicación web, API, servicio, batch, desktop? |
+| ¿Dónde está desplegada actualmente? (on-premises, EC2, ECS, Lambda) |
+| ¿Usa connection pooling? ¿Qué librería? |
+| ¿El connection string está hardcodeado o en configuración? |
+| ¿Usa un ORM? ¿Cuál? (Entity Framework, Hibernate, SQLAlchemy, etc.) |
+| ¿Tiene queries SQL nativas (raw SQL) además del ORM? |
+| ¿Usa features específicos del motor? (ej. T-SQL, PL/SQL, extensiones) |
+| ¿Tiene pruebas automatizadas? ¿Qué porcentaje de cobertura? |
+| ¿Tiene pipeline de CI/CD? ¿Qué herramienta? |
 
 ### Compatibilidad
 
 - [ ] Si la migración es heterogénea (ej. SQL Server → PostgreSQL):
-    - [ ] ¿La aplicación usa sintaxis SQL específica del motor actual? (ej. `TOP`, `NOLOCK`, `@@IDENTITY`, `GETDATE()`)
-    - [ ] ¿Usa tipos de datos específicos del motor? (ej. `UNIQUEIDENTIFIER`, `HIERARCHYID`, `SQL_VARIANT`)
-    - [ ] ¿Usa stored procedures con lógica de negocio compleja?
-    - [ ] ¿Cuánto esfuerzo estiman para adaptar el código de la aplicación?
-    - [ ] ¿Tienen capacidad para hacer pruebas de regresión completas?
+  - [ ] ¿La aplicación usa sintaxis SQL específica del motor actual? (ej. `TOP`, `NOLOCK`, `@@IDENTITY`, `GETDATE()`)
+  - [ ] ¿Usa tipos de datos específicos del motor? (ej. `UNIQUEIDENTIFIER`, `HIERARCHYID`, `SQL_VARIANT`)
+  - [ ] ¿Usa stored procedures con lógica de negocio compleja?
+  - [ ] ¿Cuánto esfuerzo estiman para adaptar el código de la aplicación?
+  - [ ] ¿Tienen capacidad para hacer pruebas de regresión completas?
 
 ### Manejo de Errores y Resiliencia
 
@@ -122,13 +122,13 @@ Este documento contiene las preguntas que cada equipo debe responder antes de in
 - [ ] ¿Cuáles son las especificaciones del servidor de base de datos actual?
 
 | Atributo | Respuesta |
-|----------|-----------|
-| CPU (cores/vCPUs) | |
-| Memoria RAM (GB) | |
-| Almacenamiento (tipo, tamaño, IOPS) | |
-| Sistema operativo y versión | |
-| ¿Es servidor físico o virtual? | |
-| ¿Está en un clúster? ¿Qué tipo? | |
+| ---------- | ----------- |
+| CPU (cores/vCPUs) |
+| Memoria RAM (GB) |
+| Almacenamiento (tipo, tamaño, IOPS) |
+| Sistema operativo y versión |
+| ¿Es servidor físico o virtual? |
+| ¿Está en un clúster? ¿Qué tipo? |
 
 - [ ] ¿Cuál es la utilización promedio de CPU, memoria y disco?
 - [ ] ¿Cuál es la utilización pico de CPU, memoria y disco?
@@ -315,12 +315,12 @@ Este documento contiene las preguntas que cada equipo debe responder antes de in
 5. Las respuestas alimentarán directamente el plan de implementación de la migración
 
 | Equipo | Responsable | Fecha de entrega | Estado |
-|--------|-------------|-------------------|--------|
-| Base de Datos | | | Pendiente |
-| Desarrollo | | | Pendiente |
-| Infraestructura | | | Pendiente |
-| Ciberseguridad | | | Pendiente |
-| Gestión | | | Pendiente |
-| QA / Pruebas | | | Pendiente |
-| Operaciones / SRE | | | Pendiente |
-| Arquitectura | | | Pendiente |
+| -------- | ------------- | ------------------- | -------- |
+| Base de Datos | | Pendiente |
+| Desarrollo | | Pendiente |
+| Infraestructura | | Pendiente |
+| Ciberseguridad | | Pendiente |
+| Gestión | | Pendiente |
+| QA / Pruebas | | Pendiente |
+| Operaciones / SRE | | Pendiente |
+| Arquitectura | | Pendiente |

@@ -1,6 +1,6 @@
 # Module 04: Inheritance, Abstract Classes & Dart 3 Class Modifiers
 
-**Track:** Dart — Language & VM Architecture  
+**Track:** Dart — Language & VM Architecture
 **Category:** OOP Architecture, Implicit Interfaces & Class Modifiers
 
 ---
@@ -80,7 +80,7 @@ class MockUserRepository implements UserRepository {
 
 Dart 3 introduced a comprehensive set of **Class Modifiers** that allow library authors to strictly control whether classes can be extended, implemented, constructed, or mixed in:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                       Dart 3 Class Modifiers                            │
 ├────────────────────┬──────────┬────────────┬─────────────┬──────────────┤
@@ -180,6 +180,7 @@ class OrderService {
 ## Troubleshooting & Best Practices
 
 1. **`extends` vs `implements`**
+
    - Use **`extends`** when you want to reuse code, fields, and constructors from the superclass.
    - Use **`implements`** when you want to fulfill a type contract without inheriting any implementation code.
 

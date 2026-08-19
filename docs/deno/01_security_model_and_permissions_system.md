@@ -1,6 +1,6 @@
 # Module 01: Security Model & Permissions System
 
-**Track:** Deno Secure Engine & Edge Runtime  
+**Track:** Deno Secure Engine & Edge Runtime
 **Category:** Runtime Security & Access Control
 
 ---
@@ -14,6 +14,7 @@ Deno reverses this default. **Every Deno process runs in a sandbox with zero cap
 This is not a feature you opt into — it is the only mode Deno operates in.
 
 ```bash
+
 # This will fail — no network permission
 deno run main.ts
 
@@ -36,6 +37,7 @@ deno run --allow-net --allow-read main.ts
 Controls network access: TCP connections, HTTP requests, WebSocket connections. You can restrict it to specific hostnames and ports.
 
 ```bash
+
 # Allow all network access
 deno run --allow-net main.ts
 
@@ -59,6 +61,7 @@ const response = await fetch("https://other.com/data");
 Controls filesystem read access. Without this, `Deno.readTextFile()`, `Deno.open()`, and similar APIs fail.
 
 ```bash
+
 # Allow reading any file
 deno run --allow-read main.ts
 
@@ -74,6 +77,7 @@ deno run --allow-read=./config.json main.ts
 Controls filesystem write access. Without this, `Deno.writeTextFile()`, `Deno.create()`, etc. fail.
 
 ```bash
+
 # Allow writing to a specific directory only
 deno run --allow-write=/tmp/uploads main.ts
 
@@ -86,6 +90,7 @@ deno run --allow-write main.ts
 Controls access to environment variables. Without this, `Deno.env.get()` returns `undefined` and `Deno.env.set()` fails.
 
 ```bash
+
 # Allow reading all environment variables
 deno run --allow-env main.ts
 
@@ -104,6 +109,7 @@ const secret = Deno.env.get("SECRET_KEY");   // returns undefined (not permitted
 Controls subprocess creation via `Deno.Command`. This is one of the most dangerous permissions — a subprocess inherits the parent's permissions.
 
 ```bash
+
 # Allow running specific commands only
 deno run --allow-run=git,ls main.ts
 
@@ -132,6 +138,7 @@ deno run --allow-hrtime main.ts
 Grants all permissions. **Use only in development or trusted scripts.** Never use `-A` in production.
 
 ```bash
+
 # Development convenience — disables the sandbox completely
 deno run -A main.ts
 ```
@@ -162,6 +169,7 @@ if (status.state === "granted") {
 ```
 
 Permission states:
+
 - `"granted"` — explicitly allowed via flag
 - `"denied"` — explicitly denied via `--deny-*` flag
 - `"prompt"` — not yet decided; Deno will ask the user interactively
@@ -172,7 +180,7 @@ Permission states:
 
 When you run Deno without permission flags and the code requests a permission, Deno prompts the user:
 
-```
+```text
 ⚠️  ┌ Deno requests read access to "/etc/hosts".
    ├ Requested by `Deno.readTextFile()` API
    ├ Run again with --allow-read to bypass this prompt.
@@ -188,11 +196,13 @@ This prompt behavior is for development. In production (running without a termin
 You can grant broad permissions then revoke specific ones:
 
 ```bash
+
 # Allow all reads except the /etc directory
 deno run --allow-read --deny-read=/etc main.ts
 
 # Allow all network but block connections to internal metadata endpoint
 deno run --allow-net --deny-net=169.254.169.254 main.ts
+
 # (169.254.169.254 is the AWS/GCP instance metadata service)
 ```
 
@@ -315,7 +325,7 @@ Running `deno task dev` automatically applies the flags specified in the task st
 ## Security Comparison: Deno vs Node.js vs Bun
 
 | Scenario | Node.js | Deno | Bun |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Read `/etc/passwd` by default | ✅ Allowed | ❌ PermissionDenied | ✅ Allowed |
 | Make network requests by default | ✅ Allowed | ❌ PermissionDenied | ✅ Allowed |
 | Read `process.env` by default | ✅ All vars | ❌ Must grant `--allow-env` | ✅ All vars |
@@ -328,18 +338,18 @@ The practical implication: when you run `deno run untrusted-script.ts` without f
 
 ## Troubleshooting Permission Errors
 
-**`PermissionDenied: Requires read access to "./config.json"`**
+### `PermissionDenied: Requires read access to "./config.json"`
 
 Add `--allow-read=./config.json` (or a parent directory) to your run command.
 
-**`PermissionDenied: Requires net access to "api.github.com:443"`**
+### `PermissionDenied: Requires net access to "api.github.com:443"`
 
 Add `--allow-net=api.github.com` to your run command. If you want to allow all HTTPS, use `--allow-net`.
 
-**Script works in development but fails in production with permission errors**
+### Script works in development but fails in production with permission errors
 
 Development typically uses `-A` for convenience. In production, enumerate exactly which permissions your script needs. Run with `-A` once, collect all permission-related errors from the application logs, then convert them to specific `--allow-*` flags.
 
-**`error: "--allow-net" flag requires a value`**
+### `error: "--allow-net" flag requires a value`
 
 This error occurs in some shells if the flag value is empty. Ensure you are not passing an empty string: `--allow-net=` (empty). Omit the `=` entirely for global grant: `--allow-net`.

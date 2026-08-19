@@ -1,6 +1,6 @@
 # Module 01: Primitive Types, Interfaces, Type Aliases & Top/Bottom Types
 
-**Track:** TypeScript — Enterprise Type System  
+**Track:** TypeScript — Enterprise Type System
 **Category:** Type System Fundamentals & Type Theory
 
 ---
@@ -9,7 +9,7 @@
 
 In type theory, types represent sets of possible values. TypeScript's type system forms a mathematical lattice bounded by **Top Types** (sets containing all possible values) and **Bottom Types** (the empty set containing no values).
 
-```
+```text
                      ┌────────────────────────┐
                      │      unknown / any     │  ◄── TOP TYPES (All possible values)
                      └───────────┬────────────┘
@@ -120,6 +120,7 @@ function logSystemEvent(event: string): void {
 ### 4. `never` (The Bottom Type & Exhaustiveness Checking)
 
 `never` represents the type of values that **never occur**:
+
 - A function that throws an error and never returns.
 - A function with an infinite event loop.
 - The resulting type when all members of a union have been narrowed away.

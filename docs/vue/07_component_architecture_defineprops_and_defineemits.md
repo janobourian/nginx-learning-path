@@ -1,6 +1,6 @@
 # Module 07: Component Architecture — `defineProps`, `defineEmits` & Patterns
 
-**Track:** Vue — Progressive Web Framework  
+**Track:** Vue — Progressive Web Framework
 **Category:** Component Communication & Design Patterns
 
 ---
@@ -9,7 +9,7 @@
 
 Vue uses a **unidirectional data flow**: data flows down from parent to child via props, and events flow up from child to parent via emits. This makes component relationships explicit and traceable.
 
-```
+```text
 Parent Component
   │
   │   Props (data flows down)
@@ -357,14 +357,14 @@ function goTo(page: number) {
 
 ## Troubleshooting
 
-**"Missing required prop" warning even though the prop is passed**
+### "Missing required prop" warning even though the prop is passed
 
 The prop name in the parent must be kebab-case (`my-prop`) when the child defines it in camelCase (`myProp`). Vue automatically converts these. But if you pass `:myProp="value"` (camelCase attribute) in the template, Vue does NOT auto-convert — use `:my-prop="value"` or `:myProp` in JSX.
 
-**`defineExpose` method shows as undefined in parent's template ref**
+### `defineExpose` method shows as undefined in parent's template ref
 
 The parent's `ref` is populated only after the child mounts. Access `childRef.value?.method()` inside `onMounted()` or later lifecycle hooks, not at the top level of `<script setup>`.
 
-**TypeScript error: "Property 'x' does not exist on type '{}'"**
+### TypeScript error: "Property 'x' does not exist on type '{}'"
 
 The `defineEmits` payload type may be wrong. For `emit("change", value)` where value is a string, define: `defineEmits<{ change: [value: string] }>()`. The array syntax `[value: string]` represents the tuple of arguments after the event name.

@@ -1,6 +1,6 @@
 # Module 16: Automated Testing — `node:test`, Integration Testing & Load Testing with `autocannon`
 
-**Track:** Node.js — Enterprise Architecture & Libuv Internals  
+**Track:** Node.js — Enterprise Architecture & Libuv Internals
 **Category:** Testing Architecture, Test Runners & Load Benchmarking
 
 ---
@@ -10,13 +10,14 @@
 Starting with Node.js 18 LTS and stabilized in Node.js 20+, Node.js includes a blazing-fast **Native Test Runner** that eliminates the need for heavy external frameworks like Jest or Mocha:
 
 ```bash
-# Run all tests in the project natively:
+
+# Run all tests in the project natively
 node --test
 
-# Run tests with code coverage report:
+# Run tests with code coverage report
 node --test --experimental-test-coverage
 
-# Watch mode for rapid TDD:
+# Watch mode for rapid TDD
 node --test --watch
 ```
 
@@ -150,10 +151,11 @@ Before deploying to production, measure your API's throughput (Requests/sec) and
 npm install -g autocannon
 ```
 
-### 1. Running a High-Concurrency Benchmark:
+### 1. Running a High-Concurrency Benchmark
 
 ```bash
-# Benchmark with 100 concurrent connections over 10 seconds:
+
+# Benchmark with 100 concurrent connections over 10 seconds
 autocannon -c 100 -d 10 -p 10 http://localhost:3000/api/v1/users/u_101
 ```
 

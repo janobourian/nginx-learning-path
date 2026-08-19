@@ -1,6 +1,6 @@
 # Module 15: Custom Directives & Render Functions (`h()`)
 
-**Track:** Vue — Progressive Web Framework  
+**Track:** Vue — Progressive Web Framework
 **Category:** Low-Level DOM Manipulation & Virtual DOM
 
 ---
@@ -10,6 +10,7 @@
 In Vue 3, the Composition API is the preferred choice for 95% of stateful logic and browser integrations. However, **Custom Directives** remain essential when you need **direct, reusable, low-level DOM access and element lifecycle control** that cannot be cleanly modeled with templates or props alone.
 
 Common use cases for custom directives:
+
 - **`v-click-outside`**: Detecting clicks outside a dropdown, dialog, or popover menu.
 - **`v-tooltip`**: Attaching dynamic floating tooltips without extra wrapper elements.
 - **`v-focus`**: Auto-focusing inputs upon mounting or state transition.
@@ -22,7 +23,7 @@ Common use cases for custom directives:
 
 A directive is defined as an object containing lifecycle hooks that mirror component lifecycles:
 
-```
+```text
 Directive Hook Lifecycle:
 1. `created(el, binding, vnode, prevVnode)` ── Called before element attributes or event listeners are applied.
 2. `beforeMount(el, binding, vnode, prevVnode)` ── Called when element is inserted into DOM, before parent is mounted.
@@ -36,6 +37,7 @@ Directive Hook Lifecycle:
 ### Directive Arguments & Modifiers Anatomy
 
 When you write `<div v-example:arg.mod1.mod2="value">`:
+
 - `binding.value`: The evaluated JavaScript expression (`value`).
 - `binding.oldValue`: Previous value (only available in `beforeUpdate` and `updated`).
 - `binding.arg`: The argument passed to the directive (e.g. `'arg'`).
@@ -162,6 +164,7 @@ function closeDropdown() {
 Templates are compiled into **render functions** that return Virtual DOM nodes (VNodes). While templates are declarative and readable, writing render functions directly using `h()` gives you 100% programmatic control over rendering.
 
 Use `h()` when:
+
 1. Creating dynamic wrappers or higher-order components.
 2. Rendering recursive tree structures (like nested file trees or JSON explorers).
 3. Writing headless UI libraries or polymorphic design system components.

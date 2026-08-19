@@ -10,7 +10,7 @@ Regular DR testing is essential. Per the [AWS Well-Architected Reliability Pilla
 ## Testing Strategy Overview
 
 | Test Type | Frequency | Scope | Risk | Duration |
-|-----------|-----------|-------|------|----------|
+| ----------- | ----------- | ------- | ------ | ---------- |
 | **Tabletop Exercise** | Monthly | Discussion-based walkthrough | None | 1–2 hours |
 | **Component Test** | Monthly | Individual service failover | Low | 1–4 hours |
 | **Partial Failover** | Quarterly | Subset of services to DR | Medium | 4–8 hours |
@@ -53,6 +53,7 @@ Test each service's DR capability individually.
 ### Aurora Global Database Failover
 
 ```bash
+
 # Check current global cluster status
 aws rds describe-global-clusters \
     --global-cluster-identifier my-global-cluster \
@@ -73,9 +74,10 @@ watch -n 5 "aws rds describe-global-clusters \
     --query 'GlobalClusters[0].Status'"
 ```
 
-**Validation after failover:**
+### Validation after failover
 
 ```bash
+
 # Verify us-west-2 is now the writer
 aws rds describe-global-clusters \
     --global-cluster-identifier my-global-cluster \
@@ -90,10 +92,10 @@ psql -h my-cluster.cluster-ro-xxxx.us-east-1.rds.amazonaws.com \
      -U dbadmin -d mydb -c "SELECT * FROM dr_test ORDER BY test_time DESC LIMIT 1;"
 ```
 
-**Expected results:**
+### Expected results
 
 | Metric | Target | Actual |
-|--------|--------|--------|
+| -------- | -------- | -------- |
 | Failover time | < 1 minute | ___ |
 | Data loss (RPO) | < 1 second | ___ |
 | Write availability after failover | Immediate | ___ |
@@ -101,6 +103,7 @@ psql -h my-cluster.cluster-ro-xxxx.us-east-1.rds.amazonaws.com \
 ### DynamoDB Global Tables
 
 ```bash
+
 # Write to us-east-1
 aws dynamodb put-item --region us-east-1 \
     --table-name my-global-table \
@@ -117,6 +120,7 @@ aws dynamodb get-item --region us-west-2 \
 ### S3 Cross-Region Replication
 
 ```bash
+
 # Upload test object to source bucket
 aws s3 cp test-dr-file.txt s3://my-primary-bucket/dr-test/ --region us-east-1
 
@@ -125,6 +129,7 @@ aws s3api head-object \
     --bucket my-primary-bucket \
     --key dr-test/test-dr-file.txt \
     --query "ReplicationStatus"
+
 # Expected: "COMPLETED"
 
 # Verify object exists in DR bucket
@@ -137,13 +142,16 @@ aws s3api head-object \
 ### Route 53 Failover
 
 ```bash
+
 # Check health check status
 aws route53 get-health-check-status \
     --health-check-id <health-check-id> \
     --query "HealthCheckObservations[].StatusReport.Status"
 
 # Simulate failure: temporarily make primary unhealthy
+
 # Option 1: Stop the primary ALB target group instances
+
 # Option 2: Use Route 53 ARC to manually switch
 
 # Using ARC routing control (data plane operation)
@@ -154,12 +162,14 @@ aws route53-recovery-cluster update-routing-control-state \
 
 # Verify DNS resolves to DR region
 dig +short myapp.example.com
+
 # Should return us-west-2 ALB IP
 ```
 
 ### ElastiCache Global Datastore
 
 ```bash
+
 # Check replication status
 aws elasticache describe-global-replication-groups \
     --global-replication-group-id my-global-redis \
@@ -180,6 +190,7 @@ aws elasticache failover-global-replication-group \
 ### EFS Replication
 
 ```bash
+
 # Check replication status
 aws efs describe-replication-configurations \
     --file-system-id fs-primary-xxxx \
@@ -208,21 +219,22 @@ aws efs describe-replication-configurations \
 ### Failover Execution Checklist
 
 | Step | Action | Owner | Expected Time | Actual Time | Status |
-|------|--------|-------|---------------|-------------|--------|
-| 1 | Announce failover test start | IC | 0 min | | |
-| 2 | Failover Aurora Global Database | DB Lead | < 1 min | | |
-| 3 | Verify Aurora writer in us-west-2 | DB Lead | 1 min | | |
-| 4 | Scale up EC2/ECS in us-west-2 | App Lead | 5 min | | |
-| 5 | Switch Route 53 / ARC to DR | Net Lead | 1 min | | |
-| 6 | Verify DNS resolves to us-west-2 | Net Lead | 2 min | | |
-| 7 | Run application smoke tests | App Lead | 5 min | | |
-| 8 | Verify data integrity | DB Lead | 10 min | | |
-| 9 | Monitor for 30 minutes | All | 30 min | | |
-| 10 | Announce failover test complete | IC | 0 min | | |
+| ------ | -------- | ------- | --------------- | ------------- | -------- |
+| 1 | Announce failover test start | IC | 0 min | |
+| 2 | Failover Aurora Global Database | DB Lead | < 1 min | |
+| 3 | Verify Aurora writer in us-west-2 | DB Lead | 1 min | |
+| 4 | Scale up EC2/ECS in us-west-2 | App Lead | 5 min | |
+| 5 | Switch Route 53 / ARC to DR | Net Lead | 1 min | |
+| 6 | Verify DNS resolves to us-west-2 | Net Lead | 2 min | |
+| 7 | Run application smoke tests | App Lead | 5 min | |
+| 8 | Verify data integrity | DB Lead | 10 min | |
+| 9 | Monitor for 30 minutes | All | 30 min | |
+| 10 | Announce failover test complete | IC | 0 min | |
 
 ### Validation During Full Failover
 
 ```bash
+
 # Verify all services are healthy in us-west-2
 
 # 1. Aurora - can write
@@ -243,20 +255,21 @@ curl -s https://myapp.example.com/api/v1/status | jq .
 
 # 5. Check which region is serving traffic
 curl -s https://myapp.example.com/api/v1/region
+
 # Expected: us-west-2
 ```
 
 ### Metrics to Record
 
 | Metric | Target | Actual | Pass/Fail |
-|--------|--------|--------|-----------|
-| Total failover time (RTO) | < ___ min | ___ min | |
-| Data loss (RPO) | < ___ sec | ___ sec | |
-| Aurora failover time | < 1 min | ___ | |
-| DNS propagation time | < 60 sec | ___ | |
-| Application availability after failover | 100% | ___ | |
-| Error rate during failover | < 1% | ___ | |
-| Compute scale-up time | < 5 min | ___ | |
+| -------- | -------- | -------- | ----------- |
+| Total failover time (RTO) | < ___ min | ___ min |
+| Data loss (RPO) | < ___ sec | ___ sec |
+| Aurora failover time | < 1 min | ___ |
+| DNS propagation time | < 60 sec | ___ |
+| Application availability after failover | 100% | ___ |
+| Error rate during failover | < 1% | ___ |
+| Compute scale-up time | < 5 min | ___ |
 
 ---
 
@@ -304,7 +317,7 @@ Use [AWS Fault Injection Service (FIS)](https://docs.aws.amazon.com/fis/latest/u
 
 ### Example FIS Experiments
 
-**Terminate EC2 instances in primary region:**
+### Terminate EC2 instances in primary region
 
 ```json
 {
@@ -332,7 +345,7 @@ Use [AWS Fault Injection Service (FIS)](https://docs.aws.amazon.com/fis/latest/u
 }
 ```
 
-**Inject Aurora cluster failover:**
+### Inject Aurora cluster failover
 
 ```json
 {
@@ -373,6 +386,7 @@ Use [AWS Fault Injection Service (FIS)](https://docs.aws.amazon.com/fis/latest/u
 [AWS Resilience Hub](https://docs.aws.amazon.com/resilience-hub/latest/userguide/what-is.html) continuously validates and tracks the resilience of your workloads.
 
 ```bash
+
 # Create an application in Resilience Hub
 aws resiliencehub create-app \
     --name my-application \
@@ -411,27 +425,30 @@ Resilience Hub will identify gaps between your target RTO/RPO and your actual ar
 After each DR test, document results:
 
 ```markdown
+
 # DR Test Report — [Date]
 
 ## Test Type: [Tabletop / Component / Partial / Full Failover]
+
 ## Participants: [Names and roles]
+
 ## Scenario: [Description of simulated disaster]
 
 ## Timeline
 | Time | Event | Notes |
 |------|-------|-------|
-| HH:MM | Test started | |
-| HH:MM | Failover initiated | |
-| HH:MM | Services available in DR | |
-| HH:MM | Validation complete | |
-| HH:MM | Failback initiated | |
-| HH:MM | Test complete | |
+| HH:MM | Test started |
+| HH:MM | Failover initiated |
+| HH:MM | Services available in DR |
+| HH:MM | Validation complete |
+| HH:MM | Failback initiated |
+| HH:MM | Test complete |
 
 ## Results
 | Metric | Target | Actual | Pass/Fail |
 |--------|--------|--------|-----------|
-| RTO | | | |
-| RPO | | | |
+| RTO | |
+| RPO | |
 
 ## Issues Found
 1. [Issue description] — [Severity] — [Owner] — [Due date]

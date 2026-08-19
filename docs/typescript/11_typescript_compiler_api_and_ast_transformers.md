@@ -1,6 +1,6 @@
 # Module 11: TypeScript Compiler API & AST Transformers
 
-**Track:** TypeScript — Enterprise Type System  
+**Track:** TypeScript — Enterprise Type System
 **Category:** Compiler Internals, Static Analysis & Codegen
 
 ---
@@ -10,6 +10,7 @@
 The `typescript` npm package is not just a command-line binary (`tsc`); it exports a comprehensive JavaScript/TypeScript library containing the **entire TypeScript compiler frontend and type checker**.
 
 By using the **Compiler API** (`import ts from "typescript"`), you can:
+
 1. **Inspect and Query ASTs**: Parse any TypeScript code and analyze its structure.
 2. **Execute Semantic Type Checking**: Query types, find references, and validate assignments programmatically.
 3. **Write Custom AST Transformers**: Modify code during compilation (e.g., stripping `console.log`, injecting telemetry, compiling custom DSLs).
@@ -20,11 +21,12 @@ By using the **Compiler API** (`import ts from "typescript"`), you can:
 ## 2. The Abstract Syntax Tree (AST) & `SyntaxKind`
 
 Every element in a TypeScript program is represented as a node in an **Abstract Syntax Tree (AST)**. Each node has:
+
 - A `kind` property (`ts.SyntaxKind` enum, e.g., `ts.SyntaxKind.FunctionDeclaration`, `ts.SyntaxKind.Identifier`, `ts.SyntaxKind.StringLiteral`).
 - References to its child nodes (`node.getChildren()`, `ts.forEachChild`).
 - Source code position offsets (`node.pos`, `node.end`).
 
-```
+```text
 Source Code: const total = price * 1.08;
 
 AST Representation:
@@ -101,7 +103,7 @@ ts.forEachChild(sourceFile, (node) => {
     const symbol = typeChecker.getSymbolAtLocation(node.name);
     if (symbol) {
       console.log(`\nInterface: ${symbol.getName()}`);
-      
+
       const type = typeChecker.getDeclaredTypeOfSymbol(symbol);
       const properties = type.getProperties();
 

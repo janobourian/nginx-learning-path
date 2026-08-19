@@ -1,6 +1,6 @@
 # Module 11: Functional HTTP Interceptors & Resilient Retry Strategies
 
-**Track:** Angular — Signals Platform & Ivy Architecture  
+**Track:** Angular — Signals Platform & Ivy Architecture
 **Category:** Networking Architecture, Functional Interceptors & HTTP Resilience
 
 ---

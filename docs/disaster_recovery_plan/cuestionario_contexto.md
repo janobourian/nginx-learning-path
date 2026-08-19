@@ -15,10 +15,10 @@ Este documento contiene las preguntas que cada equipo debe responder antes de di
 - [ ] Para cada aplicación/servicio crítico:
 
 | Aplicación/Servicio | Impacto si no está disponible 1 hora | Impacto si no está disponible 4 horas | Impacto si no está disponible 24 horas |
-|---------------------|--------------------------------------|----------------------------------------|----------------------------------------|
-| | | | |
-| | | | |
-| | | | |
+| --------------------- | -------------------------------------- | ---------------------------------------- | ---------------------------------------- |
+| | |
+| | |
+| | |
 
 - [ ] ¿Cuál es el costo estimado por hora de inactividad para cada aplicación crítica?
 - [ ] ¿Existen obligaciones contractuales (SLAs) con clientes que definan tiempos de disponibilidad?
@@ -29,10 +29,10 @@ Este documento contiene las preguntas que cada equipo debe responder antes de di
 - [ ] Para cada aplicación/servicio, definir:
 
 | Aplicación | RPO (pérdida de datos máxima) | RTO (tiempo de inactividad máximo) | Tier (1=Crítico, 2=Importante, 3=Normal) |
-|------------|-------------------------------|-------------------------------------|------------------------------------------|
-| | | | |
-| | | | |
-| | | | |
+| ------------ | ------------------------------- | ------------------------------------- | ------------------------------------------ |
+| | |
+| | |
+| | |
 
 - [ ] ¿Estos valores de RPO/RTO están aprobados por la dirección?
 - [ ] ¿Se ha realizado un análisis de impacto al negocio (BIA) formal?
@@ -74,30 +74,30 @@ Este documento contiene las preguntas que cada equipo debe responder antes de di
 - [ ] ¿Cuáles servicios de AWS se usan actualmente en la región primaria (us-east-1)?
 
 | Categoría | Servicio | ¿Se usa? | Detalles (instancias, configuración) |
-|-----------|----------|----------|--------------------------------------|
-| Cómputo | EC2 | | |
-| Cómputo | ECS/Fargate | | |
-| Cómputo | Lambda | | |
-| Cómputo | EKS | | |
-| Base de datos | RDS | | Motor, versión, clase de instancia |
-| Base de datos | Aurora | | Motor, versión, cluster config |
-| Base de datos | DynamoDB | | Tablas, modo de capacidad |
-| Base de datos | ElastiCache | | Motor, tipo de nodo |
-| Almacenamiento | S3 | | Buckets, tamaño total |
-| Almacenamiento | EBS | | Volúmenes, tipos, tamaños |
-| Almacenamiento | EFS | | File systems, tamaño |
-| Red | VPC | | CIDRs, subnets, AZs |
-| Red | ALB/NLB | | Listeners, target groups |
-| Red | CloudFront | | Distribuciones |
-| Red | Route 53 | | Hosted zones, registros |
-| Red | API Gateway | | APIs, stages |
-| Integración | SQS | | Colas, tipo (standard/FIFO) |
-| Integración | SNS | | Topics, suscripciones |
-| Integración | EventBridge | | Event buses, reglas |
-| Seguridad | WAF | | Web ACLs, reglas |
-| Seguridad | Secrets Manager | | Número de secretos |
-| Seguridad | KMS | | Llaves, tipo |
-| Monitoreo | CloudWatch | | Dashboards, alarmas |
+| ----------- | ---------- | ---------- | -------------------------------------- |
+| Cómputo | EC2 | |
+| Cómputo | ECS/Fargate | |
+| Cómputo | Lambda | |
+| Cómputo | EKS | |
+| Base de datos | RDS | Motor, versión, clase de instancia |
+| Base de datos | Aurora | Motor, versión, cluster config |
+| Base de datos | DynamoDB | Tablas, modo de capacidad |
+| Base de datos | ElastiCache | Motor, tipo de nodo |
+| Almacenamiento | S3 | Buckets, tamaño total |
+| Almacenamiento | EBS | Volúmenes, tipos, tamaños |
+| Almacenamiento | EFS | File systems, tamaño |
+| Red | VPC | CIDRs, subnets, AZs |
+| Red | ALB/NLB | Listeners, target groups |
+| Red | CloudFront | Distribuciones |
+| Red | Route 53 | Hosted zones, registros |
+| Red | API Gateway | APIs, stages |
+| Integración | SQS | Colas, tipo (standard/FIFO) |
+| Integración | SNS | Topics, suscripciones |
+| Integración | EventBridge | Event buses, reglas |
+| Seguridad | WAF | Web ACLs, reglas |
+| Seguridad | Secrets Manager | Número de secretos |
+| Seguridad | KMS | Llaves, tipo |
+| Monitoreo | CloudWatch | Dashboards, alarmas |
 
 - [ ] ¿Cuáles servicios son stateful (mantienen estado) y cuáles son stateless?
 - [ ] ¿Cuáles servicios son globales (IAM, Route 53, CloudFront) y no necesitan replicación?
@@ -110,8 +110,8 @@ Este documento contiene las preguntas que cada equipo debe responder antes de di
 
 | Servicio | Estrategia Recomendada | Justificación |
 |----------|------------------------|---------------|
-| | Backup & Restore / Pilot Light / Warm Standby / Active-Active | |
-| | | |
+| Backup & Restore / Pilot Light / Warm Standby / Active-Active |
+| |
 
 - [ ] ¿Se usará una sola estrategia para todo o diferentes estrategias por tier?
 - [ ] ¿Se ha evaluado AWS Elastic Disaster Recovery (DRS) para instancias EC2?
@@ -135,15 +135,15 @@ Este documento contiene las preguntas que cada equipo debe responder antes de di
 - [ ] ¿Cuál es la configuración actual de VPC en us-east-1?
 
 | Atributo | Valor |
-|----------|-------|
-| VPC CIDR | |
-| Número de subnets públicas | |
-| Número de subnets privadas | |
-| Número de AZs utilizadas | |
-| ¿Tiene NAT Gateway? | |
-| ¿Tiene VPN a on-premises? | |
-| ¿Tiene Direct Connect? | |
-| ¿Tiene Transit Gateway? | |
+| ---------- | ------- |
+| VPC CIDR |
+| Número de subnets públicas |
+| Número de subnets privadas |
+| Número de AZs utilizadas |
+| ¿Tiene NAT Gateway? |
+| ¿Tiene VPN a on-premises? |
+| ¿Tiene Direct Connect? |
+| ¿Tiene Transit Gateway? |
 
 - [ ] ¿Cuál será el CIDR de la VPC en us-west-2? (debe ser no solapado si se usa peering)
 - [ ] ¿Se necesita conectividad entre las dos regiones? ¿Para qué servicios?
@@ -187,9 +187,9 @@ Este documento contiene las preguntas que cada equipo debe responder antes de di
 - [ ] Para cada base de datos en producción:
 
 | Base de Datos | Motor | Versión | Servicio AWS | Tamaño | Clase de Instancia | Multi-AZ | Estrategia DR Propuesta |
-|---------------|-------|---------|--------------|--------|---------------------|----------|-------------------------|
-| | | | RDS/Aurora/DynamoDB/ElastiCache | | | | |
-| | | | | | | | |
+| --------------- | ------- | --------- | -------------- | -------- | --------------------- | ---------- | ------------------------- |
+| | RDS/Aurora/DynamoDB/ElastiCache | | |
+| | | | |
 
 ### Replicación
 
@@ -329,13 +329,13 @@ Este documento contiene las preguntas que cada equipo debe responder antes de di
 - [ ] ¿Cuáles métricas dispararían una evaluación de failover?
 
 | Métrica | Umbral para Evaluar Failover | Umbral para Ejecutar Failover |
-|---------|------------------------------|-------------------------------|
-| Disponibilidad de la aplicación | | |
-| Latencia P99 | | |
-| Tasa de errores 5xx | | |
-| Health check de Route 53 | | |
-| Replicación lag de Aurora | | |
-| CPU de instancias EC2/RDS | | |
+| --------- | ------------------------------ | ------------------------------- |
+| Disponibilidad de la aplicación | |
+| Latencia P99 | |
+| Tasa de errores 5xx | |
+| Health check de Route 53 | |
+| Replicación lag de Aurora | |
+| CPU de instancias EC2/RDS | |
 
 - [ ] ¿Se usa CloudWatch cross-region observability?
 - [ ] ¿Se tienen alarmas compuestas (composite alarms) para correlacionar múltiples señales?
@@ -392,13 +392,13 @@ Este documento contiene las preguntas que cada equipo debe responder antes de di
 6. Las respuestas alimentarán directamente el diseño del DRP
 
 | Equipo | Responsable | Fecha de entrega | Estado |
-|--------|-------------|-------------------|--------|
-| Gestión / Management | | | Pendiente |
-| Arquitectura | | | Pendiente |
-| Infraestructura | | | Pendiente |
-| Base de Datos | | | Pendiente |
-| Ciberseguridad | | | Pendiente |
-| Desarrollo | | | Pendiente |
-| QA / Pruebas | | | Pendiente |
-| Operaciones / SRE | | | Pendiente |
-| Soporte / Mesa de Ayuda | | | Pendiente |
+| -------- | ------------- | ------------------- | -------- |
+| Gestión / Management | | Pendiente |
+| Arquitectura | | Pendiente |
+| Infraestructura | | Pendiente |
+| Base de Datos | | Pendiente |
+| Ciberseguridad | | Pendiente |
+| Desarrollo | | Pendiente |
+| QA / Pruebas | | Pendiente |
+| Operaciones / SRE | | Pendiente |
+| Soporte / Mesa de Ayuda | | Pendiente |

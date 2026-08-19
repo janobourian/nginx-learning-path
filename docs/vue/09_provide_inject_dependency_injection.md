@@ -1,6 +1,6 @@
 # Module 09: `provide` / `inject` — Dependency Injection
 
-**Track:** Vue — Progressive Web Framework  
+**Track:** Vue — Progressive Web Framework
 **Category:** Cross-Component Communication
 
 ---
@@ -9,7 +9,7 @@
 
 Props are the correct way to pass data one level down. But when data needs to travel many levels through the component tree — a pattern called **prop drilling** — every intermediate component must accept and pass along props it doesn't actually use:
 
-```
+```text
 AppRoot (has user data)
   └── AppLayout (passes user prop, doesn't use it)
         └── Sidebar (passes user prop, doesn't use it)
@@ -18,7 +18,7 @@ AppRoot (has user data)
 
 `provide` and `inject` create a direct tunnel from an ancestor to any descendant, regardless of depth:
 
-```
+```text
 AppRoot → provide("user", userData)
                 ↓ (any descendant)
 UserMenu → inject("user")
@@ -271,7 +271,7 @@ export function useFormField(name: string, value: Ref) {
 ## When to Use Provide/Inject vs Pinia
 
 | Use Case | Recommendation |
-|---|---|
+| --- | --- |
 | Data needed by many deeply nested components in a subtree | `provide`/`inject` |
 | Global app state shared across the entire application | Pinia store |
 | Plugin/library authors exposing their service | `provide`/`inject` with Symbol key |
@@ -282,14 +282,14 @@ export function useFormField(name: string, value: Ref) {
 
 ## Troubleshooting
 
-**`inject()` returns `undefined` when it should return a value**
+### `inject()` returns `undefined` when it should return a value
 
 `inject()` returns `undefined` if: (1) no ancestor has called `provide()` with the same key, (2) the component is rendered outside the providing tree (e.g., in a `<Teleport>` that renders outside the tree hierarchy), or (3) the injection key doesn't match (different Symbol instances or different string values). Use typed Symbol keys to eliminate typos.
 
-**Injected value is not reactive**
+### Injected value is not reactive
 
 If the provider passes a plain value (`provide("count", 0)`) instead of a ref (`provide("count", ref(0))`), the injected value is not reactive. Always provide refs or reactive objects when the value will change.
 
-**TypeScript error: "Argument of type 'InjectionKey<T>' is not assignable to parameter..."**
+### TypeScript error: "Argument of type 'InjectionKey<T>' is not assignable to parameter..."
 
 This occurs when you import the InjectionKey from one file in the provider and a different copy from a different import path in the consumer. Ensure both import from the exact same source module.

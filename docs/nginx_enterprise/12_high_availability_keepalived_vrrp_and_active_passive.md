@@ -1,30 +1,43 @@
 # Module 12: NGINX High Availability with Keepalived, VRRP & Active-Passive Failover Architecture
 
-**Track:** Enterprise NGINX Infrastructure & Reverse Proxy Systems  
-**Category:** High Availability Clustering, Virtual Router Redundancy Protocol (VRRP) & Floating VIPs  
-**Standard Identifier:** `DOC-STD-UNIVERSAL-2026`  
+**Track:** Enterprise NGINX Infrastructure & Reverse Proxy Systems
+**Category:** High Availability Clustering, Virtual Router Redundancy Protocol (VRRP) & Floating VIPs
+**Standard Identifier:** `DOC-STD-UNIVERSAL-2026`
 **Status:** ✅ Completed
 
 ---
 
 ## 📑 Table of Contents
+
 1. [High-Level Overview & Executive Summary](#1-high-level-overview--executive-summary)
+
 2. [VRRP Protocol Mechanics & Floating Virtual IP (VIP) Architecture](#2-vrrp-protocol-mechanics--floating-virtual-ip-vip-architecture)
+
 3. [Active-Passive vs Active-Active Dual-VIP Clustering](#3-active-passive-vs-active-active-dual-vip-clustering)
+
 4. [Keepalived Architecture & Automated Health Tracking Scripts](#4-keepalived-architecture--automated-health-tracking-scripts)
+
 5. [Kernel Socket Binding: Non-Local IP Binding (net.ipv4.ip_nonlocal_bind)](#5-kernel-socket-binding-non-local-ip-binding-netipv4ip_nonlocal_bind)
+
 6. [Flapping Prevention: Non-Preempt Mode (nopreempt) & State Machines](#6-flapping-prevention-non-preempt-mode-nopreempt--state-machines)
+
 7. [Certification & Engineering Essentials (NGINX Certified Admin Cheat Sheet)](#7-certification--engineering-essentials-nginx-certified-admin-cheat-sheet)
+
 8. [Comparative Analysis Matrix: High Availability Topologies](#8-comparative-analysis-matrix-high-availability-topologies)
+
 9. [Performance & Hardware Resource Optimization](#9-performance--hardware-resource-optimization)
-10. [In-Depth Engineering Perspectives](#10-in-depth-engineering-perspectives)
-11. [Well-Architected Systems Programming Principles](#11-well-architected-systems-programming-principles)
-12. [Step-by-Step Production Lab: Active-Passive Keepalived Cluster](#12-step-by-step-production-lab-active-passive-keepalived-cluster)
-13. [Pure CLI / Command Interface](#13-pure-cli--command-interface)
-14. [Advanced Architecture & Edge-Case Failure Modes](#14-advanced-architecture--edge-case-failure-modes)
-15. [Detailed Sub-Components & Subsystems](#15-detailed-sub-components--subsystems)
-16. [References (The 5+5 Rule)](#16-references-the-55-rule)
-17. [Universal FinOps & Hardware Cost Governance](#17-universal-finops--hardware-cost-governance)
+
+10. [Step-by-Step Production Lab: Active-Passive Keepalived Cluster](#10-step-by-step-production-lab-active-passive-keepalived-cluster)
+
+11. [Pure CLI / Command Interface](#11-pure-cli--command-interface)
+
+12. [Advanced Architecture & Edge-Case Failure Modes](#12-advanced-architecture--edge-case-failure-modes)
+
+13. [Detailed Sub-Components & Subsystems](#13-detailed-sub-components--subsystems)
+
+14. [References (The 5+5 Rule)](#14-references-the-55-rule)
+
+15. [Universal FinOps & Hardware Cost Governance](#15-universal-finops--hardware-cost-governance)
 
 ---
 
@@ -35,12 +48,13 @@ Even the most meticulously tuned, hardened NGINX reverse proxy remains a **Singl
 A physical hardware fault, power outage, kernel panic, or network interface controller (NIC) failure on a standalone proxy will immediately sever all customer traffic, violating enterprise 99.999% Service Level Agreements (SLAs).
 
 Enterprise high-availability ingress architecture eliminates SPOFs through:
+
 1. **Virtual Router Redundancy Protocol (VRRP - RFC 5798)**: Synchronizes a cluster of two or more NGINX servers via periodic multicast heartbeats (`224.0.0.18`), maintaining an active Master and standby Backup.
 2. **Floating Virtual IP (VIP)**: Binds customer traffic to an abstract VIP address that floats seamlessly between nodes in **$< 3\text{ seconds}$** via **Gratuitous ARP (GARP)** broadcasts.
 3. **Automated Process Health Tracking (`vrrp_script`)**: Executes continuous local HTTP health checks against NGINX, dynamically demoting node priority if NGINX fails.
 4. **Flapping Prevention (`nopreempt`)**: Prevents disruptive failover bouncing when a recovering primary node reboots.
 
-```
+```text
 ┌────────────────────────────────────────────────────────────────────────────────┐
 │               ENTERPRISE HIGH-AVAILABILITY CLUSTER TOPOLOGY (VRRP)             │
 ├────────────────────────────────────────────────────────────────────────────────┤
@@ -61,9 +75,11 @@ Enterprise high-availability ingress architecture eliminates SPOFs through:
 │                                            [ Node B broadcasts Gratuitous ARP ] │
 │                                            [ Zero Customer Connection Loss! ]   │
 └────────────────────────────────────────────────────────────────────────────────┘
+
 ```
 
 ### 👔 Executive Summary (For Managers & Non-Technical Stakeholders)
+
 * **Business Purpose**: Guarantees that corporate websites and APIs never go offline, even if a physical server catches fire or experiences a complete hardware crash.
 * **How It Works**: Pairs two identical servers together as a twin team. If the main server stops responding for even 2 seconds, the backup server takes over customer traffic instantly without anyone noticing.
 * **Key Business Value & ROI**: Eliminates multi-million-dollar downtime costs, guarantees 99.999% SLA uptime commitments, and allows safe server maintenance during business hours.
@@ -72,7 +88,7 @@ Enterprise high-availability ingress architecture eliminates SPOFs through:
 
 ## 2. VRRP Protocol Mechanics & Floating Virtual IP (VIP) Architecture
 
-```
+```text
 ┌────────────────────────────────────────────────────────────────────────────────┐
 │                     VRRP PROTOCOL SPECIFICATION & INVARIANTS                   │
 ├───────────────────┬────────────────────────────────────────────────────────────┤
@@ -91,13 +107,14 @@ Enterprise high-availability ingress architecture eliminates SPOFs through:
 │ **Gratuitous ARP**| Master broadcasts GARP to update all network switch MAC    │
 │                   │ forwarding tables to point to the new interface.           │
 └───────────────────┴────────────────────────────────────────────────────────────┘
+
 ```
 
 ---
 
 ## 3. Active-Passive vs Active-Active Dual-VIP Clustering
 
-```
+```text
 ┌────────────────────────────────────────────────────────────────────────────────┐
 │               ACTIVE-PASSIVE VS ACTIVE-ACTIVE DUAL-VIP COMPARISON              │
 ├──────────────────────────┬──────────────────────────┬──────────────────────────┤
@@ -113,6 +130,7 @@ Enterprise high-availability ingress architecture eliminates SPOFs through:
 ├──────────────────────────┼──────────────────────────┼──────────────────────────┤
 │ **Configuration Sync**   │ Identical NGINX configs  │ Identical NGINX configs  │
 └──────────────────────────┴──────────────────────────┴──────────────────────────┘
+
 ```
 
 ---
@@ -122,6 +140,7 @@ Enterprise high-availability ingress architecture eliminates SPOFs through:
 Keepalived monitors local NGINX process health via `vrrp_script`:
 
 ```ini
+
 # /etc/keepalived/keepalived.conf
 vrrp_script check_nginx_alive {
     script "/usr/bin/curl -sf http://127.0.0.1:8080/healthz"
@@ -130,7 +149,9 @@ vrrp_script check_nginx_alive {
     fall 2      # 2 failures = mark unhealthy
     rise 2      # 2 successes = mark healthy
 }
+
 ```
+
 * If Master (Priority 110) fails the health check, its priority drops to $110 - 25 = \mathbf{85}$.
 * Backup Node (Priority 100) now has a higher priority ($\mathbf{100 > 85}$), instantly claiming the VIP!
 
@@ -141,11 +162,14 @@ vrrp_script check_nginx_alive {
 When NGINX starts on the Backup node, the Virtual IP (VIP) is not yet assigned to its network card. Without kernel tuning, NGINX fails to start with:
 `[emerg] bind() to 10.0.1.100:443 failed (Cannot assign requested address)`
 
-### Mandatory Linux Sysctl Hardening:
+### Mandatory Linux Sysctl Hardening
+
 ```bash
-# Enable binding to non-local IPs on both cluster nodes:
+
+# Enable binding to non-local IPs on both cluster nodes
 sudo sysctl -w net.ipv4.ip_nonlocal_bind=1
 echo "net.ipv4.ip_nonlocal_bind=1" | sudo tee -a /etc/sysctl.d/99-keepalived.conf
+
 ```
 
 ---
@@ -154,14 +178,17 @@ echo "net.ipv4.ip_nonlocal_bind=1" | sudo tee -a /etc/sysctl.d/99-keepalived.con
 
 When a crashed Master recovers, default VRRP rules force it to aggressively steal the VIP back (Preempt Mode), causing a second traffic disruption.
 
-### Solution: Non-Preempt Mode (`nopreempt`):
+### Solution: Non-Preempt Mode (`nopreempt`)
+
 ```ini
 vrrp_instance VI_1 {
     state BACKUP # Configure BOTH nodes as BACKUP state!
     nopreempt    # Do NOT steal VIP back when recovering!
     priority 110 # Node A priority
 }
+
 ```
+
 With `nopreempt`, the recovering node remains in standby until the current active master encounters an issue, eliminating failover flapping.
 
 ---
@@ -179,16 +206,16 @@ With `nopreempt`, the recovering node remains in standby until the current activ
 
 | Feature | Keepalived VRRP Floating VIP | AWS Route 53 DNS Failover | Cloud Network Load Balancer (NLB) |
 | :--- | :--- | :--- | :--- |
-| **Failover Speed** | **Sub-3 Seconds** | ~60-120 Seconds (DNS TTL)| ~5-10 Seconds |
+| **Failover Speed** | **Sub-3 Seconds** | ~60-120 Seconds (DNS TTL) | ~5-10 Seconds |
 | **Infrastructure** | Bare-Metal & Cloud VPC | Cloud Managed DNS | Cloud Managed Layer 4 |
 | **Cost** | **100% Free / Open Source** | Per-Query DNS Billing | Per-Hour / Per-GB Billing |
-| **Failover Transparency**| **100% Client Transparent**| Client must re-resolve DNS| Transparent |
+| **Failover Transparency** | **100% Client Transparent** | Client must re-resolve DNS | Transparent |
 
 ---
 
 ## 9. Performance & Hardware Resource Optimization
 
-```
+```text
 ┌────────────────────────────────────────────────────────────────────────────────┐
 │                           HA CLUSTER TUNING PLAYBOOK                           │
 ├────────────────────────────────────────────────────────────────────────────────┤
@@ -198,19 +225,22 @@ With `nopreempt`, the recovering node remains in standby until the current activ
 │ 4. Track NGINX HTTP health via `curl -sf http://127.0.0.1/healthz`.           │
 │ 5. Use Active-Active Dual VIP to utilize 100% of compute capacity.             │
 └────────────────────────────────────────────────────────────────────────────────┘
+
 ```
 
 ---
 
 ## 10. Step-by-Step Production Lab: Active-Passive Keepalived Cluster
 
-### File Structure:
-- [`conf/keepalived_master.conf`](file:///Users/frgonzal/Documents/vit/nginx-learning-path/conf/keepalived_master.conf)
-- [`conf/keepalived_backup.conf`](file:///Users/frgonzal/Documents/vit/nginx-learning-path/conf/keepalived_backup.conf)
+### File Structure
+
+* [`conf/keepalived_master.conf`](file:///Users/frgonzal/Documents/vit/nginx-learning-path/conf/keepalived_master.conf)
+* [`conf/keepalived_backup.conf`](file:///Users/frgonzal/Documents/vit/nginx-learning-path/conf/keepalived_backup.conf)
 
 ### Step 1: Implement Master Node Keepalived Configuration
 
 ```ini
+
 # conf/keepalived_master.conf
 global_defs {
     router_id NGINX_HA_NODE_A
@@ -246,6 +276,7 @@ vrrp_instance VI_MAIN {
         chk_nginx_health
     }
 }
+
 ```
 
 ---
@@ -253,28 +284,37 @@ vrrp_instance VI_MAIN {
 ## 11. Pure CLI / Command Interface
 
 ### 1. Enable Non-Local IP Binding in Kernel
+
 Enable sysctl parameter:
+
 ```bash
 sysctl -w net.ipv4.ip_nonlocal_bind=1 2>/dev/null || true
+
 ```
 
 ### 2. Inspect Active Network Interfaces and Floating VIP
+
 Check assigned IP addresses:
+
 ```bash
 ip addr show 2>/dev/null | head -n 15 || ifconfig 2>/dev/null | head -n 15 || true
+
 ```
 
 ### 3. Verify VRRP Multicast Traffic via tcpdump
+
 Capture VRRP packets:
+
 ```bash
 tcpdump -nn -i any proto 112 -c 3 2>/dev/null || true
+
 ```
 
 ---
 
 ## 12. Advanced Architecture & Edge-Case Failure Modes
 
-```
+```text
 ┌────────────────────────────────────────────────────────────────────────────────┐
 │                          HA FAILURE RECOVERY MATRIX                            │
 ├──────────────────────┬────────────────────────┬────────────────────────────────┤
@@ -292,6 +332,7 @@ tcpdump -nn -i any proto 112 -c 3 2>/dev/null || true
 │ **`Switch Cache Lag`**| Network switch failed  │ Configure `garp_master_refresh │
 │ **`(Stale ARP Map)`**│ to update ARP table.   │ 5;` to re-broadcast GARP.      │
 └──────────────────────┴────────────────────────┴────────────────────────────────┘
+
 ```
 
 ---
@@ -299,31 +340,43 @@ tcpdump -nn -i any proto 112 -c 3 2>/dev/null || true
 ## 13. Detailed Sub-Components & Subsystems
 
 ### 1. Keepalived VRRP Core Daemon (`keepalived`)
+
 * **Key Concepts**: Userspace daemon managing VRRP state machines, netlink socket VIP binding, and GARP broadcasts.
 * **CLI / Tool Snippet**:
+
 ```bash
 keepalived --version 2>/dev/null || true
+
 ```
 
 ### 2. Linux Netlink Socket Interface (`AF_NETLINK`)
+
 * **Key Concepts**: Kernel IPC socket interface allowing Keepalived to add and remove IP addresses dynamically.
 * **CLI / Tool Snippet**:
+
 ```bash
 ip link show 2>/dev/null | head -n 5 || true
+
 ```
 
 ### 3. Gratuitous ARP (GARP) Broadcast Engine
+
 * **Key Concepts**: Layer 2 broadcast frame forcing neighboring Ethernet switches to update their MAC forwarding tables.
 * **CLI / Tool Snippet**:
+
 ```bash
 arp -a 2>/dev/null | head -n 5 || true
+
 ```
 
 ### 4. Non-Local IP Kernel Subsystem (`net/ipv4/af_inet.c`)
+
 * **Key Concepts**: Kernel networking flag allowing processes to bind sockets to unassigned local IP addresses.
 * **CLI / Tool Snippet**:
+
 ```bash
 cat /proc/sys/net/ipv4/ip_nonlocal_bind 2>/dev/null || true
+
 ```
 
 ---
@@ -331,6 +384,7 @@ cat /proc/sys/net/ipv4/ip_nonlocal_bind 2>/dev/null || true
 ## 14. References (The 5+5 Rule)
 
 ### Official Documentation & Enterprise RFC Standards
+
 1. [RFC 5798: Virtual Router Redundancy Protocol (VRRP) Version 3](https://datatracker.ietf.org/doc/html/rfc5798)
 2. [Keepalived Official Reference Documentation](https://www.keepalived.org/documentation.html)
 3. [NGINX High Availability with Keepalived Admin Guide](https://docs.nginx.com/nginx/admin-guide/high-availability/ha-keepalived/)
@@ -338,17 +392,18 @@ cat /proc/sys/net/ipv4/ip_nonlocal_bind 2>/dev/null || true
 5. [RFC 3768: Virtual Router Redundancy Protocol (VRRP) v2](https://datatracker.ietf.org/doc/html/rfc3768)
 
 ### Authoritative Engineering Textbooks & Systems Deep Dives
-6. [Clement Nedelcu: Mastering NGINX (Chapter 10: High Availability and Scalability)](https://www.packtpub.com/)
-7. [Derek DeJonghe: NGINX Cookbook (Chapter 4: High Availability)](https://www.oreilly.com/)
-8. [Cloudflare Engineering: Building Fault-Tolerant Edge Clusters with VRRP and BGP](https://blog.cloudflare.com/)
-9. [Datadog Engineering: Monitoring VRRP State Transitions and Keepalived VIP Failovers](https://www.datadoghq.com/blog/)
-10. [High-Performance Linux Systems: Low-Latency Virtual IP Failover Architecture](https://www.kernel.org/)
+
+1. [Clement Nedelcu: Mastering NGINX (Chapter 10: High Availability and Scalability)](https://www.packtpub.com/)
+2. [Derek DeJonghe: NGINX Cookbook (Chapter 4: High Availability)](https://www.oreilly.com/)
+3. [Cloudflare Engineering: Building Fault-Tolerant Edge Clusters with VRRP and BGP](https://blog.cloudflare.com/)
+4. [Datadog Engineering: Monitoring VRRP State Transitions and Keepalived VIP Failovers](https://www.datadoghq.com/blog/)
+5. [High-Performance Linux Systems: Low-Latency Virtual IP Failover Architecture](https://www.kernel.org/)
 
 ---
 
 ## 15. Universal FinOps & Hardware Cost Governance
 
-```
+```text
 ┌────────────────────────────────────────────────────────────────────────────────┐
 │                            HA FINOPS SAVINGS MATRIX                            │
 ├──────────────────────────┬──────────────────────────┬──────────────────────────┤
@@ -366,14 +421,18 @@ cat /proc/sys/net/ipv4/ip_nonlocal_bind 2>/dev/null || true
 │ **Sub-3s Auto Failover** │ Recovers from host crash │ Prevents \$250k+ in SLA  │
 │                          │ in < 3 seconds           │ contract breach penalties│
 └──────────────────────────┴──────────────────────────┴──────────────────────────┘
+
 ```
 
 ### 1. Native Keepalived HA vs Hardware Load Balancer (F5 / NetScaler) Economics
+
 In an enterprise hybrid cloud datacenter:
-- **Commercial Hardware Load Balancer Appliance Pair (F5 BIG-IP / Citrix ADC)**: Annual enterprise licensing and hardware maintenance costs: **\$120,000/year**.
-- **High-Availability NGINX + Keepalived VRRP Cluster**: Deployed on commodity Linux servers with identical high-throughput performance.
-- **FinOps ROI**: Delivers **\$120,000/year in direct capital expenditure and licensing savings**.
+
+* **Commercial Hardware Load Balancer Appliance Pair (F5 BIG-IP / Citrix ADC)**: Annual enterprise licensing and hardware maintenance costs: **\$120,000/year**.
+* **High-Availability NGINX + Keepalived VRRP Cluster**: Deployed on commodity Linux servers with identical high-throughput performance.
+* **FinOps ROI**: Delivers **\$120,000/year in direct capital expenditure and licensing savings**.
 
 ### 2. Active-Active Dual VIP Hardware Utilization ROI
-- In a traditional active-passive cluster, 50% of purchased CPU and RAM sits completely idle.
-- Active-Active Dual VIP routes active traffic to both nodes simultaneously, doubling effective cluster throughput with **zero additional hardware cost**.
+
+* In a traditional active-passive cluster, 50% of purchased CPU and RAM sits completely idle.
+* Active-Active Dual VIP routes active traffic to both nodes simultaneously, doubling effective cluster throughput with **zero additional hardware cost**.

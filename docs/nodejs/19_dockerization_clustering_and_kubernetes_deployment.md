@@ -1,6 +1,6 @@
 # Module 19: Production Dockerization, PID 1 Signals & Kubernetes Orchestration
 
-**Track:** Node.js — Enterprise Architecture & Libuv Internals  
+**Track:** Node.js — Enterprise Architecture & Libuv Internals
 **Category:** DevOps Engineering, Docker Multi-Stage Builds & Kubernetes (K8s)
 
 ---
@@ -9,9 +9,10 @@
 
 A common anti-pattern is deploying Node.js development toolchains (TypeScript compiler, test runners, git) into production containers, resulting in bloated 1GB+ images filled with unpatched security vulnerabilities.
 
-### The 4-Stage Multi-Stage Docker Build:
+### The 4-Stage Multi-Stage Docker Build
 
 ```dockerfile
+
 # ─── Stage 1: Base Image & Corepack ───
 FROM node:20-alpine AS base
 WORKDIR /app
@@ -37,28 +38,30 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
 
-# Install dumb-init for proper PID 1 signal forwarding:
+# Install dumb-init for proper PID 1 signal forwarding
 RUN apk add --no-cache dumb-init
 
-# Copy only production node_modules and compiled dist:
+# Copy only production node_modules and compiled dist
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package.json ./package.json
 
-# CRITICAL SECURITY: Run as unprivileged non-root user 'node':
+# CRITICAL SECURITY: Run as unprivileged non-root user 'node'
 USER node
 
 EXPOSE 3000
 
-# Start via dumb-init to handle SIGTERM & zombie processes properly:
+# Start via dumb-init to handle SIGTERM & zombie processes properly
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 CMD ["node", "dist/server.js"]
 ```
 
 ```bash
-# Build and verify ultra-compact image:
+
+# Build and verify ultra-compact image
 docker build -t enterprise-node-microservice:latest .
 docker images enterprise-node-microservice:latest
+
 # SIZE: ~95 MB (Ultra-fast pull & instant boot!)
 ```
 
@@ -69,10 +72,12 @@ docker images enterprise-node-microservice:latest
 When a container starts, the primary process runs as **PID 1 (Process ID 1)** in the Linux kernel namespace.
 
 In Linux, PID 1 has special responsibilities:
+
 1. **Signal Handling**: Linux ignores `SIGTERM` and `SIGINT` signals for PID 1 unless the process explicitly registers handlers for them.
 2. **Zombie Process Reaping**: When child processes or subprocesses exit, PID 1 is responsible for reaping orphan zombie processes from the OS process table.
 
 Node.js is **not designed to be an init system**. If Node runs directly as PID 1:
+
 - Kubernetes rolling updates will hang for 30 seconds before forcefully killing the container (`SIGKILL`), corrupting in-flight user requests!
 - Zombie processes will slowly accumulate and exhaust kernel PID slots.
 
@@ -151,16 +156,21 @@ spec:
     spec:
       terminationGracePeriodSeconds: 30 # Give 30s to drain active HTTP requests on SIGTERM
       containers:
+
         - name: node-app
           image: ghcr.io/acme/enterprise-node-service:v1.2.0
           imagePullPolicy: IfNotPresent
           ports:
+
             - containerPort: 3000
           env:
+
             - name: NODE_ENV
               value: "production"
+
             - name: PORT
               value: "3000"
+
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
@@ -203,6 +213,7 @@ spec:
   minReplicas: 3
   maxReplicas: 20
   metrics:
+
     - type: Resource
       resource:
         name: cpu

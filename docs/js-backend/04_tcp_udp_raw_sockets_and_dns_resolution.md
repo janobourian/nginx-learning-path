@@ -1,6 +1,6 @@
 # Module 04: Low-Level Network Systems — TCP Sockets, UDP Datagrams & DNS
 
-**Track:** Modern JavaScript — Backend Systems & Distributed Architecture  
+**Track:** Modern JavaScript — Backend Systems & Distributed Architecture
 **Category:** Network Engineering, TCP Framing & Socket Systems
 
 ---
@@ -9,7 +9,7 @@
 
 Unlike HTTP (which is request-response), **TCP is a continuous bidirectional byte stream**.
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 The Golden Law of TCP Networking            │
 ├─────────────────────────────────────────────────────────────┤
@@ -132,7 +132,7 @@ export function sendUdpMetric(host, port, metricPayload) {
 
 ## 4. DNS Resolution Architecture (`dns.lookup` vs `dns.resolve`)
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 Node.js DNS Resolution Modes                │
 ├────────────────────┬────────────────────────────────────────┤

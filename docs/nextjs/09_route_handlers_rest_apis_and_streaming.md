@@ -1,6 +1,6 @@
 # Module 09: Route Handlers — REST APIs, Streaming & SSE
 
-**Track:** Next.js — Full-Stack App Router & Edge Architecture  
+**Track:** Next.js — Full-Stack App Router & Edge Architecture
 **Category:** Backend Endpoints, HTTP Route Handlers & Data Streaming
 
 ---
@@ -12,7 +12,7 @@
 Route handlers are defined in **`route.ts`** files inside the `src/app/` directory and support the following HTTP method exports:
 `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, and `OPTIONS`.
 
-```
+```text
 File Location Mapping:
 src/app/api/users/route.ts       ──► URL: /api/users
 src/app/api/users/[id]/route.ts  ──► URL: /api/users/:id
@@ -223,6 +223,7 @@ export async function GET() {
 ## Troubleshooting & Best Practices
 
 1. **Route Handlers vs Server Actions**
+
    - Use **Server Actions** for form mutations, dashboard interactions, and mutations originating from within your Next.js application.
    - Use **Route Handlers** when you need a public webhook endpoint (Stripe, GitHub), an external REST API for mobile clients, or streaming SSE/LLM tokens.
 

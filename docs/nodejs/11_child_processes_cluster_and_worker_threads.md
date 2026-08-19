@@ -1,6 +1,6 @@
 # Module 11: Child Processes, Cluster & Worker Threads Multi-Threading
 
-**Track:** Node.js — Enterprise Architecture & Libuv Internals  
+**Track:** Node.js — Enterprise Architecture & Libuv Internals
 **Category:** Concurrency, Multi-Processing & Worker Threads
 
 ---
@@ -170,5 +170,6 @@ Atomics.add(sharedInt32Array, 0, 1);
    Creating a `new Worker()` incurs ~10ms V8 isolate instantiation overhead. Always use a pre-warmed **Worker Thread Pool** (e.g. `piscina`) with a pool size equal to `os.availableParallelism()`.
 
 2. **Cluster vs Worker Threads Decision**
+
    - Use **`cluster`** for I/O-bound web microservices to maximize HTTP connection concurrency across CPU cores.
    - Use **`worker_threads`** for CPU-bound computations (JSON parsing of 500MB payloads, image resizing, machine learning tokenization).

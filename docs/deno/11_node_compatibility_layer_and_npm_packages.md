@@ -1,6 +1,6 @@
 # Module 11: Node.js Compatibility Layer & npm Packages
 
-**Track:** Deno Secure Engine & Edge Runtime  
+**Track:** Deno Secure Engine & Edge Runtime
 **Category:** Ecosystem Migration & Interoperability
 
 ---
@@ -137,6 +137,7 @@ model Post {
 ```
 
 ```bash
+
 # Generate the Prisma client for Deno
 npx prisma generate
 ```
@@ -268,7 +269,7 @@ await app.listen({ port: 8080, host: "0.0.0.0" });
 ### Mechanical substitutions
 
 | Node.js | Deno equivalent |
-|---|---|
+| --- | --- |
 | `require("fs")` | `import { ... } from "node:fs"` or `Deno.readTextFile()` |
 | `require("path")` | `import path from "node:path"` or `@std/path` |
 | `__dirname` | `new URL(".", import.meta.url).pathname` |
@@ -296,18 +297,18 @@ const configPath = join(__dirname, "config.json");
 
 ## Troubleshooting
 
-**`ReferenceError: require is not defined`**
+### `ReferenceError: require is not defined`
 
 A package is using CommonJS `require()` instead of ESM. Most modern npm packages support both. Try a different version of the package, or look for a Deno/ESM alternative on JSR.
 
-**`Cannot find module 'node:buffer'`**
+### `Cannot find module 'node:buffer'`
 
 You need Deno 1.28+ for full `node:` protocol support. Run `deno upgrade`.
 
-**Package installs but throws on first function call**
+### Package installs but throws on first function call
 
 Many npm packages use lazy requires internally (require inside a function). This works differently in Deno's CommonJS emulation layer. Open an issue in the package's GitHub repo mentioning Deno compatibility, or switch to a JSR native alternative.
 
-**`package.json` lifecycle scripts (postinstall) don't run**
+### `package.json` lifecycle scripts (postinstall) don't run
 
 Deno intentionally does not run `postinstall` or other npm lifecycle scripts — they are a common vector for supply chain attacks. If the package requires a postinstall step (like native module compilation), you need to handle that separately or use the `npm:` specifier with a pre-built binary version.

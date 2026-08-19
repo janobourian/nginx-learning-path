@@ -1,6 +1,6 @@
 # Module 18: Security Engineering — OWASP Top 10, Prototype Pollution & Node.js Permissions
 
-**Track:** Node.js — Enterprise Architecture & Libuv Internals  
+**Track:** Node.js — Enterprise Architecture & Libuv Internals
 **Category:** Application Security, OWASP Defense & Runtime Permissions
 
 ---
@@ -9,7 +9,7 @@
 
 Enterprise Node.js applications are prime targets for automated web attacks. Securing Node.js requires defense-in-depth across multiple architectural layers:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 Node.js Security Defense Stack              │
 ├────────────────────┬────────────────────────────────────────┤
@@ -66,7 +66,7 @@ export const hardenedHelmet = helmet({
 
 ## 3. Prototype Pollution Vulnerabilities & Prevention
 
-In JavaScript, objects inherit properties from `Object.prototype`. 
+In JavaScript, objects inherit properties from `Object.prototype`.
 
 If an application performs an unvalidated recursive merge on user-provided JSON (`req.body`), an attacker can inject properties into `__proto__`, **polluting all JavaScript objects across the entire application runtime**:
 
@@ -85,7 +85,7 @@ function vulnerableMerge(target, source) {
 }
 ```
 
-### Prototype Pollution Defense Strategies:
+### Prototype Pollution Defense Strategies
 
 1. **Use `Map` Instead of Plain Objects**: `Map` instances do not have prototype chain lookup keys.
 2. **Create Objects with `Object.create(null)`**: Objects created without prototype are completely immune to prototype pollution.
@@ -136,7 +136,8 @@ execFile('convert', [req.query.fileName, 'output.png'], (err, stdout) => {
 Node.js features an experimental **Native Permission Model** built into the C++ runtime, allowing you to restrict system capabilities without third-party sandboxes:
 
 ```bash
-# Start Node with restricted permissions:
+
+# Start Node with restricted permissions
 node --experimental-permission \
   --allow-fs-read=/app/public,/app/certs \
   --allow-fs-write=/app/logs \

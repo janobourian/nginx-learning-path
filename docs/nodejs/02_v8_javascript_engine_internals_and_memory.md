@@ -1,6 +1,6 @@
 # Module 02: Google V8 Engine Internals, Hidden Classes & Memory Spaces
 
-**Track:** Node.js — Enterprise Architecture & Libuv Internals  
+**Track:** Node.js — Enterprise Architecture & Libuv Internals
 **Category:** Compiler Internals, V8 Optimization & Memory Management
 
 ---
@@ -9,7 +9,7 @@
 
 Google's **V8 Engine** is the C++ high-performance execution engine that compiles JavaScript source code into optimized machine code (x86_64 / ARM64).
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 The V8 JIT Compilation Pipeline             │
 │                                                             │
@@ -42,14 +42,15 @@ Because JavaScript is a dynamically typed language without fixed struct offsets,
 
 V8 avoids this using **Hidden Classes (called "Shapes" or "Maps")**:
 
-```
+```text
 Object Shape Transitions:
 1. const obj = {};      ──► Shape 0 (Empty)
 2. obj.x = 10;          ──► Shape 1 (Adds property 'x' at offset 0)
 3. obj.y = 20;          ──► Shape 2 (Adds property 'y' at offset 1)
 ```
 
-### The Inline Cache (IC) Optimization:
+### The Inline Cache (IC) Optimization
+
 When a function accesses `obj.x`, V8 caches the memory offset (`offset: 0` for `Shape 2`). On subsequent executions, V8 skips all lookup logic and reads the memory address in **a single CPU instruction**.
 
 ---
@@ -97,7 +98,7 @@ class Point {
 
 V8 partitions its memory heap into specialized memory spaces:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                           V8 Memory Heap                                │
 │                                                                         │
@@ -125,17 +126,18 @@ V8 partitions its memory heap into specialized memory spaces:
 By default, Node.js limits maximum old-generation heap memory to ~1.4GB on 64-bit systems. For high-memory backend workers:
 
 ```bash
-# 1. Expand V8 Heap Limit to 4GB:
+
+# 1. Expand V8 Heap Limit to 4GB
 node --max-old-space-size=4096 src/server.js
 
-# 2. Expose GC for manual profiling:
+# 2. Expose GC for manual profiling
 node --expose-gc test-memory.js
 
-# 3. Print detailed V8 JIT trace compilation:
+# 3. Print detailed V8 JIT trace compilation
 node --trace-opt --trace-deopt src/server.js
 ```
 
-### Inspecting Memory Programmatically:
+### Inspecting Memory Programmatically
 
 ```javascript
 // src/diagnostics/memory.js

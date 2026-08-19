@@ -1,6 +1,6 @@
 # Module 19: Production Deployment & Dockerization
 
-**Track:** Vue — Progressive Web Framework  
+**Track:** Vue — Progressive Web Framework
 **Category:** DevOps, Security & Production Engineering
 
 ---
@@ -24,6 +24,7 @@ Before shipping a Vue 3 Single Page Application (SPA) or Nuxt 3 Universal SSR ap
 For client-side Single Page Applications, the build output is static HTML, CSS, and JS. Use a multi-stage Docker build that compiles with Node.js and serves with a hardened Alpine NGINX image:
 
 ```dockerfile
+
 # Stage 1: Build static assets
 FROM node:20-alpine AS builder
 
@@ -66,6 +67,7 @@ CMD ["nginx", "-g", "daemon off;"]
 This configuration handles Vue Router HTML5 History mode (`try_files`), Gzip compression, asset caching headers, and security hardening:
 
 ```nginx
+
 # /etc/nginx/conf.d/app.conf
 server {
     listen 80;
@@ -129,6 +131,7 @@ server {
 For server-rendered Nuxt applications, deploy the lightweight Nitro Node server:
 
 ```dockerfile
+
 # Stage 1: Build the Nuxt application
 FROM node:20-alpine AS builder
 
@@ -220,6 +223,7 @@ export default defineConfig({
 ## 5. GitHub Actions Production CI/CD Pipeline
 
 ```yaml
+
 # .github/workflows/deploy.yml
 name: Build & Deploy Production
 
@@ -231,6 +235,7 @@ jobs:
   ci-test:
     runs-on: ubuntu-latest
     steps:
+
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
@@ -257,6 +262,7 @@ jobs:
       packages: write
 
     steps:
+
       - uses: actions/checkout@v4
 
       - name: Log in to GitHub Container Registry

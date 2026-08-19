@@ -1,6 +1,6 @@
 # Module 10: WebSockets & Server-Sent Events
 
-**Track:** Deno Secure Engine & Edge Runtime  
+**Track:** Deno Secure Engine & Edge Runtime
 **Category:** Real-Time Communication
 
 ---
@@ -379,11 +379,11 @@ function handler(req: Request): Response {
 
 ## Troubleshooting
 
-**WebSocket connection immediately closes with code 1006**
+### WebSocket connection immediately closes with code 1006
 
 Code 1006 means the connection was closed abnormally without a proper close handshake. Common causes: server crashed on the handler, missing `--allow-net` permission, or the server returned a non-101 response. Check the server's error log.
 
-**SSE stream stops updating after a few minutes**
+### SSE stream stops updating after a few minutes
 
 Intermediate proxies (NGINX, AWS ALB) timeout idle HTTP connections. Add a keepalive ping every 30 seconds:
 
@@ -402,6 +402,6 @@ const stream = new ReadableStream({
 });
 ```
 
-**`Deno.upgradeWebSocket is not a function`**
+### `Deno.upgradeWebSocket is not a function`
 
 This function requires Deno 1.12+. Older code used `std/ws` from the standard library — that package is deprecated. Upgrade Deno.

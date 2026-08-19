@@ -1,6 +1,6 @@
 # Module 07: Enterprise GraphQL — Schemas, Resolvers & The DataLoader N+1 Solution
 
-**Track:** Modern JavaScript — Backend Systems & Distributed Architecture  
+**Track:** Modern JavaScript — Backend Systems & Distributed Architecture
 **Category:** Graph APIs, Schema Design & DataLoader Batching
 
 ---
@@ -10,7 +10,8 @@
 Unlike REST (where endpoints return fixed JSON shapes), **GraphQL** allows clients to request exactly what they need across interconnected entity graphs in a single HTTP request:
 
 ```graphql
-# Client Request:
+
+# Client Request
 query GetUserProfile {
   user(id: "u_101") {
     name
@@ -74,6 +75,7 @@ const resolvers = {
   },
 };
 ```
+
 For 50 users, this executes **51 separate database queries (1 + N)**, saturating the database and spiking latency.
 
 ---
@@ -82,7 +84,7 @@ For 50 users, this executes **51 separate database queries (1 + N)**, saturating
 
 **DataLoader** (created by Facebook) solves the N+1 problem by **batching all individual keys requested within a single Event Loop tick into one single array**:
 
-```
+```text
 DataLoader Batching Cycle:
 50 User resolvers call userOrdersLoader.load(userId) within the SAME tick
        │
@@ -93,7 +95,7 @@ DataLoader Batching Cycle:
 DataLoader maps results back to each user promise! (Total Queries: EXACTLY 2!)
 ```
 
-### Implementing DataLoader with PostgreSQL:
+### Implementing DataLoader with PostgreSQL
 
 ```javascript
 // src/graphql/loaders/order_loader.js
@@ -127,7 +129,7 @@ export function createOrderLoader() {
 }
 ```
 
-### Resolver Integration via GraphQL Context:
+### Resolver Integration via GraphQL Context
 
 ```javascript
 // src/graphql/resolvers.js

@@ -1,6 +1,6 @@
 # Module 06: HTTP, HTTPS & HTTP/2 Multiplexed Servers
 
-**Track:** Node.js — Enterprise Architecture & Libuv Internals  
+**Track:** Node.js — Enterprise Architecture & Libuv Internals
 **Category:** Networking Architecture, HTTP Protocols & TLS Encryption
 
 ---
@@ -18,11 +18,11 @@ const server = http.createServer(async (req, res) => {
   // 1. Parsing Streaming Request Body:
   if (method === 'POST' && url === '/api/data') {
     const chunks = [];
-    
+
     for await (const chunk of req) {
       chunks.push(chunk);
     }
-    
+
     const body = Buffer.concat(chunks).toString('utf8');
     const json = JSON.parse(body);
 
@@ -83,7 +83,7 @@ httpsServer.listen(443, () => {
 
 While HTTP/1.1 requires opening separate TCP connections for parallel requests (or suffers from Head-of-Line blocking), **HTTP/2 multiplexes hundreds of concurrent requests and responses over a single TCP connection**:
 
-```
+```text
 HTTP/1.1 (Multiple TCP Sockets):
 Connection 1: ──► [Request 1] ──► [Response 1]
 Connection 2: ──► [Request 2] ──► [Response 2]
@@ -92,7 +92,7 @@ HTTP/2 Multiplexing (Single TCP Socket):
 Single Socket: ──► [Stream 1: Data] [Stream 2: Data] [Stream 1: Headers] ──►
 ```
 
-### Implementing an HTTP/2 Server in Node.js:
+### Implementing an HTTP/2 Server in Node.js
 
 ```javascript
 // src/servers/http2_server.js

@@ -1,6 +1,6 @@
 # Module 19: Enterprise TypeScript Monorepos with Turborepo
 
-**Track:** TypeScript — Enterprise Type System  
+**Track:** TypeScript — Enterprise Type System
 **Category:** Monorepo Orchestration, Remote Caching & Workspace Architecture
 
 ---
@@ -8,13 +8,14 @@
 ## 1. Why Monorepos in Enterprise TypeScript?
 
 In large engineering organizations, managing multiple independent git repositories (polyrepo) creates severe synchronization friction:
+
 - Shared UI components or API types must be published to npm, requiring version bumps, changelogs, and pull requests across multiple repositories.
 - Breaking API changes cannot be refactored or verified atomically in a single pull request.
 - Tooling, linters, TypeScript compiler options, and dependencies drift across repositories.
 
 An **Enterprise Monorepo** consolidates multiple applications (`apps/`) and shared libraries (`packages/`) into a single repository managed with **pnpm workspaces** and orchestrated with **Turborepo**.
 
-```
+```text
 Enterprise Monorepo Architecture:
 my-enterprise-monorepo/
 ├── apps/
@@ -50,8 +51,10 @@ my-enterprise-monorepo/
 `pnpm` is the recommended package manager for enterprise monorepos due to its content-addressable storage (saving gigabytes of disk space) and strict dependency isolation.
 
 ```yaml
+
 # pnpm-workspace.yaml
 packages:
+
   - "apps/*"
   - "packages/*"
 ```
@@ -132,7 +135,7 @@ Instead of duplicating compiler flags across 20 packages, create a dedicated con
 }
 ```
 
-### Consuming the Base Config in an Application:
+### Consuming the Base Config in an Application
 
 ```json
 // apps/web/tsconfig.json
@@ -187,10 +190,12 @@ Instead of duplicating compiler flags across 20 packages, create a dedicated con
 ## 5. Remote Caching & CI/CD Acceleration
 
 Turborepo's most transformative enterprise feature is **Remote Caching**:
+
 - When Developer A builds `packages/ui` on their laptop, the build artifact hash is saved to the remote cache (Vercel or AWS S3).
 - When Developer B (or the GitHub Actions CI runner) checks out the branch, Turborepo downloads the cached artifact in milliseconds instead of re-compiling from source!
 
 ```bash
+
 # Link local monorepo to Remote Cache
 npx turbo link
 
@@ -199,7 +204,8 @@ npx turbo run build
 ```
 
 Output:
-```
+
+```text
 • Packages in scope: @repo/api, @repo/web, @repo/ui, @repo/shared-types
 • Running build in 4 packages
 
@@ -219,6 +225,7 @@ Time:     1.45s (Saved 28.5s with Remote Cache!)
 In CI/CD, you only want to test and build the packages that were **affected by the current pull request**, rather than building all 50 packages:
 
 ```yaml
+
 # .github/workflows/ci.yml
 name: Monorepo CI
 
@@ -232,6 +239,7 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
+
       - uses: actions/checkout@v4
         with:
           fetch-depth: 2 # Required for git diff comparison
@@ -272,6 +280,7 @@ jobs:
 
 2. **Internal Package Imports via `workspace:*`**
    In internal package manifests, specify internal dependencies using the `workspace:*` protocol:
+
    ```json
    {
      "dependencies": {

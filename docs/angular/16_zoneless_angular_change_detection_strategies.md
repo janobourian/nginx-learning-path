@@ -1,6 +1,6 @@
 # Module 16: Zoneless Angular & Modern Change Detection Strategies
 
-**Track:** Angular — Signals Platform & Ivy Architecture  
+**Track:** Angular — Signals Platform & Ivy Architecture
 **Category:** Performance Optimization, Zone.js & Zoneless Architecture
 
 ---
@@ -8,18 +8,21 @@
 ## 1. The Change Detection Landscape: Zone.js vs Zoneless
 
 For over a decade, Angular relied on **Zone.js** for change detection:
+
 - Zone.js monkey-patches every asynchronous browser API (`setTimeout`, `setInterval`, `Promise.then`, `fetch`, `addEventListener`).
 - Whenever *any* async task completes anywhere in the application, Zone.js triggers a **top-down traversal of the entire component tree** (`ApplicationRef.tick()`) to check if any bound values changed.
 
-### The Downside of Zone.js:
+### The Downside of Zone.js
+
 1. **Bundle Overhead**: Adds ~30KB of minified JavaScript to the initial bundle.
 2. **Coarse-Grained Traversal**: A single timer ticking in a background widget forces the entire application to re-check all component templates.
 3. **Async Stack Tracing Complexity**: Makes browser debugging and profiling noisy.
 
-### The Zoneless Paradigm (Angular 18+):
+### The Zoneless Paradigm (Angular 18+)
+
 In **Zoneless Angular**, Zone.js is completely removed from the bundle. Change detection is driven **purely by fine-grained Signal notifications, template event listeners, and `async` pipes**!
 
-```
+```text
 Change Detection Architecture Comparison:
 
 Zone.js Traversal (Top-Down Global Scan):
@@ -71,6 +74,7 @@ Remove `"zone.js"` from the `polyfills` array in `angular.json` to strip ~30KB f
 ## 3. How Zoneless Change Detection Works
 
 In a Zoneless application, Angular schedules a view update only when:
+
 1. **A Signal read in a template emits a new value** (`mySignal.set(...)`).
 2. **A template event handler fires** (`(click)="doSomething()"`).
 3. **An `AsyncPipe` receives a new Observable value** (`items$ | async`).

@@ -1,6 +1,6 @@
 # Module 12: File System I/O & Streams
 
-**Track:** Deno Secure Engine & Edge Runtime  
+**Track:** Deno Secure Engine & Edge Runtime
 **Category:** File Operations & Data Streaming
 
 ---
@@ -329,14 +329,14 @@ try {
 
 ## Troubleshooting
 
-**`PermissionDenied: Requires read access to "/path/to/file"`**
+### `PermissionDenied: Requires read access to "/path/to/file"`
 
 Add `--allow-read=/path/to/file` or `--allow-read=/path/to/directory` to your run command. The path must match exactly or be a parent of the accessed path.
 
-**Reading a large file causes OOM (out of memory)**
+### Reading a large file causes OOM (out of memory)
 
 Replace `Deno.readFile()` / `Deno.readTextFile()` (which load the full file into memory) with streaming via `Deno.open()` and `file.readable`. Stream data through `TransformStream` processors rather than accumulating it.
 
-**`file.read()` returns `null` prematurely**
+### `file.read()` returns `null` prematurely
 
 `file.read()` returns `null` when the file is exhausted (EOF), not when the buffer is full. The return value is the number of bytes actually read (may be less than `buffer.length`). Only process `buffer[0..bytesRead]`, not the entire buffer.

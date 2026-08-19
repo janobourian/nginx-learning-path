@@ -1,6 +1,6 @@
 # Module 00: Flutter Architecture, Multi-Platform Toolchain & Engine Pipeline
 
-**Track:** Flutter — Multi-Platform Architecture & Impeller Engine  
+**Track:** Flutter — Multi-Platform Architecture & Impeller Engine
 **Category:** Framework Foundations, Rendering Pipelines & Toolchain
 
 ---
@@ -9,12 +9,13 @@
 
 **Flutter** is Google's open-source multi-platform UI framework for building natively compiled applications across **iOS, Android, Web, macOS, Windows, and Linux** from a single codebase.
 
-### The Fundamental Difference Between Flutter and Other Cross-Platform Frameworks:
+### The Fundamental Difference Between Flutter and Other Cross-Platform Frameworks
+
 - **React Native / NativeScript**: Bridges JavaScript logic to native OS platform widgets (`UIButton`, `android.widget.Button`). UI performance is constrained by JS-to-Native bridge serialization and inconsistent styling across OS versions.
 - **WebView Hybrid (Cordova / Ionic / Capacitor)**: Renders UI inside an embedded browser engine (DOM, CSS). Suffers from DOM layout overhead and touch event latency.
 - **Flutter**: **Owns every single pixel on screen**. Flutter does not use native OS widgets or WebViews. Instead, Flutter renders its own high-performance widget tree directly onto the GPU surface using its modern native rendering engine (**Impeller** on iOS/macOS/Android, and **Skia** / WebAssembly on Web).
 
-```
+```text
 Framework Architecture Comparison:
 
 React Native (Bridge / JSI):
@@ -33,7 +34,7 @@ Flutter (Owns Every Pixel):
 
 Flutter is architected into three distinct functional layers:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────────────┐
 │              1. Framework Layer (100% Written in Dart)                  │
 │  - Material Design & Cupertino (iOS-style) Widget Catalogs              │
@@ -60,7 +61,7 @@ Flutter is architected into three distinct functional layers:
 
 Every frame drawn by Flutter moves through a strict, multi-stage pipeline:
 
-```
+```text
 ┌──────────────┐     ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
 │  1. Animate  │ ──► │  2. Layout   │ ──► │  3. Paint    │ ──► │ 4. Composite │
 │(Tweens, Ticks│     │(Constraints  │     │(Canvas draw, │     │(GPU Scene    │
@@ -78,14 +79,16 @@ Every frame drawn by Flutter moves through a strict, multi-stage pipeline:
 ## 4. Setting Up the Flutter Toolchain
 
 ```bash
-# Verify Flutter SDK installation and all multi-platform toolchains:
+
+# Verify Flutter SDK installation and all multi-platform toolchains
 flutter doctor -v
 ```
 
-### Creating and Running a Multi-Platform Project:
+### Creating and Running a Multi-Platform Project
 
 ```bash
-# Create a new enterprise Flutter project with strict linting:
+
+# Create a new enterprise Flutter project with strict linting
 flutter create --org com.acme --platforms=android,ios,macos,web,windows my_flutter_app
 
 cd my_flutter_app

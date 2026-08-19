@@ -1,6 +1,6 @@
 # Module 06: Mapped Types, Index Access & Key Remapping (`as`)
 
-**Track:** TypeScript — Enterprise Type System  
+**Track:** TypeScript — Enterprise Type System
 **Category:** Type Transformation & Object Metaprogramming
 
 ---
@@ -42,6 +42,7 @@ type AllAccountValues = UserAccount[keyof UserAccount];
 ## 2. What Are Mapped Types?
 
 When building enterprise applications, you frequently need to take an existing interface and transform every property according to a pattern:
+
 - Make every property optional (`Partial<T>`)
 - Make every property read-only (`Readonly<T>`)
 - Wrap every property in an observable or getter function

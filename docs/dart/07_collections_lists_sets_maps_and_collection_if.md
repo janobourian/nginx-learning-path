@@ -1,6 +1,6 @@
 # Module 07: Collections Framework, Collection-If & Functional `Iterable`
 
-**Track:** Dart — Language & VM Architecture  
+**Track:** Dart — Language & VM Architecture
 **Category:** Data Structures, Collection Operators & Lazy Iterables
 
 ---
@@ -9,18 +9,20 @@
 
 Dart provides three primary collection types, all inheriting from or providing `Iterable<E>`:
 
-```
+```json
                       [Iterable<E>] (Lazy Sequence)
                             │
                ┌────────────┴────────────┐
                ▼                         ▼
            [List<E>]                 [Set<E>]
       (Ordered Sequence)         (Unique Elements)
+
      - Growable List             - LinkedHashSet (Default)
      - Fixed-length List         - HashSet (Unordered fast hash)
      - Unmodifiable List         - SplayTreeSet (Sorted BST)
 
                       [Map<K, V>] (Key-Value Dictionary)
+
                      - LinkedHashMap (Default insertion-order)
                      - HashMap (Fast O(1) hash bucket)
                      - SplayTreeMap (Sorted by key comparator)

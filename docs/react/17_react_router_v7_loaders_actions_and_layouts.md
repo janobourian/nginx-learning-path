@@ -1,6 +1,6 @@
 # Module 17: React Router v7 — Data Loaders, Actions & Nested Layouts
 
-**Track:** React — Modern UI & Fiber Architecture  
+**Track:** React — Modern UI & Fiber Architecture
 **Category:** Client-Side Routing & Data-Driven Architecture
 
 ---
@@ -8,17 +8,19 @@
 ## 1. What Is React Router v7 & the Data Router?
 
 Historically, client-side React routing followed the "Fetch-on-Render" waterfall model:
+
 1. React Router rendered the `<Dashboard />` component.
 2. The component mounted and triggered `useEffect(() => fetch('/api/user'))`.
 3. When the user data returned, it rendered `<ChildList />`, which triggered *another* `useEffect(() => fetch('/api/items'))`.
 
-**React Router v7** (which merges the Remix framework architecture into React Router core) introduces the **Data Router**. 
+**React Router v7** (which merges the Remix framework architecture into React Router core) introduces the **Data Router**.
 
 With Data Routers:
+
 - **Loaders** fetch all data in parallel **before** the component starts rendering, eliminating network waterfalls completely!
 - **Actions** handle form submissions and mutations, automatically triggering background revalidation of all active loaders.
 
-```
+```text
 Traditional Waterfall (Fetch-on-Render):
 [Route Change] ──► Render Parent ──► useEffect (100ms) ──► Render Child ──► useEffect (100ms) ──► Total: 200ms
 

@@ -1,6 +1,6 @@
 # Module 08: Optimistic UI in Next.js with `useOptimistic`
 
-**Track:** Next.js — Full-Stack App Router & Edge Architecture  
+**Track:** Next.js — Full-Stack App Router & Edge Architecture
 **Category:** Asynchronous UX, Optimistic Mutations & Server Action Synchronization
 
 ---
@@ -18,7 +18,7 @@ Without Optimistic UI, the user experiences a delay between Step 1 and Step 4.
 
 By integrating **`useOptimistic`**, the UI updates **instantly (at 0ms)** while the Server Action executes, and seamlessly transitions to the fresh server-revalidated payload upon completion.
 
-```
+```text
 Next.js Optimistic Synchronization Cycle:
 [User Clicks Bookmark] ──► useOptimistic (0ms: Icon fills instantly!)
                                   │

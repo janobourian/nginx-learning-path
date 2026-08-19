@@ -1,6 +1,6 @@
 # Module 14: Nuxt 3 — Auto-Imports, SSR Data Fetching & `useFetch`
 
-**Track:** Vue — Progressive Web Framework  
+**Track:** Vue — Progressive Web Framework
 **Category:** Universal Data Fetching & Hydration
 
 ---
@@ -19,13 +19,14 @@ Nuxt 3 automatically imports functions, composables, and components throughout y
 ## Universal Data Fetching: Why Standard `fetch()` Fails in SSR
 
 In a universal SSR environment:
+
 1. The server renders the page and calls `fetch("/api/posts")`.
 2. The HTML is sent to the client browser.
 3. If the client component runs `onMounted(() => fetch("/api/posts"))`, the network request runs **a second time**, causing wasted bandwidth, delayed hydration, and flickering UI.
 
 Nuxt 3 provides composables (`useFetch`, `useAsyncData`, `useState`) that **fetch data on the server, serialize the result into the page payload, and hydrate the client state instantly without a second network request**.
 
-```
+```text
 Universal Data Flow:
 Server Execution:
   useFetch('/api/posts') ──► Nitro/Backend ──► Data fetched ──► Serialized into <script id="__NUXT_DATA__">
@@ -157,7 +158,7 @@ const {
 
 ## Non-Blocking Lazy Data Fetching (`useLazyFetch`)
 
-By default, top-level `await useFetch(...)` blocks page route navigation until the server finishes the request. 
+By default, top-level `await useFetch(...)` blocks page route navigation until the server finishes the request.
 
 For high-latency APIs where you want instant page transitions with client-side loading skeletons, use `useLazyFetch` (or `lazy: true`):
 
@@ -308,6 +309,7 @@ async function submitComment() {
    Always ensure keys passed to `useAsyncData('key', ...)` are unique per resource, e.g., `useAsyncData('user-' + id, ...)`. Reusing static keys for different dynamic records will cause stale cache bugs.
 
 2. **Accidentally using `useFetch` inside an async function or click handler**
+
    ```typescript
    // ❌ WRONG: useFetch inside click handler
    async function onClick() {

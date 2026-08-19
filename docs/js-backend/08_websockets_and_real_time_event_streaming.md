@@ -1,13 +1,13 @@
 # Module 08: Real-Time Event Streaming — WebSockets, SSE & Distributed Rooms
 
-**Track:** Modern JavaScript — Backend Systems & Distributed Architecture  
+**Track:** Modern JavaScript — Backend Systems & Distributed Architecture
 **Category:** Real-Time Architecture, WebSockets & Distributed Message Broadcasting
 
 ---
 
 ## 1. Real-Time Protocol Spectrum
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 Real-Time Protocol Comparison               │
 ├────────────────────┬────────────────────────────────────────┤

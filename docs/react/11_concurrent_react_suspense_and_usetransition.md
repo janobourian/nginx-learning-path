@@ -1,6 +1,6 @@
 # Module 11: Concurrent React — `useTransition`, `Suspense` & Priority Scheduling
 
-**Track:** React — Modern UI & Fiber Architecture  
+**Track:** React — Modern UI & Fiber Architecture
 **Category:** Concurrent Features, Priority Queues & Suspense Architecture
 
 ---
@@ -12,10 +12,11 @@ In standard synchronous rendering, React processes updates in order of arrival. 
 **Concurrent React** (introduced in React 18 and enhanced in React 19) introduces **Priority-Based Interruptible Scheduling**.
 
 React categorizes updates into two priority levels:
+
 1. **Urgent Updates**: Direct user physical interactions (typing into inputs, hovering, clicking buttons). These must respond immediately (< 16ms) to feel responsive.
 2. **Transition Updates (Non-Urgent)**: Navigating tabs, filtering a search result list, rendering complex analytics charts. These can yield to urgent inputs and render in the background.
 
-```
+```text
 Concurrent Priority Interruption:
 [User Types Keystroke 'A'] ──► (URGENT PRIORITY: Interrupts ongoing background work!)
                                        │

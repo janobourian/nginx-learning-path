@@ -1,6 +1,6 @@
 # Module 03: Computed Signals, Reactive Effects & Dependency Tracking
 
-**Track:** Angular — Signals Platform & Ivy Architecture  
+**Track:** Angular — Signals Platform & Ivy Architecture
 **Category:** Derived Reactivity, Side Effects & Dynamic Dependency Tracking
 
 ---
@@ -13,7 +13,8 @@ A **Computed Signal** represents a derived, read-only reactive value calculated 
 const derivedSignal = computed(() => expression);
 ```
 
-### Key Characteristics of `computed()`:
+### Key Characteristics of `computed()`
+
 1. **Lazy Evaluation**: The calculation function is **never executed until the computed signal is actively read** by a template or effect.
 2. **Memoization**: Once calculated, the result is cached. Subsequent reads return the cached value instantly without re-evaluating the function until dependencies change.
 3. **Pure & Read-Only**: Computed signals cannot be manually modified via `.set()` or `.update()`.
@@ -73,9 +74,10 @@ export class DynamicDependencyExample {
 
 ## 3. Reactive Effects (`effect()`)
 
-An **`effect()`** is an operation that runs whenever one or more of its tracked signal dependencies change. 
+An **`effect()`** is an operation that runs whenever one or more of its tracked signal dependencies change.
 
 Unlike `computed()` (which calculates pure values), `effect()` is designed exclusively for **Side Effects**:
+
 - Synchronizing state with `localStorage` or `sessionStorage`.
 - Logging analytics or telemetry events.
 - Interfacing with third-party non-Angular libraries (D3, Chart.js, Leaflet).
@@ -118,9 +120,10 @@ export class ThemeManagerComponent {
 
 ## 4. Effect Cleanups (`onCleanup`)
 
-If an effect sets up a subscription, timer, or DOM event listener, it must register a **cleanup function** via the `onCleanup` parameter. 
+If an effect sets up a subscription, timer, or DOM event listener, it must register a **cleanup function** via the `onCleanup` parameter.
 
 The cleanup function executes:
+
 1. Before the effect re-runs (when dependencies change).
 2. When the containing component or service is destroyed.
 
@@ -158,7 +161,7 @@ export class TelemetryPollerComponent {
 
 ## 5. The Injection Context & `Injector`
 
-Effects require an active **Injection Context** to register their automatic destruction lifecycle with the host component. 
+Effects require an active **Injection Context** to register their automatic destruction lifecycle with the host component.
 
 If you need to create an effect outside a constructor (e.g. inside a method or callback), manually pass the `Injector`:
 
@@ -214,6 +217,7 @@ effect(
 ## Troubleshooting & Best Practices
 
 1. **Never use `effect()` to update other signals**
+
    ```typescript
    // ❌ BAD ANTI-PATTERN:
    effect(() => {

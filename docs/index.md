@@ -1,4 +1,5 @@
 # Enterprise Software Architecture & Web Engineering — Master Textbook Series
+
 **Repository:** `vit/nginx-learning-path`
 **Total Modules:** 274 In-Depth Chapters (14 NGINX Enterprise + 260 Web & Cross-Platform Modules)
 **Average Line Count:** > 1,040 Lines per Chapter
@@ -18,6 +19,7 @@
 ## 🌐 The 13 Full-Stack Web Development & Cross-Platform Tracks (260 Modules)
 
 ### Node.js Enterprise Backend & Runtime (20 Chapters, 1000+ Lines Each)
+
 | Module | Title | Category | Document Link |
 | :--- | :--- | :--- | :--- |
 | **00** | Installation, Version Management (FNM/NVM) & V8 Process Object | Tooling & Environment | [`nodejs/00_installation_toolchains_and_node_runtime_environment.md`](nodejs/00_installation_toolchains_and_node_runtime_environment.md) |
@@ -42,6 +44,7 @@
 | **19** | Full-Stack Observability: OpenTelemetry Tracing, Pino & Prometheus | SRE & Observability | [`nodejs/19_observability_opentelemetry_pino_and_prometheus.md`](nodejs/19_observability_opentelemetry_pino_and_prometheus.md) |
 
 ### Deno Secure Engine & Edge Runtime (20 Chapters, 1000+ Lines Each)
+
 | Module | Title | Category | Document Link |
 | :--- | :--- | :--- | :--- |
 | **00** | Installation, Toolchain Setup & Deno CLI Architecture | Tooling & Environment | [`deno/00_installation_toolchain_and_deno_cli.md`](deno/00_installation_toolchain_and_deno_cli.md) |
@@ -66,6 +69,7 @@
 | **19** | Edge Microservices & Cloudflare Workers Interop | Cloud Native Edge | [`deno/19_edge_microservices_and_cloudflare_workers_interop.md`](deno/19_edge_microservices_and_cloudflare_workers_interop.md) |
 
 ### JavaScript for Frontend & Browser APIs (20 Chapters, 1000+ Lines Each)
+
 | Module | Title | Category | Document Link |
 | :--- | :--- | :--- | :--- |
 | **00** | ES6 to ESNext Mastery: Proxies, Reflect & Iterators | Core Grammar | [`javascript_frontend/00_modern_javascript_es6_to_esnext_mastery.md`](javascript_frontend/00_modern_javascript_es6_to_esnext_mastery.md) |
@@ -90,6 +94,7 @@
 | **19** | WCAG 2.2 AA Accessibility, ARIA Roles & Screen Readers | Accessibility & UX | [`javascript_frontend/19_accessibility_aria_and_assistive_technology.md`](javascript_frontend/19_accessibility_aria_and_assistive_technology.md) |
 
 ### JavaScript for Backend & Cloud Microservices (20 Chapters, 1000+ Lines Each)
+
 | Module | Title | Category | Document Link |
 | :--- | :--- | :--- | :--- |
 | **00** | Layered Clean Architecture, Dependency Injection & DTOs | Architecture & Design | [`javascript_backend/00_backend_architecture_and_design_patterns.md`](javascript_backend/00_backend_architecture_and_design_patterns.md) |
@@ -114,6 +119,7 @@
 | **19** | CI/CD Deployment: Multi-Stage Docker & Kubernetes Helm | DevOps & Cloud Native | [`javascript_backend/19_enterprise_ci_cd_docker_and_kubernetes_helm.md`](javascript_backend/19_enterprise_ci_cd_docker_and_kubernetes_helm.md) |
 
 ### TypeScript Enterprise Type System (20 Chapters, 1000+ Lines Each)
+
 | Module | Title | Category | Document Link |
 | :--- | :--- | :--- | :--- |
 | **00** | TypeScript Toolchain, tsc Compiler & tsconfig.json Mastery | Tooling & Compiler | [`typescript/00_installation_toolchain_and_tsconfig_mastery.md`](typescript/00_installation_toolchain_and_tsconfig_mastery.md) |
@@ -138,6 +144,7 @@
 | **19** | Enterprise TypeScript Monorepos with Turborepo & pnpm | Monorepo Architecture | [`typescript/19_enterprise_typescript_monorepos_with_turborepo.md`](typescript/19_enterprise_typescript_monorepos_with_turborepo.md) |
 
 ### React Modern UI & Fiber Architecture (20 Chapters, 1000+ Lines Each)
+
 | Module | Title | Category | Document Link |
 | :--- | :--- | :--- | :--- |
 | **00** | React 18/19 Setup, Vite Toolchain & JSX Compilation | Tooling & JSX | [`react/00_react_toolchain_vite_and_jsx_internals.md`](react/00_react_toolchain_vite_and_jsx_internals.md) |
@@ -162,6 +169,7 @@
 | **19** | React DevTools Profiler, Flamegraphs & Render Optimization | Profiling & Auditing | [`react/19_profiling_and_performance_optimization_react_devtools.md`](react/19_profiling_and_performance_optimization_react_devtools.md) |
 
 ### Next.js Full-Stack App Router & Edge (20 Chapters, 1000+ Lines Each)
+
 | Module | Title | Category | Document Link |
 | :--- | :--- | :--- | :--- |
 | **00** | Next.js App Router Architecture & Turbopack Setup | Tooling & Architecture | [`nextjs/00_nextjs_architecture_and_project_setup.md`](nextjs/00_nextjs_architecture_and_project_setup.md) |
@@ -186,6 +194,7 @@
 | **19** | Standalone Docker Packaging & Kubernetes Hosting | Production Deployment | [`nextjs/19_standalone_docker_deployment_and_cloud_hosting.md`](nextjs/19_standalone_docker_deployment_and_cloud_hosting.md) |
 
 ### Vue.js 3 & Nuxt 3 Full-Stack Framework (20 Chapters, 1000+ Lines Each)
+
 | Module | Title | Category | Document Link |
 | :--- | :--- | :--- | :--- |
 | **00** | Vue 3 Architecture, Vite Toolchain & Single File Components | Foundations & Tooling | [`vue/00_vue_foundations_and_vite_toolchain.md`](vue/00_vue_foundations_and_vite_toolchain.md) |
@@ -210,6 +219,7 @@
 | **19** | Production Bundle Optimization & Nginx Dockerization | Production Deployment | [`vue/19_production_deployment_and_dockerization.md`](vue/19_production_deployment_and_dockerization.md) |
 
 ### Angular Signals Platform & Ivy Architecture (20 Chapters, 1000+ Lines Each)
+
 | Module | Title | Category | Document Link |
 | :--- | :--- | :--- | :--- |
 | **00** | Angular CLI, Workspace Configuration & Standalone Setup | Tooling & Workspace | [`angular/00_angular_cli_workspace_and_project_architecture.md`](angular/00_angular_cli_workspace_and_project_architecture.md) |
@@ -234,6 +244,7 @@
 | **19** | Production ESBuild Bundling, Differential Loading & Docker | Production Deployment | [`angular/19_enterprise_production_builds_and_ci_cd.md`](angular/19_enterprise_production_builds_and_ci_cd.md) |
 
 ### Dart Language & VM Architecture (20 Chapters, 1000+ Lines Each)
+
 | Module | Title | Category | Document Link |
 | :--- | :--- | :--- | :--- |
 | **00** | Dart SDK Installation, dart pub & pubspec.yaml Tooling | Tooling & Environment | [`dart/00_installation_dart_sdk_and_pubspec_tooling.md`](dart/00_installation_dart_sdk_and_pubspec_tooling.md) |
@@ -258,6 +269,7 @@
 | **19** | dart compile exe Native Binaries & Publishing to pub.dev | Deployment & Packages | [`dart/19_standalone_native_compilation_and_package_publishing.md`](dart/19_standalone_native_compilation_and_package_publishing.md) |
 
 ### Flutter for Web & WebAssembly (WasmGC) (20 Chapters, 1000+ Lines Each)
+
 | Module | Title | Category | Document Link |
 | :--- | :--- | :--- | :--- |
 | **00** | Flutter Web Toolchain Setup & flutter.js Bootstrapping | Foundations & Setup | [`flutter_web/00_flutter_web_setup_and_architecture.md`](flutter_web/00_flutter_web_setup_and_architecture.md) |
@@ -282,6 +294,7 @@
 | **19** | Production Hosting: NGINX, AWS S3 & Cloudflare Pages | Production Deployment | [`flutter_web/19_production_hosting_nginx_s3_and_cloudflare_pages.md`](flutter_web/19_production_hosting_nginx_s3_and_cloudflare_pages.md) |
 
 ### Flutter for Mobile & Impeller Graphics Engine (20 Chapters, 1000+ Lines Each)
+
 | Module | Title | Category | Document Link |
 | :--- | :--- | :--- | :--- |
 | **00** | Mobile Setup, Android Studio, Xcode & Toolchain Architecture | Foundations & Setup | [`flutter_mobile/00_flutter_mobile_setup_and_toolchain_architecture.md`](flutter_mobile/00_flutter_mobile_setup_and_toolchain_architecture.md) |
@@ -306,6 +319,7 @@
 | **19** | Production Deployment: Android App Bundles (.aab) & iOS IPA | Store Deployment | [`flutter_mobile/19_app_store_and_google_play_production_deployment.md`](flutter_mobile/19_app_store_and_google_play_production_deployment.md) |
 
 ### Full-Stack Dart & Serverpod Cloud Services (20 Chapters, 1000+ Lines Each)
+
 | Module | Title | Category | Document Link |
 | :--- | :--- | :--- | :--- |
 | **00** | Full-Stack Dart Architecture & Monorepos with Melos | Architecture & Monorepos | [`dart_real_world/00_full_stack_dart_architecture_and_monorepos.md`](dart_real_world/00_full_stack_dart_architecture_and_monorepos.md) |
@@ -353,12 +367,13 @@
 ---
 
 ## 🛠️ Documentation Standards Applied Across All 274 Chapters
+
 1. **👔 Executive Summary**: Non-technical explanation of business purpose, mechanics, and value for stakeholders.
 2. **Complete Syntax, Keywords & Statements Dictionary**: 55 formal grammar specifications and operational semantics.
 3. **Data Structures & Memory Models**: 15 complete memory layout and Big-O complexity analyses.
 4. **Virtual Machine & Engine Deep Dives**: Bytecode compilation, JIT/AOT pipelines, and generational GC compaction.
 5. **Step-by-Step Hands-On Labs**: 4-file modular production architectures with domain models, services, controllers, and tests.
-6. **Clean, Escaped CLI Snippets**: Formatted with trailing ` \` line escapes, 4-space indentation, and zero in-code comments.
+6. **Clean, Escaped CLI Snippets**: Formatted with trailing `\` line escapes, 4-space indentation, and zero in-code comments.
 7. **10 Curated References**: Exactly 5 official documentation links + 5 authoritative engineering blogs per module.
 8. **FinOps & Resource Governance**: 1000+ words on compute right-sizing, memory optimization, and cloud cost reduction.
 9. **Troubleshooting & Anti-Patterns**: Root-cause diagnostic workflows, failure modes, and debugging cheat-sheets.

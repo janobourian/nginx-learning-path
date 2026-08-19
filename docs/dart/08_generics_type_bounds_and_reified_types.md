@@ -1,6 +1,6 @@
 # Module 08: Generics, Type Bounds & Reified Type System
 
-**Track:** Dart — Language & VM Architecture  
+**Track:** Dart — Language & VM Architecture
 **Category:** Type Architecture, Generic Constraints & Reification
 
 ---
@@ -10,6 +10,7 @@
 In languages like Java, TypeScript, and C#, generics suffer from **Type Erasure**: generic type parameters exist only during compile-time checking and are completely erased into raw `Object` or `any` at runtime. In TypeScript, `(list as any) is Array<string>` cannot be checked at runtime.
 
 In **Dart**, generics are **100% Reified**:
+
 - Generic type arguments are **preserved in memory at runtime**.
 - Type tests (`is List<String>`) execute with complete fidelity at runtime.
 - You can inspect generic types, print `T.toString()`, and instantiate generic type containers safely.
@@ -109,6 +110,7 @@ void main() {
 ## 5. Covariance & The `covariant` Keyword
 
 In Dart, generic collection types are **covariant**:
+
 - If `Dog extends Animal`, then `List<Dog>` is considered a subtype of `List<Animal>`.
 
 While covariant collections make UI programming (e.g. widget trees) intuitive, they can lead to runtime heap type errors if you insert an incompatible subtype into a widened list:
@@ -127,7 +129,7 @@ void main() {
 }
 ```
 
-### The `covariant` Keyword on Method Parameters:
+### The `covariant` Keyword on Method Parameters
 
 Use `covariant` when a subclass legitimately needs to tighten the parameter type of an inherited method:
 

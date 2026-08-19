@@ -1,6 +1,6 @@
 # Module 06: FFI — Foreign Function Interface & C Interop
 
-**Track:** Deno Secure Engine & Edge Runtime  
+**Track:** Deno Secure Engine & Edge Runtime
 **Category:** Native Code Integration & Systems Programming
 
 ---
@@ -10,6 +10,7 @@
 The Foreign Function Interface (FFI) lets Deno call functions compiled in native languages — C, C++, Rust, Go — directly from TypeScript. This bridges the gap between JavaScript's convenience and the raw performance or OS-level capabilities that only native code provides.
 
 Common use cases:
+
 - **Image processing**: calling libvips or libpng for high-throughput image manipulation
 - **Cryptography**: using OS-provided or hardware-accelerated crypto primitives
 - **Database drivers**: calling SQLite's C library directly
@@ -51,7 +52,7 @@ lib.close();  // Release the library
 ## Supported Native Types
 
 | Deno FFI Type | C Equivalent | JavaScript Value |
-|---|---|---|
+| --- | --- | --- |
 | `"i8"` | `int8_t` / `char` | Number |
 | `"i16"` | `int16_t` / `short` | Number |
 | `"i32"` | `int32_t` / `int` | Number |
@@ -76,8 +77,11 @@ Rather than using the `npm:better-sqlite3` package, you can call SQLite's C API 
 
 ```c
 // sqlite_wrapper.c — compiled to libsqlite_wrapper.so
+
 #include <sqlite3.h>
+
 #include <string.h>
+
 #include <stdlib.h>
 
 typedef struct {
@@ -104,6 +108,7 @@ void db_close(Database* wrapper) {
 ```
 
 ```bash
+
 # Compile the wrapper
 gcc -shared -fPIC -o libsqlite_wrapper.so sqlite_wrapper.c -lsqlite3
 ```
@@ -159,6 +164,7 @@ use std::os::raw::c_char;
 
 /// Compute the Levenshtein distance between two C strings.
 /// Returns -1 if either string is null.
+
 #[no_mangle]
 pub extern "C" fn levenshtein_distance(a: *const c_char, b: *const c_char) -> i32 {
     if a.is_null() || b.is_null() {
@@ -191,6 +197,7 @@ fn compute_distance(a: &str, b: &str) -> usize {
 ```
 
 ```toml
+
 # Cargo.toml
 [package]
 name = "string_utils"
@@ -203,6 +210,7 @@ crate-type = ["cdylib"]
 
 ```bash
 cargo build --release
+
 # Produces: target/release/libstring_utils.dylib (macOS) or .so (Linux)
 ```
 
@@ -257,12 +265,14 @@ console.log("Result:", result);
 ## Safety Considerations
 
 FFI bypasses all Deno sandbox protections. Native code:
+
 - Can read and write any memory in the process
 - Can make any system calls
 - Can crash the entire Deno process with a segfault
 - Can access any file, network, or device regardless of Deno permission flags
 
 Best practices:
+
 1. Only load libraries you compiled yourself or from trusted, audited sources
 2. Always null-check pointers before dereferencing
 3. Use Rust or C++ with bounds checking rather than raw C where possible
@@ -270,6 +280,7 @@ Best practices:
 5. Use `--allow-ffi=./libmylib.so` (path-restricted) rather than `--allow-ffi` (global)
 
 ```bash
+
 # Restrict FFI to a specific library path only
 deno run --allow-ffi=./target/release/libstring_utils.dylib main.ts
 ```
@@ -278,21 +289,22 @@ deno run --allow-ffi=./target/release/libstring_utils.dylib main.ts
 
 ## Troubleshooting
 
-**`Error: permission denied: Deno.dlopen()`**
+### `Error: permission denied: Deno.dlopen()`
 
 Add `--allow-ffi` or `--allow-ffi=./path/to/lib.so` to your run command.
 
-**`Error: cannot open shared object file: No such file or directory`**
+### `Error: cannot open shared object file: No such file or directory`
 
 The library file doesn't exist at the specified path. Use an absolute path or ensure the relative path is correct from the process working directory.
 
-**`TypeError: lib.symbols.my_func is not a function`**
+### `TypeError: lib.symbols.my_func is not a function`
 
 The function name in the `Deno.dlopen` definition doesn't match the exported symbol name in the compiled library. Run `nm -D libmylib.so | grep my_func` to list actual exported symbols.
 
-**Process segfaults when calling FFI function**
+### Process segfaults when calling FFI function
 
 You are passing incorrect data types or null pointers. Check that:
+
 - String arguments are null-terminated (`str + "\0"`)
 - Buffer lengths match actual buffer sizes
 - Pointer types are correctly defined

@@ -1,6 +1,6 @@
 # Module 15: Dart FFI — Foreign Function Interface & C/Rust Native Interop
 
-**Track:** Dart — Language & VM Architecture  
+**Track:** Dart — Language & VM Architecture
 **Category:** Native Interop, Foreign Function Interface (`dart:ffi`) & Systems Programming
 
 ---
@@ -10,11 +10,12 @@
 **Dart FFI (`dart:ffi`)** provides direct, high-speed interoperability with native libraries written in **C, C++, Rust, Zig, or Go**.
 
 Unlike traditional inter-process communication (IPC) or socket bridges, Dart FFI:
+
 - Executes native shared library functions **within the same process address space**.
 - Has **zero serialization or copying overhead**: passes raw memory pointers directly between Dart and C/Rust.
 - Executes native CPU functions with near-zero bridge call overhead (~2 nanoseconds).
 
-```
+```text
 Dart FFI Execution Architecture:
 [Dart VM Runtime Heap]
        │
@@ -27,12 +28,13 @@ Dart FFI Execution Architecture:
 ## 2. Setting Up Dart FFI & Native Type Mappings
 
 ```yaml
+
 # pubspec.yaml
 dependencies:
   ffi: ^2.1.2 # Official Google FFI memory utilities (calloc, malloc, Utf8)
 ```
 
-### Type Mapping Table (C to Dart):
+### Type Mapping Table (C to Dart)
 
 | C Native Type (`dart:ffi`) | Dart Representation | Description |
 | :--- | :--- | :--- |
@@ -53,8 +55,11 @@ Let's write and compile a high-performance C library:
 
 ```c
 // native/crypto_engine.c
+
 #include <stdint.h>
+
 #include <string.h>
+
 #include <stdlib.h>
 
 // 1. Fast native addition
@@ -74,10 +79,13 @@ void reverse_string(char* str) {
 ```
 
 ```bash
-# Compile to dynamic shared library:
-# macOS:
+
+# Compile to dynamic shared library
+
+# macOS
 clang -shared -fPIC native/crypto_engine.c -o libcrypto_engine.dylib
-# Linux:
+
+# Linux
 gcc -shared -fPIC native/crypto_engine.c -o libcrypto_engine.so
 ```
 

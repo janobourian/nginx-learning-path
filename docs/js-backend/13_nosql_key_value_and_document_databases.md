@@ -1,13 +1,13 @@
 # Module 13: NoSQL Document & Wide-Column Databases — MongoDB & DynamoDB
 
-**Track:** Modern JavaScript — Backend Systems & Distributed Architecture  
+**Track:** Modern JavaScript — Backend Systems & Distributed Architecture
 **Category:** NoSQL Systems, Document Stores & Distributed Partitioning
 
 ---
 
 ## 1. NoSQL Architectural Paradigms
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 NoSQL Database Classification               │
 ├────────────────────┬────────────────────────────────────────┤
@@ -28,7 +28,7 @@
 
 ## 2. MongoDB High-Performance Query Optimization
 
-### Indexing Strategies & `explain('executionStats')`:
+### Indexing Strategies & `explain('executionStats')`
 
 Without compound indexes, MongoDB executes full collection scans (`COLLSCAN`), consuming 100% CPU.
 
@@ -60,7 +60,7 @@ export async function createEnterpriseIndices(db) {
 
 In **Amazon DynamoDB**, instead of creating 10 separate tables, enterprise systems use **Single-Table Design**: all entities (Users, Orders, Products) are stored in a single table partitioned by composite keys:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 DynamoDB Single-Table Schema                │
 ├──────────────────────┬──────────────────────┬───────────────┤
@@ -72,7 +72,7 @@ In **Amazon DynamoDB**, instead of creating 10 separate tables, enterprise syste
 └──────────────────────┴──────────────────────┴───────────────┘
 ```
 
-### Conditional Writes (Race Condition Protection):
+### Conditional Writes (Race Condition Protection)
 
 ```javascript
 // src/database/dynamodb_service.js

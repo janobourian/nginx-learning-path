@@ -1,6 +1,6 @@
 # Module 18: Component Testing — React Testing Library, Vitest & MSW
 
-**Track:** React — Modern UI & Fiber Architecture  
+**Track:** React — Modern UI & Fiber Architecture
 **Category:** Automated Testing, Accessibility Queries & Network Mocking
 
 ---
@@ -13,7 +13,7 @@ Historically, tools like Enzyme tested component implementation details (inspect
 
 > *"The more your tests resemble the way your software is used, the more confidence they can give you."* — Kent C. Dodds
 
-```
+```text
 Implementation Testing (Enzyme / Fragile):
 expect(wrapper.state('count')).toBe(1);  ◄── Breaks on refactor
 

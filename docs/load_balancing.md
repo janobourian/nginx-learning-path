@@ -1,13 +1,14 @@
 # Enterprise Reverse Proxy, Upstream Architecture & Load Balancing Guide
 
-**Track:** Enterprise NGINX Infrastructure  
-**Category:** Traffic Distribution, Upstream Keepalives & High Availability  
-**Standard Identifier:** `DOC-STD-UNIVERSAL-2026`  
+**Track:** Enterprise NGINX Infrastructure
+**Category:** Traffic Distribution, Upstream Keepalives & High Availability
+**Standard Identifier:** `DOC-STD-UNIVERSAL-2026`
 **Status:** ✅ Completed
 
 ---
 
 ## 📑 Table of Contents
+
 1. [High-Level Overview & Executive Summary](#1-high-level-overview--executive-summary)
 2. [Reverse Proxy Mechanics & Request Transformation](#2-reverse-proxy-mechanics--request-transformation)
 3. [Upstream Load Balancing Algorithms](#3-upstream-load-balancing-algorithms)
@@ -27,7 +28,7 @@ An NGINX **Reverse Proxy** acts as an intermediary gateway positioned between pu
 
 Unlike a forward proxy (which intercepts outbound client requests to access the internet), a reverse proxy shields origin servers from direct public exposure, terminates TLS encryption, enforces rate limits, pools persistent backend TCP connections, and dynamically distributes traffic across multi-node server clusters.
 
-```
+```text
 ┌────────────────────────────────────────────────────────────────────────────────┐
 │               ENTERPRISE REVERSE PROXY & LOAD BALANCING TOPOLOGY               │
 ├────────────────────────────────────────────────────────────────────────────────┤
@@ -49,6 +50,7 @@ Unlike a forward proxy (which intercepts outbound client requests to access the 
 ```
 
 ### 👔 Executive Summary (For Managers & Non-Technical Stakeholders)
+
 * **Business Purpose**: Balances incoming customer traffic across multiple application servers to guarantee sub-millisecond response speeds and zero downtime during hardware crashes.
 * **How It Works**: Distributes incoming requests intelligently using algorithms like Least Connections and automatically redirects traffic to healthy servers if one fails.
 * **Key Business Value & ROI**: Guarantees 99.999% application uptime, prevents server overloads during traffic surges, and cuts cloud compute costs by 40%.
@@ -65,7 +67,7 @@ server {
     location / {
         proxy_pass http://backend_cluster;
         proxy_http_version 1.1;
-        
+
         # Mandatory Header Propagation
         proxy_set_header Host              $host;
         proxy_set_header X-Real-IP         $remote_addr;
@@ -80,7 +82,7 @@ server {
 
 ## 3. Upstream Load Balancing Algorithms
 
-```
+```text
 ┌────────────────────────────────────────────────────────────────────────────────┐
 │                     NGINX UPSTREAM ALGORITHM REFERENCE                         │
 ├──────────────────────────┬─────────────────────────────────────────────────────┤
@@ -123,7 +125,7 @@ upstream backend_cluster {
 ```nginx
 location / {
     proxy_pass http://backend_cluster;
-    
+
     # Fast Failover Directives
     proxy_connect_timeout 2s;
     proxy_read_timeout 5s;
@@ -138,6 +140,7 @@ location / {
 ## 6. Step-by-Step Production Lab: High-Throughput Upstream Gateway
 
 ```nginx
+
 # /etc/nginx/conf.d/load_balancer.conf
 upstream app_servers {
     least_conn;
@@ -172,16 +175,19 @@ server {
 ## 7. Pure CLI / Command Interface
 
 ### 1. Validate Load Balancer Configuration Syntax
+
 ```bash
 nginx -t 2>/dev/null || true
 ```
 
 ### 2. Inspect Active Upstream Connections
+
 ```bash
 ss -tuna | grep 8080 2>/dev/null || true
 ```
 
 ### 3. Check Live Error Logs During Failover
+
 ```bash
 tail -n 10 /var/log/nginx/error.log 2>/dev/null || true
 ```
@@ -190,7 +196,7 @@ tail -n 10 /var/log/nginx/error.log 2>/dev/null || true
 
 ## 8. Advanced Architecture & Edge-Case Failure Modes
 
-```
+```text
 ┌────────────────────────────────────────────────────────────────────────────────┐
 │                    LOAD BALANCING FAILURE RECOVERY MATRIX                      │
 ├──────────────────────┬────────────────────────┬────────────────────────────────┤
@@ -209,6 +215,7 @@ tail -n 10 /var/log/nginx/error.log 2>/dev/null || true
 ## 9. References (The 5+5 Rule)
 
 ### Official Documentation & Enterprise Specifications
+
 1. [NGINX Official Documentation: HTTP Upstream Module Reference](https://nginx.org/en/docs/http/ngx_http_upstream_module.html)
 2. [NGINX Load Balancing Guide (HTTP & TCP/UDP)](https://docs.nginx.com/nginx/admin-guide/load-balancer/http-load-balancer/)
 3. [RFC 7230: Hypertext Transfer Protocol (HTTP/1.1) - Message Syntax and Routing](https://datatracker.ietf.org/doc/html/rfc7230)
@@ -216,17 +223,18 @@ tail -n 10 /var/log/nginx/error.log 2>/dev/null || true
 5. [OpenResty Upstream Health Check Module Specification](https://github.com/openresty/lua-resty-upstream-healthcheck)
 
 ### Authoritative Engineering Textbooks & Systems Deep Dives
-6. [Clement Nedelcu: Mastering NGINX (Chapter 4: Load Balancing)](https://www.packtpub.com/)
-7. [Derek DeJonghe: NGINX Cookbook (Chapter 2: High-Performance Load Balancing)](https://www.oreilly.com/)
-8. [Cloudflare Engineering: Designing Resilient Load Balancers on NGINX](https://blog.cloudflare.com/)
-9. [Datadog Engineering: Monitoring Upstream Response Latency and Failovers in NGINX](https://www.datadoghq.com/blog/)
-10. [High-Performance Linux Systems: Low-Latency TCP Keepalive Pools in Reverse Proxies](https://www.kernel.org/)
+
+1. [Clement Nedelcu: Mastering NGINX (Chapter 4: Load Balancing)](https://www.packtpub.com/)
+2. [Derek DeJonghe: NGINX Cookbook (Chapter 2: High-Performance Load Balancing)](https://www.oreilly.com/)
+3. [Cloudflare Engineering: Designing Resilient Load Balancers on NGINX](https://blog.cloudflare.com/)
+4. [Datadog Engineering: Monitoring Upstream Response Latency and Failovers in NGINX](https://www.datadoghq.com/blog/)
+5. [High-Performance Linux Systems: Low-Latency TCP Keepalive Pools in Reverse Proxies](https://www.kernel.org/)
 
 ---
 
 ## 10. Universal FinOps & Hardware Cost Governance
 
-```
+```text
 ┌────────────────────────────────────────────────────────────────────────────────┐
 │                     LOAD BALANCING FINOPS SAVINGS MATRIX                       │
 ├──────────────────────────┬──────────────────────────┬──────────────────────────┤

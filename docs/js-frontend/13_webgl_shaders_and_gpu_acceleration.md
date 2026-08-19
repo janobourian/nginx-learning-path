@@ -1,6 +1,6 @@
 # Module 13: WebGL 2.0 Graphics, GLSL Shaders & GPU Acceleration
 
-**Track:** Modern JavaScript — Frontend Architecture & Web APIs  
+**Track:** Modern JavaScript — Frontend Architecture & Web APIs
 **Category:** 3D Graphics, WebGL 2.0 Shaders & WebGPU Acceleration
 
 ---
@@ -11,7 +11,7 @@
 
 Unlike the Canvas 2D API (which executes CPU-driven draw calls), WebGL allows you to write programs called **Shaders** that execute concurrently across **thousands of GPU cores simultaneously**.
 
-```
+```text
 WebGL 2.0 Programmable GPU Pipeline:
 ┌─────────────────────────────────────────────────────────────┐
 │ 1. Vertex Buffer Objects (VBOs / VAOs)                      │
@@ -34,9 +34,10 @@ WebGL 2.0 Programmable GPU Pipeline:
 
 ## 2. Compiling GLSL Shaders in WebGL 2.0
 
-### 1. Vertex Shader Source (GLSL 300 ES):
+### 1. Vertex Shader Source (GLSL 300 ES)
 
 ```glsl
+
 #version 300 es
 in vec3 aPosition;
 in vec3 aColor;
@@ -52,9 +53,10 @@ void main() {
 }
 ```
 
-### 2. Fragment Shader Source (GLSL 300 ES):
+### 2. Fragment Shader Source (GLSL 300 ES)
 
 ```glsl
+
 #version 300 es
 precision highp float;
 
@@ -211,6 +213,7 @@ export class WebGlTriangleApp {
 ## 5. The Future: WebGPU Overview
 
 While WebGL 2.0 is based on 1990s OpenGL state machines, **WebGPU** is the next-generation W3C graphics and compute standard:
+
 - Designed around modern explicit GPU architectures (**Apple Metal, Vulkan, DirectX 12**).
 - Supports **Compute Shaders** for machine learning (running LLMs and neural nets directly in the browser via WebGPU!).
 - Reduces JavaScript driver overhead by over **60%**.

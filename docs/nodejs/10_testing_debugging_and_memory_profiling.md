@@ -1,9 +1,9 @@
 # Module 10: Testing, Debugging & V8 Memory Leak Profiling
 
-**Track:** Node.js Enterprise Backend & Runtime  
-**Directory:** `docs/nodejs/`  
-**File:** `10_testing_debugging_and_memory_profiling.md`  
-**Category:** Quality Assurance, V8 Profiling & Memory Diagnostics  
+**Track:** Node.js Enterprise Backend & Runtime
+**Directory:** `docs/nodejs/`
+**File:** `10_testing_debugging_and_memory_profiling.md`
+**Category:** Quality Assurance, V8 Profiling & Memory Diagnostics
 **Status:** ✅ Production-Grade Reference Textbook (Zero to Master)
 
 ---
@@ -14,7 +14,7 @@ Ensuring enterprise software reliability in Node.js requires a dual-track strate
 
 In long-running backend microservices, minor memory leaks (e.g. 50KB retained per request) eventually accumulate gigabytes over days of continuous operation, eventually triggering Kubernetes `OOMKilled` container restarts. Identifying root-cause retainer chains requires understanding **V8 Heap Snapshots**, **Shallow vs Retained Size**, and **GC Roots**.
 
-```
+```text
 +-------------------------------------------------------------------------------+
 |                      V8 Garbage Collector Retainer Graph                      |
 +-------------------------------------------------------------------------------+
@@ -47,12 +47,12 @@ Below is the complete API dictionary for native testing, heap inspection, and de
 | `describe(name, fn)` | `node:test` | `describe(name: string, fn: Function): void` | Groups related test suites into structured hierarchical blocks. |
 | `it(name, fn)` | `node:test` | `it(name: string, fn: Function): Promise<void>` | Alias for `test()` standardizing BDD test naming syntax. |
 | `assert.strictEqual(a, b)` | `node:assert/strict` | `assert.strictEqual(act, exp, msg?): void` | Asserts primitive equality using `===` (throws `AssertionError` on mismatch). |
-| `assert.deepStrictEqual(a, b)`| `node:assert/strict`| `assert.deepStrictEqual(act, exp): void` | Recursively compares object prototypes, own properties, Sets, and Maps. |
+| `assert.deepStrictEqual(a, b)` | `node:assert/strict` | `assert.deepStrictEqual(act, exp): void` | Recursively compares object prototypes, own properties, Sets, and Maps. |
 | `assert.rejects(asyncFn)` | `node:assert/strict` | `await assert.rejects(fn, exp?): Promise<void>` | Asserts that an asynchronous Promise or async function rejects with an error. |
 | `t.mock.fn([impl])` | `node:test` | `t.mock.fn(impl?): MockFunction` | Creates a spy/mock function tracking invocation count, arguments, and return values. |
 | `v8.getHeapSnapshot()` | `node:v8` | `v8.getHeapSnapshot(): Readable` | Generates a readable JSON stream containing a complete snapshot of the active V8 heap. |
 | `v8.getHeapStatistics()` | `node:v8` | `v8.getHeapStatistics(): HeapInfo` | Returns heap limits, total heap size, used heap size, and external memory in bytes. |
-| `inspector.open([port], [host], [wait])`| `node:inspector`| `inspector.open(port?, host?, wait?): void` | Opens Chrome DevTools Inspector WebSocket server for live interactive debugging. |
+| `inspector.open([port], [host], [wait])` | `node:inspector` | `inspector.open(port?, host?, wait?): void` | Opens Chrome DevTools Inspector WebSocket server for live interactive debugging. |
 | `process.report.writeReport([file])` | Core / `process` | `process.report.writeReport(file?): string` | Writes a JSON diagnostic crash report to disk synchronously. |
 
 ---
@@ -60,10 +60,12 @@ Below is the complete API dictionary for native testing, heap inspection, and de
 ## 3. Technical Deep Dive: Shallow Size vs Retained Size in V8
 
 When analyzing `.heapsnapshot` files in Chrome DevTools:
+
 1. **Shallow Size**: The byte size allocated directly for the object’s own internal structure (e.g. object pointers, shape reference, array length). For almost all JavaScript objects, shallow size is only **32 to 64 bytes**.
 2. **Retained Size**: The total memory that would be freed if this object were deleted and garbage-collected. It represents the object's shallow size plus the size of all child objects reachable **exclusively** through its reference chain.
 
-### Identifying Memory Leaks:
+### Identifying Memory Leaks
+
 * Sort the Chrome DevTools Heap Snapshot by **Retained Size in descending order**.
 * Expand the top object and inspect the **Retainers Tree** at the bottom panel.
 * Identify the longest reference chain connecting the object to a **GC Root** (e.g. global module cache, un-cleared `setInterval`, or long-lived event bus).
@@ -75,6 +77,7 @@ When analyzing `.heapsnapshot` files in Chrome DevTools:
 This production lab creates a complete test suite using the native `node:test` runner, alongside a programmatic memory leak detector that captures and analyzes V8 heap snapshots.
 
 ### File 1: `test/ledger_service.test.ts`
+
 ```typescript
 import { describe, it, beforeEach, mock } from 'node:test';
 import assert from 'node:assert/strict';
@@ -129,6 +132,7 @@ describe('OrderProcessingService Native Test Suite', () => {
 ```
 
 ### File 2: `src/heap_leak_diagnostic.ts`
+
 ```typescript
 import v8 from 'node:v8';
 import fs from 'node:fs';
@@ -165,7 +169,7 @@ export class MemorySnapshotEngine {
 
 async function runMemoryLab() {
     console.log('[LAB] Starting Memory Leak & Heap Diagnostic Engine...');
-    
+
     const initialStats = v8.getHeapStatistics();
     console.log(`[HEAP INITIAL] Used Heap: ${(initialStats.used_heap_size / 1024 / 1024).toFixed(2)} MB`);
 
@@ -194,6 +198,7 @@ runMemoryLab();
 ## 5. Pure Escaped CLI Snippets (Production Operations)
 
 ```bash
+
 # 1. Execute native Node.js test runner with coverage
 node \
     --test \
@@ -217,15 +222,19 @@ node --prof src/heap_leak_diagnostic.js \
 ## 6. Detailed Sub-Components & Diagnostics
 
 ### Chrome DevTools Inspector Protocol (`v8_inspector`)
+
 * **Role & Function**: Implements the WebSocket debugging protocol inside Node.js, exposing breakpoints, live call stack inspection, CPU profiling, and heap sampling to remote Chrome browsers.
 * **Inspection Command**:
+
   ```bash
   curl -s http://127.0.0.1:9229/json/list
   ```
 
 ### Node.js Diagnostic Report Engine
+
 * **Role & Function**: Generates multi-subsystem JSON crash dumps on `SIGUSR2`, containing native C++ stack traces, open Libuv handles, and OS environment variables.
 * **Inspection Command**:
+
   ```bash
   node --report-on-signal --report-signal=SIGUSR2 src/heap_leak_diagnostic.js
   ```
@@ -235,6 +244,7 @@ node --prof src/heap_leak_diagnostic.js \
 ## References
 
 ### Official Documentation
+
 * [Node.js Native Test Runner Specification](https://nodejs.org/docs/latest/api/test.html) — Built-in testing suite.
 * [Node.js Assert API Reference](https://nodejs.org/docs/latest/api/assert.html) — Strict equality assertions.
 * [Node.js V8 Diagnostics API](https://nodejs.org/docs/latest/api/v8.html) — Heap snapshots and metrics.
@@ -242,6 +252,7 @@ node --prof src/heap_leak_diagnostic.js \
 * [Node.js Diagnostic Report Guide](https://nodejs.org/docs/latest/api/report.html) — Crash reports.
 
 ### Authoritative Engineering Blogs
+
 * [Brendan Gregg: Node.js Flame Graphs & Performance](https://www.brendangregg.com/) — CPU profiling.
 * [Matteo Collina: Debugging Memory Leaks in Node.js](https://noders.com/) — Retainer analysis.
 * [Netflix TechBlog: Diagnostic Engineering at Scale](https://netflixtechblog.com/) — Production debugging.
@@ -255,9 +266,11 @@ node --prof src/heap_leak_diagnostic.js \
 *Detecting and eliminating memory leaks prevents continuous container restarts and avoids 50% over-provisioning.*
 
 ### 1. Eliminating Memory Drift & Uncontrolled Horizontal Pod Autoscaling
+
 A gradual memory leak (such as 10MB per hour) forces Kubernetes Horizontal Pod Autoscalers (HPA) to interpret memory pressure as real traffic growth, provisioning redundant pod replicas. In a 50-node cluster, eliminating memory leaks keeps memory utilization flat, saving $4,200/month in unnecessary compute scaling.
 
 ### 2. Fast Test Execution Without Heavy Third-Party Frameworks
+
 The native `node:test` runner executes tests in ~50ms without the 1.5-second startup latency of heavy test frameworks. In CI/CD pipelines running 1,000 builds daily across 50 developers, this reduces GitHub Actions / AWS CodeBuild compute minutes by 70%, saving hundreds of build hours monthly.
 
 ---
@@ -267,13 +280,16 @@ The native `node:test` runner executes tests in ~50ms without the 1.5-second sta
 ### Common Anti-Patterns
 
 1. **Retaining DOM / Socket Buffers in Global Singletons**:
-   - *Anti-Pattern*: Pushing completed request payloads into an unbounded array for debugging or caching. As the array grows, old payloads cannot be garbage collected.
-   - *Fix*: Use `WeakMap` / `WeakSet` or an explicit LRU cache with fixed maximum capacity.
+
+   * *Anti-Pattern*: Pushing completed request payloads into an unbounded array for debugging or caching. As the array grows, old payloads cannot be garbage collected.
+   * *Fix*: Use `WeakMap` / `WeakSet` or an explicit LRU cache with fixed maximum capacity.
 
 2. **Dangling Timers (`setInterval`) Holding Context Objects**:
-   - *Anti-Pattern*: Creating a `setInterval` inside a class constructor without calling `clearInterval()` when the class is destroyed. The interval callback retains `this` indefinitely in the V8 root timer queue.
-   - *Fix*: Always call `clearInterval(timer)` or call `timer.unref()`.
+
+   * *Anti-Pattern*: Creating a `setInterval` inside a class constructor without calling `clearInterval()` when the class is destroyed. The interval callback retains `this` indefinitely in the V8 root timer queue.
+   * *Fix*: Always call `clearInterval(timer)` or call `timer.unref()`.
 
 3. **Running Production with Chrome Inspector Exposed to Internet**:
-   - *Anti-Pattern*: Starting Node.js with `--inspect=0.0.0.0:9229` in production without authentication. Anyone can attach a debugger and execute arbitrary code on the server.
-   - *Fix*: Bind inspector to `127.0.0.1:9229` and access securely via SSH tunneling.
+
+   * *Anti-Pattern*: Starting Node.js with `--inspect=0.0.0.0:9229` in production without authentication. Anyone can attach a debugger and execute arbitrary code on the server.
+   * *Fix*: Bind inspector to `127.0.0.1:9229` and access securely via SSH tunneling.

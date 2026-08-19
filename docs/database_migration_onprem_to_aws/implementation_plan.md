@@ -11,7 +11,7 @@ This plan follows the AWS three-phase migration framework and incorporates best 
 Use [DMS Fleet Advisor](https://docs.aws.amazon.com/dms/latest/userguide/CHAP_FleetAdvisor.html) for automated discovery, or collect manually:
 
 | Attribute | Details | Why It Matters |
-|-----------|---------|----------------|
+| ----------- | --------- | ---------------- |
 | Database engine and version | e.g., SQL Server 2019 Enterprise | Determines DMS compatibility and CDC support |
 | Size (data + indexes) | GB/TB | Drives replication instance sizing and task parallelism |
 | Number of schemas/tables | — | Affects task partitioning strategy |
@@ -44,6 +44,7 @@ AWS DMS provides a [premigration assessment](https://docs.aws.amazon.com/dms/lat
 2. Create a new project and connect to the source
 3. Run the **Database Migration Assessment Report**
 4. Review:
+
     * Conversion complexity (simple, medium, complex action items)
     * Objects that cannot be auto-converted (require manual effort)
     * Estimated manual effort in person-hours
@@ -64,7 +65,7 @@ AWS [strongly recommends](https://docs.aws.amazon.com/dms/latest/userguide/CHAP_
 ### 1.5 Define Target Architecture
 
 | Decision | Options | Considerations |
-|----------|---------|----------------|
+| ---------- | --------- | ---------------- |
 | Target engine | Same engine (homogeneous) vs different engine (heterogeneous) | Heterogeneous requires SCT; homogeneous can use native tools + DMS |
 | Target service | EC2 self-managed, Amazon RDS, Amazon Aurora | Aurora for high performance; RDS for managed with engine flexibility |
 | Instance class | db.r6g, db.r7g, db.x2g families | Size based on current workload metrics (CPU, memory, IOPS) |
@@ -105,7 +106,7 @@ On-Premises Data Center
 ### 2.2 Security Configuration
 
 | Component | Configuration | Reference |
-|-----------|---------------|-----------|
+| ----------- | --------------- | ----------- |
 | Security Groups | DMS replication instance SG must allow **all egress** (default). Target SG must allow inbound from DMS SG on DB port | [DMS VPC Security](https://docs.aws.amazon.com/dms/latest/userguide/CHAP_ReplicationInstance.VPC.html) |
 | NACLs | Allow ephemeral ports (1024–65535) for return traffic | — |
 | IAM Roles | `dms-vpc-role` and `dms-cloudwatch-logs-role` (auto-created by console, manual for CLI) | [DMS IAM Roles](https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Security.html#CHAP_Security.IAMPermissions) |
@@ -163,7 +164,7 @@ Attach the managed policy: `AmazonDMSCloudWatchLogsRole`
 AWS DMS supports basic schema migration (tables and primary keys only). For a complete schema, use native tools:
 
 | Source Engine | Tool | Command |
-|---------------|------|---------|
+| --------------- | ------ | --------- |
 | SQL Server | SSMS Generate Scripts or `sqlpackage` | `sqlpackage /Action:Export /SourceServerName:... /SourceDatabaseName:... /TargetFile:schema.bacpac` |
 | MySQL | `mysqldump` | `mysqldump --no-data --routines --triggers -h host -u user -p dbname > schema.sql` |
 | PostgreSQL | `pg_dump` | `pg_dump --schema-only -h host -U user -d dbname > schema.sql` |
@@ -186,7 +187,7 @@ Use AWS SCT or DMS Schema Conversion:
 **DMS Schema Conversion** (cloud-based alternative to SCT) supports:
 
 | Source | Target |
-|--------|--------|
+| -------- | -------- |
 | SQL Server 2008 R2–2022 | Aurora MySQL, Aurora PostgreSQL, RDS MySQL, RDS PostgreSQL |
 | Oracle 10.2–19c | Aurora MySQL, Aurora PostgreSQL, RDS MySQL, RDS PostgreSQL |
 | PostgreSQL 9.2+ | Aurora MySQL, RDS MySQL |
@@ -212,11 +213,11 @@ Apply schema in this order to avoid dependency issues:
 
 These require manual migration or application-level changes:
 
-- [ ] Linked servers → Refactor to use application-level connections or AWS PrivateLink
-- [ ] SQL Agent jobs → Migrate to AWS Lambda, Step Functions, or Amazon EventBridge Scheduler
-- [ ] Database mail → Migrate to Amazon SES
-- [ ] User accounts and permissions → Recreate on target with appropriate RDS/Aurora roles
-- [ ] Server-level settings → Configure via RDS parameter groups and option groups
+* [ ] Linked servers → Refactor to use application-level connections or AWS PrivateLink
+* [ ] SQL Agent jobs → Migrate to AWS Lambda, Step Functions, or Amazon EventBridge Scheduler
+* [ ] Database mail → Migrate to Amazon SES
+* [ ] User accounts and permissions → Recreate on target with appropriate RDS/Aurora roles
+* [ ] Server-level settings → Configure via RDS parameter groups and option groups
 
 ---
 
@@ -226,20 +227,20 @@ These require manual migration or application-level changes:
 
 Based on the [Replication Instance Sizing Guide](https://docs.aws.amazon.com/dms/latest/userguide/CHAP_BestPractices.SizingReplicationInstance.html):
 
-**Key factors:**
+### Key factors
 
 | Factor | Impact | Recommendation |
-|--------|--------|----------------|
+| -------- | -------- | ---------------- |
 | Database size | Determines parallelism and task count | For 2× 1TB schemas, partition into 4 tasks of 500GB each |
 | LOB columns | LOBs are processed in memory (two-step: insert row, then update LOB) | Use R5/R6g (memory-optimized) instances |
 | Transaction rate (TPS) | High TPS leads to high memory usage during CDC | Monitor `FreeableMemory`; scale up if swapping occurs |
 | Number of tasks | Each task consumes CPU | Avoid more than 8 `MaxFullLoadSubTasks` per task |
 | Table keys | Tables without PKs force transactional apply (slower) | Add PKs where possible before migration |
 
-**Instance class recommendations:**
+### Instance class recommendations
 
 | Workload | Instance Class | vCPU | Memory | Use Case |
-|----------|---------------|------|--------|----------|
+| ---------- | --------------- | ------ | -------- | ---------- |
 | Testing / small migrations | dms.t3.medium | 2 | 4 GiB | < 100 GB, few tables |
 | Medium migrations | dms.r5.large | 2 | 16 GiB | 100 GB–1 TB, moderate LOBs |
 | Large migrations | dms.r5.xlarge | 4 | 32 GiB | 1–5 TB, many LOBs |
@@ -249,14 +250,14 @@ Based on the [Replication Instance Sizing Guide](https://docs.aws.amazon.com/dms
 !!! info "R5 vs C5"
     Per [DMS Best Practices](https://docs.aws.amazon.com/dms/latest/userguide/CHAP_BestPractices.html): R5 instances are memory-optimized for high-throughput transaction systems. C5 instances are compute-optimized for heterogeneous migrations (e.g., Oracle to PostgreSQL) where data type conversion is CPU-intensive.
 
-**Storage:**
+### Storage
 
 * Default: 50 GB or 100 GB depending on instance class
 * All DMS storage volumes are GP2 (SSD) with base performance of 3 IOPS/GB, bursting to 3,000 IOPS
 * Monitor `ReadIOPS` + `WriteIOPS` — ensure sum doesn't exceed base performance
 * Increase storage for: large transactions, multiple tasks, high LOB volume
 
-**Multi-AZ:**
+### Multi-AZ
 
 * Recommended for ongoing replication (provides HA and failover)
 * During full load: if failover occurs, the full load task will fail and must be restarted
@@ -329,6 +330,7 @@ CREATE PUBLICATION dms_publication FOR ALL TABLES;
 #### MySQL
 
 ```ini
+
 # In my.cnf or my.ini (requires restart)
 [mysqld]
 server-id              = 1
@@ -380,10 +382,10 @@ GRANT LOGMINING TO dms_user;  -- Oracle 12c+
 
 ### 4.3 Configure DMS Endpoints
 
-**Source endpoint settings:**
+### Source endpoint settings
 
 | Setting | Value | Notes |
-|---------|-------|-------|
+| --------- | ------- | ------- |
 | Endpoint type | Source | — |
 | Engine | `sqlserver`, `oracle`, `mysql`, `postgres` | Match your source |
 | Server name | On-premises IP or DNS | Must be reachable from DMS replication instance |
@@ -391,10 +393,10 @@ GRANT LOGMINING TO dms_user;  -- Oracle 12c+
 | SSL mode | `require` or `verify-ca` | Always use SSL for on-premises connections |
 | Extra connection attributes | Engine-specific | See [DMS endpoint settings](https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Endpoints.html) |
 
-**Target endpoint settings:**
+### Target endpoint settings
 
 | Setting | Value | Notes |
-|---------|-------|-------|
+| --------- | ------- | ------- |
 | Endpoint type | Target | — |
 | Engine | `aurora-postgresql`, `aurora`, `mysql`, `postgres`, `oracle`, `sqlserver` | Match your target |
 | Server name | RDS/Aurora endpoint | Use cluster endpoint for Aurora |
@@ -402,10 +404,10 @@ GRANT LOGMINING TO dms_user;  -- Oracle 12c+
 
 ### 4.4 Create Migration Task
 
-**Task settings:**
+### Task settings
 
 | Setting | Recommended Value | Rationale |
-|---------|-------------------|-----------|
+| --------- | ------------------- | ----------- |
 | Migration type | `full-load-and-cdc` | Migrates existing data + ongoing changes for minimal downtime |
 | Target table preparation mode | `DO_NOTHING` | Schema already created separately |
 | Stop task after full load | `DontStopTask` | Transition to CDC automatically |
@@ -420,7 +422,7 @@ GRANT LOGMINING TO dms_user;  -- Oracle 12c+
 Based on [DMS LOB Best Practices](https://docs.aws.amazon.com/dms/latest/userguide/CHAP_BestPractices.html):
 
 | Mode | Behavior | Performance | When to Use |
-|------|----------|-------------|-------------|
+| ------ | ---------- | ------------- | ------------- |
 | **Limited LOB** (default) | Migrates LOBs up to `MaxLobSize` (default 32 KB); truncates larger ones | Best | Most LOBs are small and fit within the limit |
 | **Full LOB** | Migrates all LOBs regardless of size via two-step process (insert row, then update LOB) | Slowest | You have large LOBs and cannot tolerate truncation |
 | **Inline LOB** | Small LOBs transferred inline (efficient); large LOBs via lookup | Good | Mix of small and large LOBs; most are small |
@@ -524,7 +526,7 @@ Based on [DMS LOB Best Practices](https://docs.aws.amazon.com/dms/latest/usergui
 **Key CloudWatch metrics** (from [DMS Monitoring](https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Monitoring.html)):
 
 | Metric | Description | Alert Threshold |
-|--------|-------------|-----------------|
+| -------- | ------------- | ----------------- |
 | `CDCLatencySource` | Seconds of lag between source and replication instance | > 60s |
 | `CDCLatencyTarget` | Seconds of lag between replication instance and target | > 60s |
 | `CDCIncomingChanges` | Number of pending changes to be applied | Trending upward |
@@ -554,7 +556,7 @@ aws dms create-event-subscription \
 Based on [DMS Best Practices — Improving Performance](https://docs.aws.amazon.com/dms/latest/userguide/CHAP_BestPractices.html):
 
 | Technique | Description |
-|-----------|-------------|
+| ----------- | ------------- |
 | **Drop indexes before full load** | Indexes incur maintenance overhead during bulk inserts; recreate after full load |
 | **Disable triggers** | Insert/update/delete triggers cause errors during bulk load |
 | **Disable foreign keys** | Referential integrity constraints are violated during parallel table loading |

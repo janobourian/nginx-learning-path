@@ -1,6 +1,6 @@
 # Module 04: Low-Level 2D Graphics with `CustomPaint`, `CustomPainter` & `Canvas`
 
-**Track:** Flutter — Multi-Platform Architecture & Impeller Engine  
+**Track:** Flutter — Multi-Platform Architecture & Impeller Engine
 **Category:** 2D Graphics, Canvas Rendering & Shader Shading
 
 ---
@@ -9,7 +9,7 @@
 
 When standard Flutter widgets (`Container`, `Card`, `DecoratedBox`) cannot express custom geometric shapes, data visualizations, circular dials, or particle effects, **`CustomPaint`** and **`CustomPainter`** give you direct, raw access to the low-level 2D GPU **`Canvas`**.
 
-```
+```text
 CustomPainter Pipeline:
 [CustomPaint Widget]
         │
@@ -44,7 +44,7 @@ class MyCustomPainter extends CustomPainter {
 
 ## 3. The `Canvas` and `Paint` API Matrix
 
-### The `Paint` Object (Brush Configuration):
+### The `Paint` Object (Brush Configuration)
 
 | Property | Description | Example |
 | :--- | :--- | :--- |
@@ -54,7 +54,8 @@ class MyCustomPainter extends CustomPainter {
 | **`shader`** | Gradients (`Gradient.linear`, `Gradient.sweep`) | `paint.shader = gradient.createShader(rect);` |
 | **`maskFilter`** | GPU blur filters for drop shadows and glows | `paint.maskFilter = MaskFilter.blur(BlurStyle.normal, 8);` |
 
-### Core `Canvas` Draw Operations:
+### Core `Canvas` Draw Operations
+
 - **`canvas.drawLine(p1, p2, paint)`**
 - **`canvas.drawCircle(center, radius, paint)`**
 - **`canvas.drawRRect(rrect, paint)`** (Rounded rectangle)

@@ -5,10 +5,12 @@ Amazon SQS is a fully managed message queuing service for decoupling and scaling
 ## Core Concepts
 
 ### Queue Types
+
 - **Standard Queues**: Nearly unlimited throughput, at-least-once delivery
 - **FIFO Queues**: Exactly-once processing, message ordering preserved
 
 ### Key Features
+
 - **Scalability**: Handle millions of messages per second
 - **Reliability**: Messages stored redundantly across multiple AZs
 - **Security**: Encryption in transit and at rest
@@ -17,7 +19,9 @@ Amazon SQS is a fully managed message queuing service for decoupling and scaling
 ## Quick Start
 
 ### Creating a Queue
+
 ```bash
+
 # Standard queue
 aws sqs create-queue --queue-name my-standard-queue
 
@@ -26,6 +30,7 @@ aws sqs create-queue --queue-name my-fifo-queue.fifo --attributes FifoQueue=true
 ```
 
 ### Sending Messages
+
 ```python
 import boto3
 
@@ -40,7 +45,9 @@ response = sqs.send_message(
 ```
 
 ### Receiving Messages
+
 ```python
+
 # Receive messages
 response = sqs.receive_message(
     QueueUrl=queue_url,
@@ -50,7 +57,7 @@ response = sqs.receive_message(
 
 for message in response.get('Messages', []):
     print(f"Message: {message['Body']}")
-    
+
     # Delete message after processing
     sqs.delete_message(
         QueueUrl=queue_url,
@@ -61,7 +68,9 @@ for message in response.get('Messages', []):
 ## Integration with NGINX
 
 ### Message Processing Backend
+
 ```python
+
 # app.py - Flask backend for NGINX
 from flask import Flask, request, jsonify
 import boto3
@@ -73,12 +82,12 @@ QUEUE_URL = 'https://sqs.region.amazonaws.com/account/nginx-tasks'
 @app.route('/submit-task', methods=['POST'])
 def submit_task():
     task_data = request.json
-    
+
     sqs.send_message(
         QueueUrl=QUEUE_URL,
         MessageBody=json.dumps(task_data)
     )
-    
+
     return jsonify({'status': 'queued'})
 
 @app.route('/health')
@@ -87,6 +96,7 @@ def health():
 ```
 
 ### NGINX Configuration
+
 ```nginx
 upstream backend {
     server 127.0.0.1:5000;
@@ -94,13 +104,13 @@ upstream backend {
 
 server {
     listen 80;
-    
+
     location /api/ {
         proxy_pass http://backend;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
     }
-    
+
     location /health {
         proxy_pass http://backend/health;
     }
@@ -110,12 +120,15 @@ server {
 ## Best Practices
 
 ### Message Design
+
 - Keep messages under 256KB
 - Use message attributes for metadata
 - Implement idempotent processing
 
 ### Error Handling
+
 ```python
+
 # Dead Letter Queue configuration
 dlq_attributes = {
     'reddrivePolicy': json.dumps({
@@ -131,7 +144,9 @@ sqs.set_queue_attributes(
 ```
 
 ### Monitoring
+
 ```python
+
 # CloudWatch metrics
 cloudwatch = boto3.client('cloudwatch')
 
@@ -150,16 +165,19 @@ cloudwatch.put_metric_data(
 ## Common Use Cases
 
 ### Microservices Communication
+
 - Decouple service dependencies
 - Handle traffic spikes
 - Ensure message delivery
 
 ### Batch Processing
+
 - Queue large datasets for processing
 - Distribute workload across workers
 - Handle failures gracefully
 
 ### Event-Driven Architecture
+
 - Trigger Lambda functions
 - Process user actions asynchronously
 - Integrate with other AWS services

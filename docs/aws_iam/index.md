@@ -5,9 +5,11 @@ AWS IAM enables secure control of access to AWS services and resources for users
 ## Core Components
 
 ### Users
+
 Individual people or applications that need AWS access.
 
 ```bash
+
 # Create user
 aws iam create-user --user-name nginx-app-user
 
@@ -16,9 +18,11 @@ aws iam create-access-key --user-name nginx-app-user
 ```
 
 ### Groups
+
 Collections of users with similar permissions.
 
 ```bash
+
 # Create group
 aws iam create-group --group-name nginx-developers
 
@@ -27,6 +31,7 @@ aws iam add-user-to-group --user-name nginx-app-user --group-name nginx-develope
 ```
 
 ### Roles
+
 Temporary credentials for AWS services or cross-account access.
 
 ```json
@@ -45,6 +50,7 @@ Temporary credentials for AWS services or cross-account access.
 ```
 
 ### Policies
+
 JSON documents defining permissions.
 
 ```json
@@ -66,7 +72,9 @@ JSON documents defining permissions.
 ## NGINX Application IAM Setup
 
 ### EC2 Instance Role
+
 ```bash
+
 # Create role for EC2 instances
 aws iam create-role --role-name nginx-ec2-role --assume-role-policy-document file://ec2-trust-policy.json
 
@@ -79,6 +87,7 @@ aws iam add-role-to-instance-profile --instance-profile-name nginx-ec2-profile -
 ```
 
 ### Application-Specific Policy
+
 ```json
 {
   "Version": "2012-10-17",
@@ -122,6 +131,7 @@ aws iam add-role-to-instance-profile --instance-profile-name nginx-ec2-profile -
 ## Security Best Practices
 
 ### Least Privilege Principle
+
 ```json
 {
   "Version": "2012-10-17",
@@ -141,6 +151,7 @@ aws iam add-role-to-instance-profile --instance-profile-name nginx-ec2-profile -
 ```
 
 ### MFA Requirements
+
 ```json
 {
   "Version": "2012-10-17",
@@ -165,6 +176,7 @@ aws iam add-role-to-instance-profile --instance-profile-name nginx-ec2-profile -
 ```
 
 ### Cross-Account Access
+
 ```json
 {
   "Version": "2012-10-17",
@@ -188,6 +200,7 @@ aws iam add-role-to-instance-profile --instance-profile-name nginx-ec2-profile -
 ## Service Integration
 
 ### Lambda Function Role
+
 ```python
 import boto3
 import json
@@ -195,13 +208,13 @@ import json
 def lambda_handler(event, context):
     # Lambda automatically uses the execution role
     s3 = boto3.client('s3')
-    
+
     # Access S3 with role permissions
     response = s3.get_object(
         Bucket='nginx-config',
         Key='nginx.conf'
     )
-    
+
     return {
         'statusCode': 200,
         'body': json.dumps('Configuration retrieved')
@@ -209,6 +222,7 @@ def lambda_handler(event, context):
 ```
 
 ### ECS Task Role
+
 ```json
 {
   "family": "nginx-task",
@@ -228,6 +242,7 @@ def lambda_handler(event, context):
 ## Programmatic Access
 
 ### SDK Configuration
+
 ```python
 import boto3
 from botocore.exceptions import ClientError
@@ -253,12 +268,13 @@ s3_client = boto3.client(
 ```
 
 ### Error Handling
+
 ```python
 try:
     response = s3_client.get_object(Bucket='nginx-assets', Key='index.html')
 except ClientError as e:
     error_code = e.response['Error']['Code']
-    
+
     if error_code == 'AccessDenied':
         print("Insufficient permissions to access S3 object")
     elif error_code == 'NoSuchKey':
@@ -270,6 +286,7 @@ except ClientError as e:
 ## Monitoring and Auditing
 
 ### CloudTrail Integration
+
 ```json
 {
   "eventVersion": "1.05",
@@ -291,7 +308,9 @@ except ClientError as e:
 ```
 
 ### Access Analyzer
+
 ```bash
+
 # Create analyzer
 aws accessanalyzer create-analyzer --analyzer-name nginx-access-analyzer --type ACCOUNT
 
@@ -302,7 +321,9 @@ aws accessanalyzer list-findings --analyzer-arn arn:aws:access-analyzer:region:a
 ## Policy Testing
 
 ### Policy Simulator
+
 ```bash
+
 # Test policy permissions
 aws iam simulate-principal-policy \
     --policy-source-arn arn:aws:iam::account:role/nginx-ec2-role \
@@ -311,6 +332,7 @@ aws iam simulate-principal-policy \
 ```
 
 ### Dry Run Testing
+
 ```python
 import boto3
 
@@ -335,6 +357,7 @@ except ClientError as e:
 ## Common Patterns
 
 ### Environment-Based Access
+
 ```json
 {
   "Version": "2012-10-17",
@@ -356,6 +379,7 @@ except ClientError as e:
 ```
 
 ### Time-Based Access
+
 ```json
 {
   "Version": "2012-10-17",
@@ -378,6 +402,7 @@ except ClientError as e:
 ```
 
 ### IP-Based Restrictions
+
 ```json
 {
   "Version": "2012-10-17",
@@ -402,13 +427,16 @@ except ClientError as e:
 ## Troubleshooting
 
 ### Common Issues
+
 - **Access Denied**: Check policy permissions and resource ARNs
 - **Invalid Principal**: Verify role trust relationships
 - **Token Expired**: Refresh temporary credentials
 - **Policy Too Large**: Split into multiple managed policies
 
 ### Debug Tools
+
 ```bash
+
 # Check user permissions
 aws iam get-user-policy --user-name nginx-app-user --policy-name nginx-policy
 

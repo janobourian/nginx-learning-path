@@ -1,6 +1,6 @@
 # Module 04: Signal Inputs, Signal Outputs & `model()` Two-Way Binding
 
-**Track:** Angular — Signals Platform & Ivy Architecture  
+**Track:** Angular — Signals Platform & Ivy Architecture
 **Category:** Component Communication, Signal Inputs & Reactive Queries
 
 ---
@@ -10,6 +10,7 @@
 Historically, Angular components communicated via decorator-based properties: `@Input()`, `@Output() = new EventEmitter()`, and `@ViewChild()`.
 
 In modern Angular:
+
 - **`input()` / `input.required()`** replaces `@Input()` with reactive read-only signals.
 - **`output()`** replaces `@Output() = new EventEmitter()` with a lightweight, type-safe event dispatcher.
 - **`model()`** replaces cumbersome two-way binding boilerplate (`[value]` + `(valueChange)`) with a single writable signal.
@@ -61,7 +62,7 @@ export class UserProfileBadgeComponent {
 }
 ```
 
-### Consuming the Component in Templates:
+### Consuming the Component in Templates
 
 ```html
 <!-- Parent Template: Notice standard property binding [input] still applies! -->
@@ -154,7 +155,7 @@ export class RatingComponent {
 }
 ```
 
-### Consuming Two-Way Binding in Parent Component:
+### Consuming Two-Way Binding in Parent Component
 
 ```typescript
 // Parent Component:

@@ -1,13 +1,13 @@
 # Module 05: HTTP/1.1, HTTP/2 & HTTP/3 QUIC Internals
 
-**Track:** Modern JavaScript — Backend Systems & Distributed Architecture  
+**Track:** Modern JavaScript — Backend Systems & Distributed Architecture
 **Category:** Networking Protocols, HTTP/2 Multiplexing & HTTP/3 QUIC
 
 ---
 
 ## 1. The Protocol Evolution: HTTP/1.1 ──► HTTP/2 ──► HTTP/3
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 HTTP Protocol Architecture Matrix           │
 ├───────────────────┬──────────────────┬──────────────────────┤
@@ -29,12 +29,12 @@
 
 HTTP/2 decomposes requests and responses into small binary **Frames** (HEADERS, DATA, SETTINGS, PING, RST_STREAM), multiplexing independent streams over a single TCP connection:
 
-```
+```text
 HTTP/2 Multiplexed Frame Interleaving:
 [Single TCP Socket] ──► [Stream 1: Headers] [Stream 2: Data] [Stream 1: Data] [Stream 3: Headers] ──►
 ```
 
-### Implementing HTTP/2 with Server Push in Node.js:
+### Implementing HTTP/2 with Server Push in Node.js
 
 ```javascript
 // src/servers/http2_streamer.js
@@ -86,9 +86,11 @@ server.listen(8443, () => console.log('HTTP/2 Server listening on port 8443'));
 ## 3. Deep Dive into HTTP/3 & QUIC
 
 While HTTP/2 solved application-level Head-of-Line blocking, it still suffered from **TCP-level Head-of-Line blocking**:
+
 - If a single TCP packet was dropped over spotty cellular networks, the entire TCP connection was paused while retransmitting that packet, blocking all 100 multiplexed streams simultaneously!
 
-### How HTTP/3 & QUIC Solve This:
+### How HTTP/3 & QUIC Solve This
+
 1. **QUIC over UDP**: QUIC implements reliable transmission directly in userland over UDP. Each stream is **completely independent**: if a packet in Stream 1 is lost, **Streams 2 through 100 continue streaming without pause!**
 2. **0-RTT Connection Resumption**: Clients that previously connected can send encrypted application data on the very first round-trip packet.
 3. **Connection ID & Migration**: QUIC identifies connections via a unique 64-bit **Connection ID** (not IP:Port). When a user walks out of their house and their phone switches from WiFi to 5G, active video downloads and downloads **continue without dropping the connection!**

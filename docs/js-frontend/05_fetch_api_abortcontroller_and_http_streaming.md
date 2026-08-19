@@ -1,6 +1,6 @@
 # Module 05: The Fetch API, `AbortController` & Web Streams
 
-**Track:** Modern JavaScript — Frontend Architecture & Web APIs  
+**Track:** Modern JavaScript — Frontend Architecture & Web APIs
 **Category:** Networking Standards, HTTP Streaming & Cancellation Architecture
 
 ---
@@ -9,7 +9,7 @@
 
 The standard **Fetch API** replaced legacy `XMLHttpRequest` with a clean, Promise-based model built on three foundational interfaces:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                     The Fetch API Trilogy                   │
 ├────────────────────┬────────────────────────────────────────┤

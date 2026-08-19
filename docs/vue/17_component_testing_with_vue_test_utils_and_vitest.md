@@ -1,6 +1,6 @@
 # Module 17: Component Testing — Vue Test Utils, Vitest & Pinia Mocking
 
-**Track:** Vue — Progressive Web Framework  
+**Track:** Vue — Progressive Web Framework
 **Category:** Quality Assurance & Automated Testing
 
 ---
@@ -332,6 +332,7 @@ describe("AppNav.vue with Vue Router", () => {
    Triggering events with `await wrapper.trigger('click')` automatically awaits `nextTick()`. However, if the action triggers an async promise (like an API call), use `await flushPromises()` from `@vue/test-utils` to wait for microtask resolution.
 
 2. **Mount vs ShallowMount**
+
    - Use `mount()` for testing components with their full child trees or integration tests.
    - Use `shallowMount()` or stub child components (`global: { stubs: { HeavyChart: true } }`) to isolate a unit test from heavy dependencies.
 

@@ -1,9 +1,9 @@
 # Module 02: POSIX File Systems, Raw Buffers & 8KB Slab Memory Allocation
 
-**Track:** Node.js Enterprise Backend & Runtime  
-**Directory:** `docs/nodejs/`  
-**File:** `02_filesystem_buffers_and_binary_data.md`  
-**Category:** Core I/O, Binary Buffers & POSIX Filesystems  
+**Track:** Node.js Enterprise Backend & Runtime
+**Directory:** `docs/nodejs/`
+**File:** `02_filesystem_buffers_and_binary_data.md`
+**Category:** Core I/O, Binary Buffers & POSIX Filesystems
 **Status:** ✅ Production-Grade Reference Textbook (Zero to Master)
 
 ---
@@ -14,7 +14,7 @@ Node.js manages operating system filesystem I/O through `node:fs` and `node:fs/p
 
 To achieve native C-level I/O throughput, Node.js implements the **`Buffer` class**, allocated directly in off-heap C++ memory. Small buffers ($< 4\text{KB}$) are carved out of a pre-allocated **8KB Slab Allocator pool** to eliminate memory fragmentation, while large buffers ($> 4\text{KB}$) are allocated via direct POSIX `malloc()` calls.
 
-```
+```text
 +-------------------------------------------------------------------------------+
 |                           Node.js V8 JavaScript Heap                          |
 |   - JavaScript Application Objects & Variables                                |
@@ -26,9 +26,9 @@ To achieve native C-level I/O throughput, Node.js implements the **`Buffer` clas
 +---------------------------------------v---------------------------------------+
 |                      Native C++ Off-Heap Memory Buffers                       |
 |   +-----------------------------------------------------------------------+   |
-|   | 8KB Pre-Allocated Slab: [ Buffer 1 (512B) | Buffer 2 (2KB) | Free ]   |   |
+| 8KB Pre-Allocated Slab: [ Buffer 1 (512B) | Buffer 2 (2KB) | Free ]   |
 |   +-----------------------------------------------------------------------+   |
-|   | Direct Large Allocations (> 4KB via POSIX malloc)                     |   |
+| Direct Large Allocations (> 4KB via POSIX malloc)                     |
 +-------------------------------------------------------------------------------+
 ```
 
@@ -46,13 +46,13 @@ Below is the complete API dictionary for binary manipulation and POSIX filesyste
 | `Buffer.from(array / string)` | `node:buffer` | `Buffer.from(data: any, enc?: string): Buffer` | Copies an array, string, or existing buffer into a new off-heap Buffer instance. |
 | `Buffer.concat(list, [length])` | `node:buffer` | `Buffer.concat(list: Buffer[], len?: number): Buffer` | Combines an array of Buffer instances into a single contiguous memory slab. |
 | `buffer.readUInt32BE(offset)` | `node:buffer` | `buf.readUInt32BE(offset: number): number` | Reads a 32-bit unsigned integer from the specified byte offset in Big-Endian network byte order. |
-| `buffer.writeUInt32BE(val, offset)`| `node:buffer`| `buf.writeUInt32BE(val: number, off: number): number` | Writes a 32-bit unsigned integer at the byte offset in Big-Endian network byte order. |
+| `buffer.writeUInt32BE(val, offset)` | `node:buffer` | `buf.writeUInt32BE(val: number, off: number): number` | Writes a 32-bit unsigned integer at the byte offset in Big-Endian network byte order. |
 | `buffer.readFloatBE(offset)` | `node:buffer` | `buf.readFloatBE(offset: number): number` | Reads a 32-bit IEEE 754 floating point number from the buffer offset. |
 | `buffer.subarray(start, end)` | `node:buffer` | `buf.subarray(start?: number, end?: number): Buffer` | Returns a new Buffer view sharing the same underlying memory slab without copying bytes. |
-| `buffer.copy(target, tStart, sStart)`| `node:buffer` | `buf.copy(target: Buffer, ...): number` | Copies bytes from source buffer into target buffer memory. |
+| `buffer.copy(target, tStart, sStart)` | `node:buffer` | `buf.copy(target: Buffer, ...): number` | Copies bytes from source buffer into target buffer memory. |
 | `fs.promises.open(path, flags)` | `node:fs/promises` | `await fs.open(path: string, flags: string): Promise<FileHandle>` | Opens a POSIX file descriptor returning an asynchronous `FileHandle` object. |
-| `fileHandle.read(buf, off, len, pos)`| `node:fs/promises` | `await handle.read(buf, off, len, pos): Promise<ReadResult>` | Reads raw bytes from a specific file position directly into an off-heap Buffer. |
-| `fileHandle.write(buf, off, len, pos)`| `node:fs/promises`| `await handle.write(buf, off, len, pos): Promise<WriteResult>` | Writes bytes from Buffer directly to a specific file position on disk. |
+| `fileHandle.read(buf, off, len, pos)` | `node:fs/promises` | `await handle.read(buf, off, len, pos): Promise<ReadResult>` | Reads raw bytes from a specific file position directly into an off-heap Buffer. |
+| `fileHandle.write(buf, off, len, pos)` | `node:fs/promises` | `await handle.write(buf, off, len, pos): Promise<WriteResult>` | Writes bytes from Buffer directly to a specific file position on disk. |
 | `fileHandle.sync()` | `node:fs/promises` | `await handle.sync(): Promise<void>` | Forces kernel page cache buffers to flush to physical disk (POSIX `fsync(2)`). |
 | `fileHandle.datasync()` | `node:fs/promises` | `await handle.datasync(): Promise<void>` | Flushes file data to disk without synchronizing non-essential metadata (POSIX `fdatasync(2)`). |
 | `fs.promises.watch(path, opts)` | `node:fs/promises` | `fs.watch(path: string, opts?: object): AsyncIterable<FileChange>` | Returns an async iterable streaming filesystem change events via OS kernel `inotify` / `kqueue`. |
@@ -62,6 +62,7 @@ Below is the complete API dictionary for binary manipulation and POSIX filesyste
 ## 3. Technical Deep Dive: The 8KB Buffer Slab Allocator
 
 When an application invokes `Buffer.allocUnsafe(size)` where `size < Buffer.poolSize >>> 1` (default 4096 bytes):
+
 1. Node.js evaluates the active thread-local slab (`Buffer.poolSize = 8192`).
 2. If remaining slab capacity is sufficient, Node.js instantiates a `FastBuffer` object in V8 whose `byteOffset` points to the unallocated offset within the pre-allocated 8KB C++ slab.
 3. If remaining capacity is insufficient, Node.js allocates a fresh 8KB slab from C++ and assigns the new buffer at offset 0.
@@ -93,7 +94,8 @@ function extractPacketHeaderSafe(filePath: string): Buffer {
 
 This production lab implements a custom Layer 4 binary packet encoder, parser, and disk Write-Ahead Log (WAL) synchronizer.
 
-### Protocol Specification:
+### Protocol Specification
+
 * **Magic Header (4 Bytes)**: `0xDEADBEEF`
 * **Protocol Version (2 Bytes)**: Big-Endian `0x0001`
 * **Payload Length (4 Bytes)**: Big-Endian `N`
@@ -101,6 +103,7 @@ This production lab implements a custom Layer 4 binary packet encoder, parser, a
 * **CRC32 Checksum (4 Bytes)**: Checksum across header and payload
 
 ### File 1: `src/binary_protocol_engine.ts`
+
 ```typescript
 import fs from 'node:fs/promises';
 import { performance } from 'node:perf_hooks';
@@ -116,7 +119,7 @@ export class BinaryProtocolEngine {
     static encode(message: PacketMessage): Buffer {
         const payloadJson = JSON.stringify(message.payload);
         const payloadBytes = Buffer.from(payloadJson, 'utf8');
-        
+
         // Total Length: 4 (Magic) + 2 (Version) + 4 (PayloadLen) + N (Payload)
         const totalSize = 4 + 2 + 4 + payloadBytes.length;
         const packetBuffer = Buffer.allocUnsafe(totalSize);
@@ -188,10 +191,10 @@ export class WriteAheadLogManager {
         if (!this.fileHandle) throw new Error('WAL not initialized');
 
         const packet = BinaryProtocolEngine.encode(message);
-        
+
         // Write binary packet to kernel page cache
         await this.fileHandle.write(packet);
-        
+
         // Force synchronous disk flush (POSIX fsync) for durability guarantees
         await this.fileHandle.sync();
     }
@@ -247,6 +250,7 @@ runBinaryLab();
 ## 5. Pure Escaped CLI Snippets (Production Operations)
 
 ```bash
+
 # 1. Compile TypeScript source code
 npx tsc \
     --target ES2022 \
@@ -277,15 +281,19 @@ fio --name=wal_bench \
 ## 6. Detailed Sub-Components & Diagnostics
 
 ### Libuv Threadpool Filesystem Worker
+
 * **Role & Function**: Executes POSIX `open(2)`, `read(2)`, `write(2)`, and `fsync(2)` syscalls inside Libuv's background C++ threadpool (`UV_THREADPOOL_SIZE`), avoiding main thread event loop blocking.
 * **Inspection Command**:
+
   ```bash
   UV_THREADPOOL_SIZE=16 node src/binary_protocol_engine.js
   ```
 
 ### V8 FastBuffer C++ TypedArray Bridge
+
 * **Role & Function**: Bridges V8 JavaScript execution with native system heap pointers via `v8::ArrayBuffer` backing stores.
 * **Inspection Command**:
+
   ```bash
   node -e "console.log(process.memoryUsage().arrayBuffers);"
   ```
@@ -295,6 +303,7 @@ fio --name=wal_bench \
 ## References
 
 ### Official Documentation
+
 * [Node.js Buffer API Reference](https://nodejs.org/docs/latest/api/buffer.html) — Core binary specifications.
 * [Node.js File System Promises API](https://nodejs.org/docs/latest/api/fs.html) — Asynchronous filesystem operations.
 * [POSIX fsync(2) Linux Manual](https://man7.org/linux/man-pages/man2/fsync.2.html) — Synchronizing kernel page caches with physical disk.
@@ -302,6 +311,7 @@ fio --name=wal_bench \
 * [Libuv Threadpool Architecture](https://docs.libuv.org/en/v1.x/threadpool.html) — Background worker pool configuration.
 
 ### Authoritative Engineering Blogs
+
 * [Brendan Gregg: File System Performance and I/O Analysis](https://www.brendangregg.com/) — Disk I/O latency.
 * [Netflix TechBlog: High-Throughput Stream Processing in Node.js](https://netflixtechblog.com/) — Off-heap buffer optimization.
 * [Matteo Collina: Writing High-Performance Network Protocols](https://noders.com/) — Binary serialization.
@@ -315,9 +325,11 @@ fio --name=wal_bench \
 *Off-heap buffer allocations and proper slice copying reduce container memory requirements by 60%.*
 
 ### 1. Off-Heap Allocations Bypass V8 Garbage Collector Pauses
+
 Allocating raw binary network buffers directly in off-heap C++ memory prevents gigabytes of transient I/O payloads from entering the V8 GC Young Space nursery. This keeps Minor GC Scavenger pause times under $0.3\text{ms}$, allowing a single container to process over 40,000 IOPS without CPU throttling.
 
 ### 2. Preventing Substring Memory Retention Leaks
+
 Using `Buffer.copy()` to extract packet headers instead of holding onto parent `Buffer.subarray()` views ensures that 10MB socket read buffers are freed immediately. In high-concurrency microservices, this prevents hundreds of megabytes of lingering ghost memory, allowing services to run safely on 512MB RAM containers.
 
 ---
@@ -327,13 +339,16 @@ Using `Buffer.copy()` to extract packet headers instead of holding onto parent `
 ### Common Anti-Patterns
 
 1. **Reading Uninitialized Memory via `Buffer.allocUnsafe()`**:
-   - *Anti-Pattern*: Allocating buffers via `allocUnsafe()` and returning them to clients without overwriting every byte. This leaks sensitive residual memory (passwords, encryption keys) previously residing in the 8KB slab.
-   - *Fix*: Always use `Buffer.alloc(size)` for user-facing payloads, or ensure complete initialization before sending over network sockets.
+
+   * *Anti-Pattern*: Allocating buffers via `allocUnsafe()` and returning them to clients without overwriting every byte. This leaks sensitive residual memory (passwords, encryption keys) previously residing in the 8KB slab.
+   * *Fix*: Always use `Buffer.alloc(size)` for user-facing payloads, or ensure complete initialization before sending over network sockets.
 
 2. **Blocking the Event Loop with Synchronous FS Calls in Web Handlers**:
-   - *Anti-Pattern*: Calling `fs.readFileSync()` or `fs.writeFileSync()` inside HTTP request handlers.
-   - *Fix*: Always use `node:fs/promises` or streaming pipes (`fs.createReadStream`).
+
+   * *Anti-Pattern*: Calling `fs.readFileSync()` or `fs.writeFileSync()` inside HTTP request handlers.
+   * *Fix*: Always use `node:fs/promises` or streaming pipes (`fs.createReadStream`).
 
 3. **Ignoring `fdatasync()` on Critical Write Operations**:
-   - *Anti-Pattern*: Assuming `fileHandle.write()` guarantees data persistence on physical SSDs. OS kernels buffer writes in RAM; an abrupt power cut results in data loss unless `fileHandle.sync()` or `datasync()` is called.
-   - *Fix*: Always invoke `await handle.sync()` on transactional logs and WAL files.
+
+   * *Anti-Pattern*: Assuming `fileHandle.write()` guarantees data persistence on physical SSDs. OS kernels buffer writes in RAM; an abrupt power cut results in data loss unless `fileHandle.sync()` or `datasync()` is called.
+   * *Fix*: Always invoke `await handle.sync()` on transactional logs and WAL files.

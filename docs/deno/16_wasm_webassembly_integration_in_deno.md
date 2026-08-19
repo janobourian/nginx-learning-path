@@ -1,6 +1,6 @@
 # Module 16: WebAssembly (WASM) Integration in Deno
 
-**Track:** Deno Secure Engine & Edge Runtime  
+**Track:** Deno Secure Engine & Edge Runtime
 **Category:** Performance & Cross-Language Interoperability
 
 ---
@@ -11,13 +11,15 @@ WebAssembly (WASM) is a binary instruction format that runs at near-native speed
 
 Deno supports WebAssembly natively because V8 (Deno's JavaScript engine) has full WASM support built in. The same WASM module that runs in a browser runs identically in Deno — same performance, same sandbox model.
 
-**When to use WASM over FFI:**
+### When to use WASM over FFI
+
 - When you need cross-platform compatibility without platform-specific binaries
 - When the native code must be sandboxed (untrusted computation)
 - When you want to share code between browser and server
 - For algorithms that benefit from WASM's linear memory model: image processing, audio codecs, parsers, compression
 
-**When to use FFI instead:**
+### When to use FFI instead
+
 - When you need OS-level access (file descriptors, hardware)
 - When the library requires dynamic linking to system libraries
 - When startup time matters and the WASM module is very large
@@ -65,9 +67,13 @@ const { instance: localInstance } = await WebAssembly.instantiateStreaming(
 
 ```c
 // image_processor.c — image processing functions
+
 #include <stdint.h>
+
 #include <stdlib.h>
+
 #include <string.h>
+
 #include <math.h>
 
 // Apply grayscale conversion to RGBA pixel data
@@ -115,6 +121,7 @@ void dealloc(void* ptr) { free(ptr); }
 ```
 
 ```bash
+
 # Compile C to WASM using Emscripten
 emcc image_processor.c \
   -o image_processor.wasm \
@@ -166,6 +173,7 @@ export function grayscale(pixels: Uint8Array, width: number, height: number): Ui
 Rust is the most ergonomic language for targeting WASM because `wasm-pack` handles the entire compilation pipeline:
 
 ```toml
+
 # Cargo.toml
 [package]
 name = "json-validator"
@@ -238,6 +246,7 @@ pub fn levenshtein(a: &str, b: &str) -> usize {
 ```
 
 ```bash
+
 # Build WASM package targeting web (works in Deno too)
 wasm-pack build --target web --out-dir ./pkg
 ```
@@ -320,14 +329,14 @@ wasi.start(instance);
 
 ## Troubleshooting
 
-**`WebAssembly.instantiate()` throws `CompileError`**
+### `WebAssembly.instantiate()` throws `CompileError`
 
 The `.wasm` file is corrupt, not a valid WASM binary, or targets a newer WASM feature set than V8 supports. Verify with `wasm-objdump -h ./module.wasm` (requires wabt tools) and check that it begins with the WASM magic bytes `0061736d`.
 
-**WASM module runs but produces wrong results**
+### WASM module runs but produces wrong results
 
 Memory layout mismatch: the JavaScript side is writing to the wrong offset, or reading back the wrong number of bytes. Use `console.log(new Uint8Array(instance.exports.memory.buffer, ptr, 32))` to inspect raw memory around the pointer.
 
-**Performance is slower than expected**
+### Performance is slower than expected
 
 WASM is fastest for compute-bound loops with minimal JS↔WASM boundary crossings. If you call a WASM function 10,000 times per frame passing individual numbers, the call overhead dominates. Instead, pass large buffers and have WASM process them in bulk.

@@ -1,6 +1,6 @@
 # Module 07: Built-in Utility Types in Depth — Internal Mechanics & Composition
 
-**Track:** TypeScript — Enterprise Type System  
+**Track:** TypeScript — Enterprise Type System
 **Category:** Standard Library Utilities & Custom Composition
 
 ---
@@ -233,7 +233,7 @@ export type Diff<T, U> = Pick<T, Exclude<keyof T, keyof U>>;
 export type Intersection<T, U> = Pick<T, Extract<keyof T, keyof U>>;
 ```
 
-### Example Test of Custom Utilities:
+### Example Test of Custom Utilities
 
 ```typescript
 interface Customer {

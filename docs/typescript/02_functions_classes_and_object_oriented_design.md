@@ -1,6 +1,6 @@
 # Module 02: Functions, Classes & Object-Oriented Design in TypeScript
 
-**Track:** TypeScript — Enterprise Type System  
+**Track:** TypeScript — Enterprise Type System
 **Category:** OOP Architecture & Function Signature Design
 
 ---
@@ -218,6 +218,7 @@ export class BankAccount extends BaseEntity {
 ## 6. The `override` Keyword (`noImplicitOverride: true`)
 
 When overriding a method in a subclass, the `override` keyword ensures that:
+
 1. The method actually exists on the parent class (protects against misspelled method names).
 2. If the base class method is renamed or removed in the future, the compiler alerts you immediately.
 

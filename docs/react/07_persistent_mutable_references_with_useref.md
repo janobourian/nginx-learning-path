@@ -1,6 +1,6 @@
 # Module 07: Persistent Mutable References — `useRef`, `forwardRef` & `useImperativeHandle`
 
-**Track:** React — Modern UI & Fiber Architecture  
+**Track:** React — Modern UI & Fiber Architecture
 **Category:** DOM Access, Mutable References & Imperative Handles
 
 ---
@@ -14,6 +14,7 @@ const ref = useRef<T>(initialValue); // Returns { current: initialValue }
 ```
 
 `useRef` has two distinct superpowers:
+
 1. **Accessing and manipulating real DOM nodes directly** (e.g. focusing an input, scrolling to an element, measuring a canvas).
 2. **Storing mutable state across renders without triggering a re-render** when mutated.
 

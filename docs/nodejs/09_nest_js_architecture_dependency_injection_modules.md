@@ -1,6 +1,6 @@
 # Module 09: NestJS Architecture — Dependency Injection, Modules & Request Pipelines
 
-**Track:** Node.js — Enterprise Architecture & Libuv Internals  
+**Track:** Node.js — Enterprise Architecture & Libuv Internals
 **Category:** Enterprise Frameworks, Dependency Injection & Modular Architecture
 
 ---
@@ -11,7 +11,7 @@ While Express and Fastify are unopinionated micro-frameworks, **NestJS** is an e
 
 It combines object-oriented programming (OOP), functional programming (FP), and functional reactive programming (FRP) with an Angular-inspired **Hierarchical Dependency Injection (DI)** container:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 NestJS Core Architectural Layers            │
 ├────────────────────┬────────────────────────────────────────┤
@@ -32,7 +32,7 @@ It combines object-oriented programming (OOP), functional programming (FP), and 
 
 Every incoming request travels through a strict, multi-stage processing pipeline:
 
-```
+```text
 Incoming Request
        │
        ▼

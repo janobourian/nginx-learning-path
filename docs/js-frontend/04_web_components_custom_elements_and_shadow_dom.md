@@ -1,6 +1,6 @@
 # Module 04: Web Components — Custom Elements, Shadow DOM & Constructable Stylesheets
 
-**Track:** Modern JavaScript — Frontend Architecture & Web APIs  
+**Track:** Modern JavaScript — Frontend Architecture & Web APIs
 **Category:** Component Architecture, Encapsulation & Web Standards
 
 ---
@@ -9,7 +9,7 @@
 
 **Web Components** are a set of W3C standard browser APIs that allow you to create reusable, fully encapsulated UI components with native browser support without relying on any framework (React, Vue, Angular):
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 The 3 Web Component Pillars                 │
 ├────────────────────┬────────────────────────────────────────┤

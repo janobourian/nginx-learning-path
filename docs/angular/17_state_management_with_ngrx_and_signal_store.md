@@ -1,6 +1,6 @@
 # Module 17: State Management with NgRx & `@ngrx/signals` (SignalStore)
 
-**Track:** Angular — Signals Platform & Ivy Architecture  
+**Track:** Angular — Signals Platform & Ivy Architecture
 **Category:** State Architecture, NgRx & Fine-Grained SignalStore
 
 ---
@@ -8,15 +8,17 @@
 ## 1. The Evolution of NgRx: Redux to SignalStore
 
 Historically, enterprise Angular state management relied on the classic **NgRx Redux pattern**:
+
 - Actions (`createAction`), Reducers (`createReducer`), Effects (`createEffect`), Selectors (`createSelector`), and Action Types.
 - While robust for large banking apps, the boilerplate was heavy.
 
 In modern Angular, **`@ngrx/signals`** introduces the **SignalStore**:
+
 - **Zero Redux Boilerplate**: No actions, no reducers, no switch-cases.
 - **Composable Functional Architecture**: Compose stores using modular feature blocks (`withState`, `withComputed`, `withMethods`, `withHooks`, `withEntities`).
 - **100% Native Signals**: Every state slice is automatically exposed as a reactive Signal.
 
-```
+```text
 Classic NgRx vs Modern SignalStore:
 Classic NgRx:
 Action ──► Effect ──► Reducer ──► Store ──► Selector Observable ──► Async Pipe (Heavy!)

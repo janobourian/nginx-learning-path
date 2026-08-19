@@ -1,7 +1,7 @@
 # Module 01: Core Configuration Blocks, Contexts & Directives
 
-**Track:** Enterprise NGINX  
-**Category:** Configuration Language & Directive Hierarchy  
+**Track:** Enterprise NGINX
+**Category:** Configuration Language & Directive Hierarchy
 **Status:** ✅ Production-Grade Reference Textbook (Zero to Master)
 
 ---
@@ -12,7 +12,7 @@ NGINX configuration is not a flat key-value file. It is a **hierarchical documen
 
 **The Golden Rule**: A directive in a **child context** takes precedence over the same directive in its **parent context**.
 
-```
+```text
 nginx.conf
 └── main context (global)
     ├── events { }           ← connection handling
@@ -23,6 +23,7 @@ nginx.conf
     │   └── server { }       ← another virtual host
     ├── stream { }           ← TCP/UDP load balancing
     └── mail { }             ← mail proxy (rare)
+
 ```
 
 ---
@@ -32,6 +33,7 @@ nginx.conf
 Directives in the **main context** apply to the entire NGINX process:
 
 ```nginx
+
 # /etc/nginx/nginx.conf
 
 # User the worker processes run as (drop root privileges)
@@ -50,8 +52,10 @@ include /etc/nginx/modules-enabled/*.conf;
 worker_rlimit_nofile 65535;
 
 # Error log: path and minimum severity level
+
 # Levels: debug, info, notice, warn, error, crit, alert, emerg
 error_log /var/log/nginx/error.log warn;
+
 ```
 
 ---
@@ -73,6 +77,7 @@ events {
     # NGINX auto-selects the best available model
     use epoll;
 }
+
 ```
 
 ---
@@ -167,6 +172,7 @@ http {
     # Load enabled sites (Debian/Ubuntu convention)
     include /etc/nginx/sites-enabled/*;
 }
+
 ```
 
 ---
@@ -199,6 +205,7 @@ server {
 
     # Location blocks (URL routing) defined in next section
 }
+
 ```
 
 ---
@@ -214,7 +221,7 @@ The `location` block is where NGINX routes incoming requests. NGINX uses a **spe
 | 1 | `=` | `location = /exact { }` | **Exact match** — highest priority, stops search |
 | 2 | `^~` | `location ^~ /prefix { }` | **Prefix match** — if best prefix, stops search (no regex checked) |
 | 3 | `~` | `location ~ \.php$ { }` | **Case-sensitive regex** |
-| 4 | `~*` | `location ~* \.(jpg\|png)$ { }` | **Case-insensitive regex** |
+| 4 | `~*` | `location ~* \.(jpg \| png)$ { }` | **Case-insensitive regex** |
 | 5 | (none) | `location /prefix { }` | **Longest prefix match** (used if no regex matches) |
 
 ```nginx
@@ -251,14 +258,19 @@ server {
         try_files $uri $uri/ =404;
     }
 }
+
 ```
 
 ### The `try_files` Directive
+
 `try_files` is the workhorse of modern NGINX routing:
 
 ```nginx
+
 # Check if $uri exists as a file
+
 # Then check if $uri/ exists as a directory (with index)
+
 # If neither exists, return 404
 location / {
     try_files $uri $uri/ =404;
@@ -277,6 +289,7 @@ location / {
 location @backend {
     proxy_pass http://app_servers;
 }
+
 ```
 
 ---
@@ -311,6 +324,7 @@ NGINX exposes hundreds of built-in variables. The most critical ones:
 Production NGINX configurations use `include` to split configs into maintainable files:
 
 ```nginx
+
 # /etc/nginx/nginx.conf
 http {
     # Global settings
@@ -322,14 +336,17 @@ http {
     # All virtual hosts
     include /etc/nginx/sites-enabled/*.conf;
 }
+
 ```
 
 ```nginx
+
 # /etc/nginx/snippets/security-headers.conf
 add_header X-Frame-Options "SAMEORIGIN" always;
 add_header X-Content-Type-Options "nosniff" always;
 add_header X-XSS-Protection "1; mode=block" always;
 add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
 ```
 
 ---
@@ -362,9 +379,11 @@ http {
         # Inherits gzip on from http context
     }
 }
+
 ```
 
-### Important: `add_header` Does NOT Inherit — It Replaces!
+### Important: `add_header` Does NOT Inherit — It Replaces
+
 ```nginx
 http {
     add_header X-Frame-Options "SAMEORIGIN";  # http level
@@ -376,14 +395,17 @@ http {
         # add_header in child context REPLACES all parent add_header directives
     }
 }
+
 ```
 
 **Fix**: Use a snippet file included in each location:
+
 ```nginx
 location / {
     include /etc/nginx/snippets/security-headers.conf;
     # All headers in the snippet are applied
 }
+
 ```
 
 ---
@@ -391,6 +413,7 @@ location / {
 ## 10. Production Configuration Validation Workflow
 
 ```bash
+
 # Step 1: Test configuration syntax before any change
 sudo nginx -t
 
@@ -402,6 +425,7 @@ sudo nginx -s reload
 
 # Step 4: Verify the running configuration
 curl -I https://example.com
+
 ```
 
 ---
@@ -409,9 +433,11 @@ curl -I https://example.com
 ## 11. FinOps & Cloud Resource Cost Governance
 
 ### Configuration Modularization Reduces Operational Costs
+
 A well-organized `conf.d/` + `snippets/` structure allows automation teams to apply security headers, compression, and caching rules across 50 virtual hosts by editing a single snippet file — reducing configuration change time from hours to minutes.
 
 ### Buffer Tuning Prevents Unnecessary Memory Waste
+
 Default `client_body_buffer_size 128k` allocates 128 KB for request body buffering. For an API that only sends small JSON payloads (<4 KB), setting `client_body_buffer_size 16k` reduces per-connection memory usage by 87.5%.
 
 ---
@@ -419,20 +445,25 @@ Default `client_body_buffer_size 128k` allocates 128 KB for request body bufferi
 ## 12. Troubleshooting Common Configuration Mistakes
 
 ### Mistake 1: Order of `server_name` Matching
+
 NGINX matches `server_name` by **longest specific string first**, not by order in file.
 `server_name api.example.com *.example.com;` — `api.example.com` always matches explicitly.
 
 ### Mistake 2: Missing `default_server`
+
 Without a `default_server`, NGINX serves the **first server block** to requests not matching any `server_name`. Always define explicitly:
+
 ```nginx
 server {
     listen 80 default_server;
     server_name _;
     return 444;  # Drop unmatched connections silently
 }
+
 ```
 
 ### Mistake 3: Overlapping Regex Location Blocks
+
 Multiple regex `location ~` blocks can match the same URI. NGINX uses the **first matching regex in file order**. Ensure more specific regexes appear before general ones.
 
 ---
@@ -440,6 +471,7 @@ Multiple regex `location ~` blocks can match the same URI. NGINX uses the **firs
 ## References
 
 ### Official Documentation
+
 * [NGINX Configuration File Structure](https://nginx.org/en/docs/beginners_guide.html) — Official beginner's guide to context hierarchy.
 * [NGINX Core Directives Reference](https://nginx.org/en/docs/ngx_core_module.html) — Complete directive list with defaults.
 * [NGINX HTTP Core Module](https://nginx.org/en/docs/http/ngx_http_core_module.html) — http/server/location directive reference.
@@ -447,6 +479,7 @@ Multiple regex `location ~` blocks can match the same URI. NGINX uses the **firs
 * [NGINX `try_files` Directive](https://nginx.org/en/docs/http/ngx_http_core_module.html#try_files) — Official documentation.
 
 ### Authoritative Engineering Blogs
+
 * [DigitalOcean: NGINX Location Block Selection Algorithms](https://www.digitalocean.com/community/tutorials/understanding-nginx-server-and-location-block-selection-algorithms) — Definitive guide to matching priority.
 * [Martin Fjordvald: NGINX Optimization](https://nginx-book.readthedocs.io/) — In-depth configuration tuning guide.
 * [Nginx Configuration Primer](https://www.nginx.com/resources/wiki/start/topics/examples/full/) — Real-world examples.

@@ -1,6 +1,6 @@
 # Module 14: The Angular Ivy Compiler & Incremental DOM Pipeline
 
-**Track:** Angular — Signals Platform & Ivy Architecture  
+**Track:** Angular — Signals Platform & Ivy Architecture
 **Category:** Compiler Internals, Incremental DOM & Bytecode Optimization
 
 ---
@@ -13,7 +13,7 @@
 2. **Incremental DOM**: Instead of creating massive in-memory Virtual DOM tree diffs on every render (like React and Vue), Ivy generates **compact, linear execution instructions** that mutate the real DOM in-place without allocating temporary JavaScript objects.
 3. **Extreme Tree-Shaking**: Ivy compiler instructions are plain JavaScript functions (`ɵɵelementStart`, `ɵɵtext`). If a component doesn't use pipes or animations, those runtime functions are never included in the production bundle.
 
-```
+```text
 Compiler Comparison:
 ViewEngine (Legacy):
 Component + Global NgModules ──► Huge Static Metaprogramming Graph ──► Monolithic Bundle
@@ -35,7 +35,7 @@ Understanding how Ivy differs from React's Virtual DOM:
 | **Compilation Output** | JSX compiles into nested object descriptors (`React.createElement`) | Templates compile into **linear step-by-step instructions** |
 | **Memory Footprint** | Scales with the size of the DOM tree | **Static and minimal** |
 
-```
+```text
 Incremental DOM Execution Loop:
 Instruction 1: ɵɵadvance(1);           ◄── Move pointer to next DOM slot
 Instruction 2: ɵɵtextInterpolate(val); ◄── Compare primitive with previous slot; update DOM only if changed!
@@ -47,7 +47,7 @@ Instruction 2: ɵɵtextInterpolate(val); ◄── Compare primitive with previo
 
 When the Angular CLI builds a component, the TypeScript compiler transforms your `@Component` decorator and HTML template into a static **`ɵcmp` (Component Definition)** property containing Ivy instructions:
 
-### Source TypeScript Component:
+### Source TypeScript Component
 
 ```typescript
 @Component({
@@ -66,7 +66,7 @@ export class UserInfoComponent {
 }
 ```
 
-### Compiled Ivy Intermediate JavaScript Output:
+### Compiled Ivy Intermediate JavaScript Output
 
 ```javascript
 // Compiled Ivy Definition attached to UserInfoComponent class:
@@ -133,6 +133,7 @@ UserInfoComponent.ɵcmp = ɵɵdefineComponent({
 Under ViewEngine, changing one module required re-analyzing the entire metadata graph of 500+ modules.
 
 Under Ivy:
+
 - Compiling `UserCardComponent` requires **only** `UserCardComponent.ts`.
 - The output `UserCardComponent.js` contains everything Angular needs to instantiate and render the component.
 - This architecture enables Vite and esbuild to re-bundle individual files in **<10 milliseconds** during development!

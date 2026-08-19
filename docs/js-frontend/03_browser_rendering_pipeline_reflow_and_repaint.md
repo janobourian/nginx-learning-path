@@ -1,6 +1,6 @@
 # Module 03: The Critical Rendering Path, Reflow, Repaint & GPU Compositing
 
-**Track:** Modern JavaScript — Frontend Architecture & Web APIs  
+**Track:** Modern JavaScript — Frontend Architecture & Web APIs
 **Category:** Browser Architecture, Critical Rendering Path & 120fps Optimization
 
 ---
@@ -9,7 +9,7 @@
 
 To achieve 60fps (16.6ms per frame) or 120fps (8.3ms per frame) smooth animations, you must master the **Browser Rendering Pipeline**:
 
-```
+```text
 The Critical Rendering Path:
 [HTML Document] ──► [DOM Tree]
                           │
@@ -56,6 +56,7 @@ The Critical Rendering Path:
 ## 3. Forced Synchronous Layout & Layout Thrashing
 
 ### What Is Layout Thrashing?
+
 When JavaScript reads a geometric property (`offsetWidth`, `clientHeight`, `getBoundingClientRect()`), the browser is forced to **synchronously flush all pending layout changes and execute a full reflow on the spot before returning the number**.
 
 If you alternate reading and writing inside a loop:

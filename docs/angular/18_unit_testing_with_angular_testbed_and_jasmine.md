@@ -1,6 +1,6 @@
 # Module 18: Unit Testing Standalone Components, Signals & `TestBed`
 
-**Track:** Angular — Signals Platform & Ivy Architecture  
+**Track:** Angular — Signals Platform & Ivy Architecture
 **Category:** Testing Architecture, TestBed & Signal Verification
 
 ---

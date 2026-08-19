@@ -1,9 +1,9 @@
 # Module 04: Networking: HTTP/HTTPS, TCP Sockets & WebSockets
 
-**Track:** Node.js Enterprise Backend & Runtime  
-**Directory:** `docs/nodejs/`  
-**File:** `04_networking_http_https_and_websockets.md`  
-**Category:** Network Architecture, Layer 4 Sockets & Layer 7 Protocols  
+**Track:** Node.js Enterprise Backend & Runtime
+**Directory:** `docs/nodejs/`
+**File:** `04_networking_http_https_and_websockets.md`
+**Category:** Network Architecture, Layer 4 Sockets & Layer 7 Protocols
 **Status:** ✅ Production-Grade Reference Textbook (Zero to Master)
 
 ---
@@ -14,7 +14,7 @@ Networking in Node.js is built directly upon Libuv's non-blocking socket abstrac
 
 In high-concurrency systems managing 50,000+ persistent TCP connections, understanding socket configuration options (`keepAlive`, `noDelay` / Nagle's algorithm disable, `backlog` queues, TLS session resumption, and client agent socket pooling) is critical to prevent connection exhaustion, head-of-line blocking, and TCP handshake latency spikes.
 
-```
+```text
 +-----------------------------------------------------------------------------------+
 |                        Node.js Network Stack Architecture                         |
 +-----------------------------------------------------------------------------------+
@@ -43,28 +43,30 @@ Below is the complete API dictionary for Layer 4 and Layer 7 networking in Node.
 | `net.createServer([opts], [cb])` | `node:net` | `net.createServer(opts?, cb?): net.Server` | Creates a raw Layer 4 TCP server listening on POSIX socket file descriptors. |
 | `net.createConnection(options)` | `node:net` | `net.createConnection(opts, cb?): net.Socket` | Establishes an outbound Layer 4 TCP connection to an upstream host. |
 | `socket.setNoDelay([noDelay])` | `node:net` | `socket.setNoDelay(noDelay?: boolean): Socket` | Disables Nagle's algorithm (`TCP_NODELAY`), sending small packets immediately without buffering. |
-| `socket.setKeepAlive([enable], [delay])`| `node:net`| `socket.setKeepAlive(en?: boolean, delay?: number): Socket`| Enables TCP keepalive probes (`SO_KEEPALIVE`), preventing idle firewall/NAT drops. |
-| `socket.setTimeout(timeout, [cb])`| `node:net` | `socket.setTimeout(ms: number, cb?: Function): Socket` | Sets inactivity timeout, emitting the `'timeout'` event without closing socket automatically. |
+| `socket.setKeepAlive([enable], [delay])` | `node:net` | `socket.setKeepAlive(en?: boolean, delay?: number): Socket` | Enables TCP keepalive probes (`SO_KEEPALIVE`), preventing idle firewall/NAT drops. |
+| `socket.setTimeout(timeout, [cb])` | `node:net` | `socket.setTimeout(ms: number, cb?: Function): Socket` | Sets inactivity timeout, emitting the `'timeout'` event without closing socket automatically. |
 | `http.Agent([options])` | `node:http` | `new http.Agent(options?: AgentOptions)` | Manages persistent TCP socket connection pools across outbound HTTP client requests. |
-| `http.createServer([opts], [cb])`| `node:http` | `http.createServer(opts?, cb?): http.Server` | Creates an HTTP/1.1 server parsing incoming headers and message streams. |
-| `https.createServer(opts, [cb])` | `node:https` | `https.createServer(tlsOpts, cb?): https.Server`| Creates an encrypted TLS 1.3 HTTPS server using OpenSSL certificates and keys. |
-| `http2.createSecureServer(opts, [cb])`| `node:http2` | `http2.createSecureServer(opts, cb?): Http2SecureServer` | Creates an HTTP/2 server supporting binary framing, multiplexing, and server push. |
-| `server.listen(port, [host], [backlog])`| `node:net` | `server.listen(port, host?, backlog?, cb?): Server`| Binds server to port with kernel socket connection backlog queue size. |
+| `http.createServer([opts], [cb])` | `node:http` | `http.createServer(opts?, cb?): http.Server` | Creates an HTTP/1.1 server parsing incoming headers and message streams. |
+| `https.createServer(opts, [cb])` | `node:https` | `https.createServer(tlsOpts, cb?): https.Server` | Creates an encrypted TLS 1.3 HTTPS server using OpenSSL certificates and keys. |
+| `http2.createSecureServer(opts, [cb])` | `node:http2` | `http2.createSecureServer(opts, cb?): Http2SecureServer` | Creates an HTTP/2 server supporting binary framing, multiplexing, and server push. |
+| `server.listen(port, [host], [backlog])` | `node:net` | `server.listen(port, host?, backlog?, cb?): Server` | Binds server to port with kernel socket connection backlog queue size. |
 
 ---
 
 ## 3. Technical Deep Dive: HTTP Keep-Alive & Client Socket Pooling
 
 Without socket pooling (`http.Agent({ keepAlive: false })`):
+
 * Every outbound API request executes: **DNS Lookup (1 RTT) $\to$ TCP 3-Way Handshake (1 RTT) $\to$ TLS 1.3 Handshake (1–2 RTTs) $\to$ HTTP Request/Response $\to$ TCP FIN Teardown**.
 * **Total Latency**: 3–4 network round trips before a single byte of payload is sent.
 * **CPU Cost**: High cryptographic overhead repeatedly negotiating asymmetric RSA/ECDSA keys.
 
-### With Persistent Keep-Alive Socket Pooling (`http.Agent({ keepAlive: true })`):
+### With Persistent Keep-Alive Socket Pooling (`http.Agent({ keepAlive: true })`)
+
 * Outbound connections remain open in the agent's free socket pool.
 * Subsequent requests reuse established TLS sockets with **0ms handshake latency** and **1 RTT** total execution time.
 
-```
+```json
 [ HTTP Client Request ]
            |
            v
@@ -92,6 +94,7 @@ Without socket pooling (`http.Agent({ keepAlive: false })`):
 This production lab implements a Layer 4 TCP echo and telemetry server with zero-delay socket tuning, and an enterprise HTTP client utilizing persistent keep-alive connection pooling.
 
 ### File 1: `src/networking_engine.ts`
+
 ```typescript
 import net from 'node:net';
 import http from 'node:http';
@@ -111,10 +114,10 @@ export class Layer4TcpServer {
     private handleSocketConnection(socket: net.Socket): void {
         // Disable Nagle's algorithm: send small packets immediately (essential for gaming/finance)
         socket.setNoDelay(true);
-        
+
         // Send TCP keepalive probes every 30 seconds
         socket.setKeepAlive(true, 30000);
-        
+
         // 10-second idle socket timeout
         socket.setTimeout(10000, () => {
             console.log('[TCP] Socket timed out due to inactivity. Closing gracefully.');
@@ -256,6 +259,7 @@ runNetworkingLab();
 ## 5. Pure Escaped CLI Snippets (Production Operations)
 
 ```bash
+
 # 1. Compile TypeScript code
 npx tsc \
     --target ES2022 \
@@ -279,15 +283,19 @@ ss -tanp '( sport = :8080 or sport = :9090 )' \
 ## 6. Detailed Sub-Components & Diagnostics
 
 ### Libuv Epoll TCP Listener Subsystem
+
 * **Role & Function**: Manages kernel non-blocking TCP listeners via Linux `epoll_ctl(2)` and `epoll_wait(2)`, dispatching new connection events to JavaScript handlers.
 * **Inspection Command**:
+
   ```bash
   strace -e epoll_ctl,epoll_wait -p $(pgrep -f "src/networking_engine.js")
   ```
 
 ### OpenSSL TLS 1.3 Handshake Engine
+
 * **Role & Function**: Coordinates cryptographic key exchange (ECDHE) and certificate validation in `node:tls` and `node:https`.
 * **Inspection Command**:
+
   ```bash
   openssl s_client -connect localhost:8080 -tls1_3 -trace
   ```
@@ -297,6 +305,7 @@ ss -tanp '( sport = :8080 or sport = :9090 )' \
 ## References
 
 ### Official Documentation
+
 * [Node.js Net (TCP) Documentation](https://nodejs.org/docs/latest/api/net.html) — Layer 4 sockets.
 * [Node.js HTTP Agent Reference](https://nodejs.org/docs/latest/api/http.html#class-httpagent) — Connection pooling.
 * [Node.js HTTP/2 Specification](https://nodejs.org/docs/latest/api/http2.html) — Multiplexed streams.
@@ -304,6 +313,7 @@ ss -tanp '( sport = :8080 or sport = :9090 )' \
 * [RFC 8446: The Transport Layer Security (TLS) Protocol Version 1.3](https://datatracker.ietf.org/doc/html/rfc8446) — TLS standard.
 
 ### Authoritative Engineering Blogs
+
 * [Ilya Grigorik: High Performance Browser Networking](https://hpbn.co/) — TCP and TLS tuning.
 * [Matteo Collina: HTTP Keep-Alive & Agent Architecture](https://noders.com/) — Socket performance.
 * [Cloudflare Engineering: Multiplexing and Connection Pooling](https://blog.cloudflare.com/) — Edge network design.
@@ -317,9 +327,11 @@ ss -tanp '( sport = :8080 or sport = :9090 )' \
 *Persistent HTTP keep-alive pooling cuts cross-AZ latency by 75% and eliminates TLS handshake CPU consumption.*
 
 ### 1. 75% Reduction in Handshake CPU Overhead
+
 Negotiating a new TLS 1.3 handshake on every API request consumes significant CPU time calculating asymmetric elliptic curve cryptography (ECDHE). Reusing persistent TCP connections through `http.Agent({ keepAlive: true })` eliminates 95% of handshakes, reducing server CPU utilization by up to 30%.
 
 ### 2. Eliminating Ephemeral Port Exhaustion (TIME_WAIT Sockets)
+
 Closing TCP connections abruptly on every request leaves thousands of sockets in the kernel `TIME_WAIT` state for 60 seconds (2 * MSL). Under heavy traffic, this exhausts the OS ephemeral port range (ports 32768–60999), triggering `EADDRNOTAVAIL` socket errors. Persistent connection pooling eliminates `TIME_WAIT` accumulation entirely.
 
 ---
@@ -329,13 +341,16 @@ Closing TCP connections abruptly on every request leaves thousands of sockets in
 ### Common Anti-Patterns
 
 1. **Unconsumed HTTP Response Streams Blocking the Agent Pool**:
-   - *Anti-Pattern*: Calling `http.get(url, (res) => { console.log(res.statusCode); })` without reading `res` data. The socket cannot return to the `http.Agent` pool until the stream is fully drained, deadlocking the connection pool.
-   - *Fix*: Always call `res.resume()` if discarding response bodies.
+
+   * *Anti-Pattern*: Calling `http.get(url, (res) => { console.log(res.statusCode); })` without reading `res` data. The socket cannot return to the `http.Agent` pool until the stream is fully drained, deadlocking the connection pool.
+   * *Fix*: Always call `res.resume()` if discarding response bodies.
 
 2. **Nagle's Algorithm Latency Spikes on Real-Time Sockets**:
-   - *Anti-Pattern*: Leaving `socket.setNoDelay()` at its default `false` value for interactive or telemetry sockets. Nagle buffers packets up to 200ms waiting for full TCP MSS payloads.
-   - *Fix*: Always call `socket.setNoDelay(true)` on latency-sensitive TCP streams.
+
+   * *Anti-Pattern*: Leaving `socket.setNoDelay()` at its default `false` value for interactive or telemetry sockets. Nagle buffers packets up to 200ms waiting for full TCP MSS payloads.
+   * *Fix*: Always call `socket.setNoDelay(true)` on latency-sensitive TCP streams.
 
 3. **Unhandled `'error'` Events on Client Sockets**:
-   - *Anti-Pattern*: Failing to attach `.on('error')` to `http.ClientRequest` or `net.Socket`. Any network reset (`ECONNRESET`) immediately throws an uncaught exception, crashing the Node.js process.
-   - *Fix*: Always attach `.on('error', ...)` handlers or use `pipeline()`.
+
+   * *Anti-Pattern*: Failing to attach `.on('error')` to `http.ClientRequest` or `net.Socket`. Any network reset (`ECONNRESET`) immediately throws an uncaught exception, crashing the Node.js process.
+   * *Fix*: Always attach `.on('error', ...)` handlers or use `pipeline()`.

@@ -1,6 +1,6 @@
 # Module 02: Vue 3 Proxy Reactivity System — Internals
 
-**Track:** Vue — Progressive Web Framework  
+**Track:** Vue — Progressive Web Framework
 **Category:** Reactivity System & Framework Internals
 
 ---
@@ -10,6 +10,7 @@
 Vue 3's reactivity is built on JavaScript `Proxy` objects. Understanding the internals helps you write more efficient components, diagnose subtle bugs, and reason about when and why the DOM updates.
 
 At its core, Vue's reactivity does three things:
+
 1. **Track**: when a reactive value is read, record which effect (computed, watch, render) is currently running
 2. **Trigger**: when a reactive value is written, notify all effects that read it to re-run
 3. **Update**: effects that are component render functions schedule a DOM update in the next microtask
@@ -122,7 +123,7 @@ const plainState = toRaw(state);
 console.log(isReactive(plainState)); // false
 ```
 
-**Limitations of `reactive()`:**
+### Limitations of `reactive()`
 
 ```typescript
 const state = reactive({ count: 0 });
@@ -192,6 +193,7 @@ console.log(arr[0].value);    // Must use .value here
 ```
 
 In templates, **all top-level refs are auto-unwrapped**:
+
 ```vue
 <script setup>
 const count = ref(0);
@@ -337,14 +339,14 @@ interface Row { cells: string[]; }
 
 ## Troubleshooting
 
-**Template doesn't update when I push to an array**
+### Template doesn't update when I push to an array
 
 If the array is inside a `reactive` object, push IS tracked (`state.items.push(...)` works). If the array itself is a top-level `ref`, use `items.value.push(...)`. If you used `shallowRef`, you must replace the array or call `triggerRef`.
 
-**`computed` value isn't updating**
+### `computed` value isn't updating
 
 The getter must directly access the reactive value inside the getter function. If you read a reactive value *before* the `computed(() => ...)` call and pass it as a variable, the computed doesn't track it. Always access reactive values (`ref.value`, `reactive.property`) inside the getter body.
 
-**Two components share the same `reactive` object but changes in one don't appear in the other**
+### Two components share the same `reactive` object but changes in one don't appear in the other
 
 This is the expected behavior if they each call `reactive({})` with a fresh object. Share reactive state by exporting the same reactive object from a module or a Pinia store.

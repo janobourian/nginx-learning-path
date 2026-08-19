@@ -1,6 +1,6 @@
 # Module 18: Unit Testing, Mocking & Test Suites with `package:test`
 
-**Track:** Dart — Language & VM Architecture  
+**Track:** Dart — Language & VM Architecture
 **Category:** Testing Architecture, Mocking & Code Coverage
 
 ---
@@ -10,6 +10,7 @@
 Dart features a built-in, highly optimized test runner provided by **`package:test`**:
 
 ```yaml
+
 # pubspec.yaml
 dev_dependencies:
   test: ^1.25.2
@@ -19,6 +20,7 @@ dev_dependencies:
 Run tests from the CLI:
 
 ```bash
+
 # Run all tests in test/ directory
 dart test
 
@@ -203,6 +205,7 @@ void main() {
 Generate code coverage metrics from tests:
 
 ```bash
+
 # 1. Run tests and collect coverage traces
 dart test --coverage=coverage
 

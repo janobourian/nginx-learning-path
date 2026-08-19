@@ -1,6 +1,6 @@
 # Module 13: Error Handling & Branded Nominal Types
 
-**Track:** TypeScript — Enterprise Type System  
+**Track:** TypeScript — Enterprise Type System
 **Category:** Nominal Modeling, Domain-Driven Design & Functional Error Handling
 
 ---
@@ -115,6 +115,7 @@ sendOrderConfirmationEmail(safeUser, safeOrder, safeEmail);
 ## 4. Functional Error Handling without Exceptions (`Result` Monad)
 
 Traditional `try/catch` error handling has significant flaws in TypeScript:
+
 1. Functions that throw do **not** declare their thrown exceptions in their type signatures.
 2. Caught errors in `catch (err)` are typed as `unknown` / `any`.
 3. Unhandled exceptions crash server processes.

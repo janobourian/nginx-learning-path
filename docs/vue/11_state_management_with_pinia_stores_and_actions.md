@@ -1,6 +1,6 @@
 # Module 11: State Management with Pinia — Stores, Getters & Actions
 
-**Track:** Vue — Progressive Web Framework  
+**Track:** Vue — Progressive Web Framework
 **Category:** Global State Management
 
 ---
@@ -79,6 +79,7 @@ export const useCounterOptionStore = defineStore("counterOption", {
 ### 2. Setup Stores (Recommended for Modern Vue 3)
 
 In Setup Stores:
+
 - `ref()` / `reactive()` becomes **`state`**
 - `computed()` becomes **`getters`**
 - `function()` becomes **`actions`**
@@ -380,6 +381,7 @@ export const useOrderStore = defineStore("order", () => {
 ## Troubleshooting & Best Practices
 
 1. **Do NOT invoke stores outside setup / active Pinia context during initialization**
+
    ```typescript
    // ❌ WRONG: Called before app.use(pinia) runs
    const store = useCartStore();

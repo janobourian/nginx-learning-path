@@ -1,6 +1,6 @@
 # Module 17: Database Integration — Prisma, Drizzle & Serverless PostgreSQL
 
-**Track:** Next.js — Full-Stack App Router & Edge Architecture  
+**Track:** Next.js — Full-Stack App Router & Edge Architecture
 **Category:** Database Engineering, Connection Pooling & ORM Architecture
 
 ---
@@ -10,11 +10,12 @@
 In traditional monolithic Node.js servers (e.g. Express), a single server process boots up and maintains a persistent connection pool of 10–20 TCP connections to PostgreSQL or MySQL.
 
 In Next.js serverless and edge hosting (Vercel, AWS Lambda):
+
 - Each incoming user request can spin up an isolated, ephemeral serverless function instance.
 - If 1,000 concurrent users hit your site, 1,000 separate Lambda functions spin up simultaneously.
 - If each Lambda opens 5 TCP connections, your PostgreSQL database faces **5,000 concurrent connection attempts**, crashing traditional database instances with `FATAL: too many connections`.
 
-```
+```text
 Serverless Connection Spikes:
 1,000 Concurrent Serverless Functions ──(Direct TCP Connections)──► [Traditional PostgreSQL] (CRASH! 💥)
 
@@ -121,6 +122,7 @@ model Bookmark {
 ### Running Migrations
 
 ```bash
+
 # Generate SQL migration file and apply to database
 npx prisma migrate dev --name init_models
 

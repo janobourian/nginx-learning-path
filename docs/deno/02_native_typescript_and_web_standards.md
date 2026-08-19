@@ -1,6 +1,6 @@
 # Module 02: Native TypeScript & Web Standards
 
-**Track:** Deno Secure Engine & Edge Runtime  
+**Track:** Deno Secure Engine & Edge Runtime
 **Category:** TypeScript Runtime & Browser API Compatibility
 
 ---
@@ -10,13 +10,15 @@
 In Node.js, running TypeScript requires: installing `typescript` and `ts-node` (or `tsx`), creating `tsconfig.json`, configuring module resolution, setting up path aliases, and running a compilation step. In Deno, TypeScript is a first-class language built into the runtime. You run `.ts` files the same way you run `.js` files.
 
 ```bash
-# Node.js TypeScript setup (required steps):
+
+# Node.js TypeScript setup (required steps)
 npm install -D typescript ts-node @types/node
 npx tsc --init
-# Edit tsconfig.json...
+
+# Edit tsconfig.json
 npx ts-node src/index.ts
 
-# Deno TypeScript (no setup):
+# Deno TypeScript (no setup)
 deno run src/main.ts
 ```
 
@@ -31,6 +33,7 @@ Deno embeds the TypeScript compiler version that ships with each Deno release. T
 `deno run` does not type-check by default in Deno 2. It transpiles TypeScript to JavaScript (stripping type annotations) and runs it. This is fast but silently ignores type errors.
 
 ```bash
+
 # Fast: transpile and run without type checking
 deno run main.ts
 ```
@@ -38,6 +41,7 @@ deno run main.ts
 ### Explicit Type Check
 
 ```bash
+
 # Check types without running
 deno check main.ts
 
@@ -51,6 +55,7 @@ deno run --check main.ts
 ### Type Checking in Watch Mode
 
 ```bash
+
 # Watch, type-check, and restart on changes
 deno run --check --watch main.ts
 ```
@@ -374,14 +379,14 @@ The `"lib"` field controls which global type declarations are available. `"deno.
 
 ## Troubleshooting
 
-**`Cannot find name 'Deno'`**
+### `Cannot find name 'Deno'`
 
 Your IDE's TypeScript server does not have Deno types loaded. Install the Deno VSCode extension and enable Deno for the workspace (`Deno: Initialize Workspace Configuration`). This adds `"deno.enable": true` to `.vscode/settings.json` and the Deno language server provides types.
 
-**`Type 'string' is not assignable to type 'never'`**
+### `Type 'string' is not assignable to type 'never'`
 
 You have `exactOptionalPropertyTypes: true` in your compiler options (a very strict option). Optional properties typed as `string | undefined` require explicit `undefined` handling at call sites. Either relax this option or update the code to handle `undefined` explicitly.
 
-**`fetch is not defined` when running in an old Deno version**
+### `fetch is not defined` when running in an old Deno version
 
 `fetch` is built into Deno since version 1.9.0. If you see this error, upgrade Deno: `deno upgrade`.

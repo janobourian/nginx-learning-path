@@ -1,6 +1,6 @@
 # Module 11: Isolates & Multi-Threaded Shared-Nothing Concurrency
 
-**Track:** Dart — Language & VM Architecture  
+**Track:** Dart — Language & VM Architecture
 **Category:** Concurrency, Actor Model & Isolate Memory Isolation
 
 ---
@@ -15,7 +15,7 @@ In Dart, concurrency is designed around the **Actor Model** using **Isolates**:
 2. **Zero Lock Contention**: Because memory is not shared, there are **no race conditions, no deadlocks, and no mutex locks** in Dart application code!
 3. **Message-Passing Communication**: Isolates communicate exclusively by passing messages through **`SendPort`** and **`ReceivePort`** channels.
 
-```
+```text
 Isolate Architecture (Shared-Nothing Memory Model):
 ┌──────────────────────────────┐        ┌──────────────────────────────┐
 │       Main UI Isolate        │        │      Worker Isolate A        │

@@ -1,6 +1,6 @@
 # Module 10: Systems File I/O, Advisory File Locks & Memory-Mapped Storage
 
-**Track:** Modern JavaScript — Backend Systems & Distributed Architecture  
+**Track:** Modern JavaScript — Backend Systems & Distributed Architecture
 **Category:** Systems Programming, File Locking & High-Performance I/O
 
 ---
@@ -9,7 +9,7 @@
 
 When an application performs file I/O, it interfaces with the OS kernel through **File Descriptors (Integer handles)**:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 POSIX File System System Calls              │
 ├────────────────────┬────────────────────────────────────────┤
@@ -32,7 +32,7 @@ When an application performs file I/O, it interfaces with the OS kernel through 
 
 When multiple clustered worker processes write to the same shared state or append-only log file simultaneously, uncoordinated writes will corrupt binary records.
 
-### Implementing an Advisory File Lock:
+### Implementing an Advisory File Lock
 
 ```javascript
 // src/storage/file_lock.js

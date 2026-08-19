@@ -16,30 +16,29 @@ Exists several targets:
 ### Create a DMS Replication Instance
 
 * The process is:
-    * Source Database
-    * > AWS DMS replication instance
-    * > Target Database or Amazon S3 or non-database
+  * Source Database
+  * > AWS DMS replication instance
+  * > Target Database or Amazon S3 or non-database
 
 * If you want to create the replication instance:
-    * Name:
-    * ARN: Leave blank
-    * Description: 
-    * Instance Class: dms.c5.xlarge
-    * Engine Version: Leave the default value
-    * High Availability/Multi-AZ: Single AZ
-    * Allocated storage GB: 50
-    * VPC: 
-    * Publicly accessible: No/unchecked
-    * Advanced -> VPC Security Groups: default
+  * Name:
+  * ARN: Leave blank
+  * Description:
+  * Instance Class: dms.c5.xlarge
+  * Engine Version: Leave the default value
+  * High Availability/Multi-AZ: Single AZ
+  * Allocated storage GB: 50
+  * VPC:
+  * Publicly accessible: No/unchecked
+  * Advanced -> VPC Security Groups: default
 
 ### Configure the Target S3 Bucket
 
 * The steps are:
-    * Create the bucket with a legible name, for example: `dmstagetbucket-janobourian-maxine`
-    * Create `dmstargetfolder` folder inside the bucket
-    * Create a policy to access the bucket `DMS-LAB-S3-Access-Policy`
-    * Create the role and associate the policy
-
+  * Create the bucket with a legible name, for example: `dmstagetbucket-janobourian-maxine`
+  * Create `dmstargetfolder` folder inside the bucket
+  * Create a policy to access the bucket `DMS-LAB-S3-Access-Policy`
+  * Create the role and associate the policy
 
 ```json
 {
@@ -76,41 +75,41 @@ Exists several targets:
 ### Create a DMS Migration Task
 
 * The configuration for tasks:
-    * Tasks identifier:
-    * Replication instance:
-    * Source database endpoint:
-    * Target database endpoint:
-    * Migration type:
-        * Migrate existing data and replicate ongoing changes
-    * Custom CDC stop mode for source transactions:
-        * Don’t use custom CDC stop mode
-    * Create recovery table on target DB:
-        * leave blank/unchecked
-    * Target table preparation mode:
-        * Do nothing
-    * Stop task after full load completes:
-        * Don't stop
-    * LOB Column settings / Include LOB columns in replication:
-        * Limited LOB mode
-    * Max LOB size (KB)
-    * Data validation
-        * Unchecked
-    * Task Logs / Enable CloudWatch logs
-    * Log Context
-    * Batch-optimized apply if visible
+  * Tasks identifier:
+  * Replication instance:
+  * Source database endpoint:
+  * Target database endpoint:
+  * Migration type:
+    * Migrate existing data and replicate ongoing changes
+  * Custom CDC stop mode for source transactions:
+    * Don’t use custom CDC stop mode
+  * Create recovery table on target DB:
+    * leave blank/unchecked
+  * Target table preparation mode:
+    * Do nothing
+  * Stop task after full load completes:
+    * Don't stop
+  * LOB Column settings / Include LOB columns in replication:
+    * Limited LOB mode
+  * Max LOB size (KB)
+  * Data validation
+    * Unchecked
+  * Task Logs / Enable CloudWatch logs
+  * Log Context
+  * Batch-optimized apply if visible
 
 * Table mappings:
-    * Wizard
+  * Wizard
 
 * Add new selection rule:
-    * Schema: dbo%
-    * Table name: %
-    * Action: Include
+  * Schema: dbo%
+  * Table name: %
+  * Action: Include
 
 * Transformation rules:
-    * Target: Schema
-    * Schema Name: dbo
-    * Action: Rename to: dms_sample_dbo
+  * Target: Schema
+  * Schema Name: dbo
+  * Action: Rename to: dms_sample_dbo
 
 * Uncheck Turn on premigration assessment
 

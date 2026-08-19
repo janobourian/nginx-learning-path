@@ -1,6 +1,6 @@
 # Module 14: WebRTC Peer Connections, DataChannels & MediaStreams
 
-**Track:** Modern JavaScript — Frontend Architecture & Web APIs  
+**Track:** Modern JavaScript — Frontend Architecture & Web APIs
 **Category:** Peer-to-Peer Networking, WebRTC & Real-Time Media
 
 ---
@@ -9,7 +9,7 @@
 
 **WebRTC (Web Real-Time Communication)** is an open W3C standard that enables direct **Peer-to-Peer (P2P)** audio, video, and data communication between web browsers **without routing media packets through an intermediary server**.
 
-```
+```text
 WebRTC Direct P2P Architecture:
 [Browser Peer A] ◄────────────────(Signaling Server: Handshake Only)────────────────► [Browser Peer B]
         │                                                                                     │
@@ -21,7 +21,7 @@ WebRTC Direct P2P Architecture:
 
 ## 2. The 3 Core WebRTC APIs
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                     The WebRTC API Trilogy                  │
 ├────────────────────┬────────────────────────────────────────┤
@@ -42,7 +42,7 @@ WebRTC Direct P2P Architecture:
 
 Because most computers sit behind home routers, firewalls, and NATs, two browsers cannot connect directly without exchanging network descriptions through a temporary **Signaling Server** (WebSocket):
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 WebRTC Signaling & ICE Handshake            │
 ├─────────────────────────────────────────────────────────────┤

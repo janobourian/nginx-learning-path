@@ -1,15 +1,16 @@
 # Module 00: Angular CLI Workspace & Standalone Project Architecture
 
-**Track:** Angular — Signals Platform & Ivy Architecture  
+**Track:** Angular — Signals Platform & Ivy Architecture
 **Category:** Enterprise Toolchain, Workspace Architecture & Modern Angular 17+ Standards
 
 ---
 
 ## 1. What Is Angular and the Modern "Renaissance"?
 
-**Angular** is a comprehensive, enterprise-grade TypeScript web application platform created by Google. 
+**Angular** is a comprehensive, enterprise-grade TypeScript web application platform created by Google.
 
 Historically known for NgModule complexity and Zone.js change detection overhead, Angular has undergone a massive modern "Renaissance" (Angular 16 through Angular 18+):
+
 1. **Standalone-by-Default Architecture**: NgModules are obsolete. Components, directives, and pipes are standalone, reducing mental overhead and bundle size.
 2. **Signals Reactivity**: Fine-grained reactivity powered by a Push/Pull Directed Acyclic Graph (DAG), laying the foundation for **Zoneless Angular**.
 3. **Built-in Control Flow**: Native `@if`, `@else`, `@for`, and `@switch` syntax in templates replacing legacy `*ngIf` and `*ngFor`.
@@ -23,6 +24,7 @@ Historically known for NgModule complexity and Zone.js change detection overhead
 Install the official Angular CLI globally or run it directly via `npx`:
 
 ```bash
+
 # Initialize a modern standalone Angular project with SSR and Tailwind support
 npx @angular/cli@latest new my-angular-app -- \
   --standalone \
@@ -37,7 +39,7 @@ pnpm start
 
 ### Standard Modern Angular Directory Structure
 
-```
+```text
 my-angular-app/
 ├── public/                 ← Static public assets (favicon.ico, robots.txt)
 ├── src/

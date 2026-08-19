@@ -1,6 +1,6 @@
 # Module 06: Template Syntax — Directives, `v-bind`, `v-model`, `v-for`
 
-**Track:** Vue — Progressive Web Framework  
+**Track:** Vue — Progressive Web Framework
 **Category:** Template Language & Data Binding
 
 ---
@@ -327,14 +327,14 @@ onMounted(() => {
 
 ## Troubleshooting
 
-**`v-bind` class object: class not applied despite condition being `true`**
+### `v-bind` class object: class not applied despite condition being `true`
 
 Ensure the class name doesn't contain hyphens or special characters without quotes. Object keys with hyphens must be quoted: `{ 'is-active': isActive }`, not `{ is-active: isActive }` (which is a syntax error).
 
-**`v-model` on a custom component not working**
+### `v-model` on a custom component not working
 
 The most common cause: the component uses `value` prop (Vue 2 style) but the parent uses `v-model` (which binds to `modelValue`). Migrate to `defineModel()` or ensure the prop is named `modelValue` and the emit is `update:modelValue`.
 
-**`v-for` items render in wrong order after array update**
+### `v-for` items render in wrong order after array update
 
 Without a stable `:key`, Vue reuses DOM nodes by position. If you remove an item from the middle of the list, Vue may reuse the wrong DOM nodes. Always use a unique, stable identifier for `:key` (like a database ID), not the array index.

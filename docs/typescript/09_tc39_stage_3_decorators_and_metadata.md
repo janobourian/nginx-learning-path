@@ -1,6 +1,6 @@
 # Module 09: TC39 Stage 3 Decorators & Metadata Architecture
 
-**Track:** TypeScript — Enterprise Type System  
+**Track:** TypeScript — Enterprise Type System
 **Category:** Metaprogramming & Modern Decorator Standards
 
 ---
@@ -25,6 +25,7 @@ In **TypeScript 5.0**, TypeScript officially implemented the **standardized TC39
 ## 2. The TC39 Decorator Execution Model & Context
 
 A TC39 decorator is a function that accepts two arguments:
+
 1. `value`: The target being decorated (class constructor, method function, getter, setter, or accessor).
 2. `context`: An object containing metadata about the decorated entity.
 

@@ -1,6 +1,6 @@
 # Module 12: Vue Router 4 — Dynamic Routing, Nested Routes & Navigation Guards
 
-**Track:** Vue — Progressive Web Framework  
+**Track:** Vue — Progressive Web Framework
 **Category:** Single Page Application (SPA) Routing
 
 ---
@@ -242,7 +242,7 @@ const routes: RouteRecordRaw[] = [
 
 Navigation guards control whether a navigation is allowed, redirected, or canceled.
 
-```
+```text
 Navigation Flow:
 1. Navigation triggered (e.g. router.push)
 2. In-component `onBeforeRouteLeave`
@@ -354,6 +354,7 @@ router.go(1);  // Forward
 
 2. **Infinite redirect loops in `beforeEach`**
    Always check if the user is *already* on the destination page before redirecting:
+
    ```typescript
    // ❌ WRONG: Infinite loop
    router.beforeEach((to) => {

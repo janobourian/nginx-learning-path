@@ -1,6 +1,6 @@
 # Module 03: Low-Level Binary Memory Allocation & Protocol Architecture
 
-**Track:** Modern JavaScript — Backend Systems & Distributed Architecture  
+**Track:** Modern JavaScript — Backend Systems & Distributed Architecture
 **Category:** Systems Architecture, Binary Buffers & Low-Level Memory Management
 
 ---
@@ -9,7 +9,7 @@
 
 In server-side JavaScript (Node, Deno, Bun), binary network and file I/O is managed through the ECMAScript **`ArrayBuffer`** and **`TypedArray`** standard:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 TypedArray Memory Architecture              │
 ├────────────────────┬────────────────────────────────────────┤
@@ -61,6 +61,7 @@ export class RpcFrameCodec {
   static MAGIC_HEADER = 0x52504331; // 'RPC1' in ASCII (32-bit uint)
 
   /**
+
    * Encodes an RPC Message into binary frame:
    * [0..3]  Magic Byte Header (0x52504331) - 4 Bytes
    * [4..5]  Command ID (16-bit uint)       - 2 Bytes
@@ -90,6 +91,7 @@ export class RpcFrameCodec {
   }
 
   /**
+
    * Decodes a binary frame:
    */
   static decode(uint8Array) {

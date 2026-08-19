@@ -1,6 +1,6 @@
 # Module 16: Authentication with Auth.js (NextAuth v5) & Role-Based Access Control (RBAC)
 
-**Track:** Next.js — Full-Stack App Router & Edge Architecture  
+**Track:** Next.js — Full-Stack App Router & Edge Architecture
 **Category:** Security Architecture, OAuth 2.0 & Session Management
 
 ---
@@ -8,6 +8,7 @@
 ## 1. The Full-Stack Authentication Landscape in Next.js
 
 Authentication in the Next.js App Router requires handling sessions across four distinct environments:
+
 1. **Server Components**: Checking `await auth()` directly during rendering.
 2. **Server Actions**: Verifying user identity before performing database mutations.
 3. **Route Handlers**: Authenticating external API requests and Webhooks.

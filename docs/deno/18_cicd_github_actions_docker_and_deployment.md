@@ -1,6 +1,6 @@
 # Module 18: CI/CD — GitHub Actions, Docker & Deployment Pipelines
 
-**Track:** Deno Secure Engine & Edge Runtime  
+**Track:** Deno Secure Engine & Edge Runtime
 **Category:** Continuous Integration & Delivery
 
 ---
@@ -14,6 +14,7 @@ Deno's built-in toolchain makes CI pipelines simple: no separate build tool inst
 ## GitHub Actions: Basic CI Pipeline
 
 ```yaml
+
 # .github/workflows/ci.yml
 name: CI
 
@@ -29,6 +30,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -77,7 +79,9 @@ jobs:
 ## Docker: Minimal Deno Image
 
 ```dockerfile
+
 # Dockerfile
+
 # Stage 1: Cache dependencies (this layer is only rebuilt when deno.lock changes)
 FROM denoland/deno:2.1.4 AS deps
 
@@ -111,6 +115,7 @@ CMD ["run", \
 ```
 
 ```yaml
+
 # docker-compose.yml — local development with dependencies
 version: "3.9"
 
@@ -118,6 +123,7 @@ services:
   api:
     build: .
     ports:
+
       - "8080:8080"
     environment:
       PORT: "8080"
@@ -129,6 +135,7 @@ services:
       redis:
         condition: service_healthy
     volumes:
+
       - ./public:/app/public:ro  # Mount public assets read-only
 
   postgres:
@@ -138,6 +145,7 @@ services:
       POSTGRES_PASSWORD: pass
       POSTGRES_DB: myapp
     volumes:
+
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U user -d myapp"]
@@ -162,6 +170,7 @@ volumes:
 ## Deploy to Deno Deploy via CI
 
 ```yaml
+
 # .github/workflows/deploy.yml
 name: Deploy to Deno Deploy
 
@@ -182,6 +191,7 @@ jobs:
       contents: read
 
     steps:
+
       - uses: actions/checkout@v4
       - uses: denoland/setup-deno@v2
         with:
@@ -200,6 +210,7 @@ jobs:
 ## Deploy to a VPS with Docker
 
 ```yaml
+
 # .github/workflows/deploy-vps.yml
 name: Deploy to VPS
 
@@ -211,6 +222,7 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     steps:
+
       - uses: actions/checkout@v4
 
       - name: Login to Container Registry
@@ -237,6 +249,7 @@ jobs:
     environment: production
 
     steps:
+
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
         with:
@@ -354,14 +367,14 @@ API_URL=https://staging.example.com deno test \
 
 ## Troubleshooting
 
-**CI fails with `deno: command not found`**
+### CI fails with `deno: command not found`
 
 Use `denoland/setup-deno@v2` action before any `run: deno ...` step. This installs Deno into the GitHub Actions runner PATH.
 
-**Module cache miss every CI run (slow downloads)**
+### Module cache miss every CI run (slow downloads)
 
 Ensure the cache key includes `deno.lock`: `key: deno-${{ runner.os }}-${{ hashFiles('deno.lock') }}`. Also ensure the cache path matches the Deno install's actual cache location. Run `deno info` in CI to see the cache path.
 
-**Docker image fails HEALTHCHECK during deployment**
+### Docker image fails HEALTHCHECK during deployment
 
 The health endpoint `/health` may not be available during container startup (before the HTTP server starts listening). Use `--start-period=10s` in HEALTHCHECK to give the server time to boot. Also ensure `--allow-net` includes the health check's listen address.

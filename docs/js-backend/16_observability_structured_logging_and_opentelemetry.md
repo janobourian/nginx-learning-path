@@ -1,13 +1,13 @@
 # Module 16: Enterprise Observability — Structured Logging (Pino) & OpenTelemetry (OTel)
 
-**Track:** Modern JavaScript — Backend Systems & Distributed Architecture  
+**Track:** Modern JavaScript — Backend Systems & Distributed Architecture
 **Category:** Observability, Distributed Tracing & Structured Logging
 
 ---
 
 ## 1. The 3 Pillars of Backend Observability
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 The 3 Observability Pillars                 │
 ├────────────────────┬────────────────────────────────────────┤
@@ -97,7 +97,7 @@ export const logger = pino({
 npm install @opentelemetry/sdk-node @opentelemetry/auto-instrumentations-node @opentelemetry/exporter-trace-otlp-http
 ```
 
-### Initializing the OpenTelemetry SDK (`src/instrumentation.js`):
+### Initializing the OpenTelemetry SDK (`src/instrumentation.js`)
 
 ```javascript
 // src/instrumentation.js
@@ -129,7 +129,8 @@ process.on('SIGTERM', () => {
 ```
 
 ```bash
-# Preload instrumentation before application code boots:
+
+# Preload instrumentation before application code boots
 node --import ./src/instrumentation.js src/server.js
 ```
 
@@ -169,6 +170,7 @@ export async function processPaymentWithSpan(orderId, amount) {
 
 1. **Never Log Sensitive PII (Personally Identifiable Information)**
    Configure Pino redactors to automatically scrub sensitive fields:
+
    ```javascript
    const logger = pino({
      redact: ['req.headers.authorization', 'password', 'creditCard.number'],

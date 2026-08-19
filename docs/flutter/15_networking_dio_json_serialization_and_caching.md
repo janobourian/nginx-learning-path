@@ -1,6 +1,6 @@
 # Module 15: Enterprise Networking — `Dio`, JSON Serialization & Offline Caching
 
-**Track:** Flutter — Multi-Platform Architecture & Impeller Engine  
+**Track:** Flutter — Multi-Platform Architecture & Impeller Engine
 **Category:** Networking Architecture, Interceptors & Code-Generated Serialization
 
 ---
@@ -8,12 +8,13 @@
 ## 1. Why Dio Is the Enterprise Standard for Flutter
 
 While the standard `http` package handles basic GET/POST requests, **`Dio`** provides enterprise-grade networking features:
+
 - **Interceptor Chains** (Auth token injection, global logging, automated 401 token refresh).
 - **Request Cancellation** via `CancelToken` (e.g. canceling in-flight search requests on screen exit).
 - **File Upload & Download Progress** callbacks.
 - **Offline HTTP Response Caching** backed by SQLite / Hive stores.
 
-```
+```text
 Dio Request Pipeline:
 [Outgoing Request] ──► [AuthInterceptor] ──► [CacheInterceptor] ──► [LoggingInterceptor] ──► Network
                                                                                                │
@@ -25,6 +26,7 @@ Dio Request Pipeline:
 ## 2. Setting Up Dio with Code-Generated JSON Serialization
 
 ```yaml
+
 # pubspec.yaml
 dependencies:
   dio: ^5.4.3+1
@@ -78,6 +80,7 @@ class UserModel {
 ```
 
 Run code generator:
+
 ```bash
 dart run build_runner build -d
 ```
@@ -210,6 +213,7 @@ class UserRepository {
 
 2. **Always Handle `DioException` by Type**
    Inspect `e.type`:
+
    - `DioExceptionType.connectionTimeout`: No internet / server unreachable.
    - `DioExceptionType.badResponse`: Server returned 4xx or 5xx status code.
    - `DioExceptionType.cancel`: Request was cancelled intentionally by `CancelToken`.

@@ -1,6 +1,6 @@
 # Module 13: Content Projection & Dynamic Templates (`ngTemplateOutlet`)
 
-**Track:** Angular — Signals Platform & Ivy Architecture  
+**Track:** Angular — Signals Platform & Ivy Architecture
 **Category:** Component Composition, Transclusion & Headless UI
 
 ---
@@ -25,7 +25,7 @@ import { Component, input, output } from "@angular/core";
   template: `
     <div class="modal-backdrop" (click)="close.emit()">
       <div class="modal-card" (click)="$event.stopPropagation()">
-        
+
         <!-- Slot 1: Modal Header (Matches elements with [modal-header] attribute) -->
         <header class="modal-header">
           <ng-content select="[modal-header]">
@@ -55,7 +55,7 @@ export class ModalDialogComponent {
 }
 ```
 
-### Consuming the Multi-Slot Component:
+### Consuming the Multi-Slot Component
 
 ```html
 <app-modal-dialog (close)="isModalOpen.set(false)">
@@ -81,7 +81,7 @@ export class ModalDialogComponent {
 
 While `<ng-content>` projects static content at compile time, **`ngTemplateOutlet`** enables **dynamic, programmatic template rendering with custom contextual data** (essential for data tables, virtual lists, and headless UI libraries).
 
-```
+```text
 ngTemplateOutlet Pipeline:
 [Parent Template: <ng-template let-user="user">]
                         │

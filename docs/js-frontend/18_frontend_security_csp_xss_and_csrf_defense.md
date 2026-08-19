@@ -1,13 +1,13 @@
 # Module 18: Frontend Security — CSP, XSS Defense, CSRF & Trusted Types
 
-**Track:** Modern JavaScript — Frontend Architecture & Web APIs  
+**Track:** Modern JavaScript — Frontend Architecture & Web APIs
 **Category:** Web Security, Content Security Policy & XSS Elimination
 
 ---
 
 ## 1. The Web Frontend Threat Landscape
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 Top Frontend Security Attack Vectors        │
 ├────────────────────┬────────────────────────────────────────┤
@@ -30,7 +30,7 @@
 
 **Content Security Policy (CSP)** is an HTTP response header that restricts which scripts, styles, images, and network domains can execute in the user's browser.
 
-### The Modern Nonce-Based Strict CSP:
+### The Modern Nonce-Based Strict CSP
 
 ```http
 Content-Security-Policy:
@@ -41,10 +41,13 @@ Content-Security-Policy:
 ```
 
 - **`'nonce-...'`**: Scripts execute **only if they contain the matching cryptographic server nonce**:
+
   ```html
   <script nonce="rAnd0m1234" src="/app.js"></script>
   ```
+
   Any injected script tag without the nonce is **instantly blocked by the browser engine**.
+
 - **`frame-ancestors 'none'`**: Completely prevents other websites from embedding your app in an `<iframe>`, eliminating Clickjacking attacks!
 
 ---
@@ -62,6 +65,7 @@ When loading third-party scripts from CDNs, if the CDN is compromised, attackers
   crossorigin="anonymous">
 </script>
 ```
+
 *If a compromised CDN alters even 1 bit of code, the browser aborts execution with a `Failed to find a valid digest` error.*
 
 ---
@@ -117,6 +121,7 @@ Legacy CSRF tokens are no longer necessary for modern browsers when cookies are 
 ```http
 Set-Cookie: session_id=abc123xyz; Secure; HttpOnly; SameSite=Strict
 ```
+
 - **`SameSite=Strict`**: The browser **never sends the cookie on cross-site requests** (e.g. clicking a link on `attacker.com` pointing to your banking API will NOT include the session cookie!).
 
 ---

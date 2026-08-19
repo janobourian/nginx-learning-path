@@ -1,6 +1,6 @@
 # Module 06: Memoization Strategies — `useMemo`, `useCallback` & `React.memo`
 
-**Track:** React — Modern UI & Fiber Architecture  
+**Track:** React — Modern UI & Fiber Architecture
 **Category:** Performance Optimization & Reference Stability
 
 ---
@@ -169,10 +169,12 @@ const fn2 = useMemo(() => (x: number) => x * 2, [deps]);
 ## 6. When NOT to Memoize (Over-Optimization Costs)
 
 Memoization is not free:
+
 1. It consumes memory to store cached values and dependency arrays in the Fiber node.
 2. On every render, React must loop through the dependency array and perform `Object.is()` comparisons.
 
-### Don't Memoize When:
+### Don't Memoize When
+
 - The calculation is cheap (e.g. `items.length`, `a + b`, simple string formatting).
 - The child component receiving the prop is **not** wrapped in `React.memo`. (If the child re-renders anyway, stabilizing prop references accomplishes nothing).
 
@@ -182,6 +184,7 @@ Memoization is not free:
 
 1. **Stale Closures inside `useCallback`**
    If you reference a state variable inside `useCallback` but forget to list it in the dependency array:
+
    ```tsx
    // ❌ STALE CLOSURE: count is permanently locked to 0!
    const increment = useCallback(() => {

@@ -1,13 +1,13 @@
 # Module 15: Message Brokers — RabbitMQ (AMQP), Redis Streams & Dead Letter Queues
 
-**Track:** Modern JavaScript — Backend Systems & Distributed Architecture  
+**Track:** Modern JavaScript — Backend Systems & Distributed Architecture
 **Category:** Event-Driven Architecture, AMQP & Distributed Message Queues
 
 ---
 
 ## 1. Message Broker Comparison Matrix
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 Message Broker Feature Matrix               │
 ├───────────────────┬──────────────────┬──────────────────────┤
@@ -30,7 +30,7 @@
 
 In RabbitMQ (AMQP 0-9-1 protocol), producers **never publish messages directly to a queue**. Instead, messages are sent to an **Exchange**, which routes them to queues based on **Binding Keys**:
 
-```
+```text
 RabbitMQ AMQP Architecture:
 [Producer] ──► [Exchange (Topic: 'orders.*')]
                      │

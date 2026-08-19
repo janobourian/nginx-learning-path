@@ -1,6 +1,6 @@
 # Module 04: Data Fetching, Next.js Data Cache & Request Memoization
 
-**Track:** Next.js — Full-Stack App Router & Edge Architecture  
+**Track:** Next.js — Full-Stack App Router & Edge Architecture
 **Category:** Server Data Pipelines, Caching & Performance
 
 ---
@@ -19,7 +19,7 @@ fetch(url, {
 });
 ```
 
-### Data Fetching Modes:
+### Data Fetching Modes
 
 | Fetch Option | Behavior | Primary Use Case |
 | :--- | :--- | :--- |
@@ -32,6 +32,7 @@ fetch(url, {
 ## 2. Request Memoization (Per-Request Deduplication)
 
 Consider a scenario where multiple components in a single render pass need user profile data:
+
 - `app/layout.tsx` calls `getUserProfile(id)` to render the header avatar.
 - `app/dashboard/page.tsx` calls `getUserProfile(id)` to render the welcome message.
 - `app/components/Sidebar.tsx` calls `getUserProfile(id)` to render user permissions.
@@ -40,7 +41,7 @@ In vanilla Node.js, this would execute 3 duplicate HTTP requests to your backend
 
 In Next.js, **Request Memoization** automatically intercepts identical `GET` fetch requests during a single render pass and **executes the network call exactly ONCE**, returning the memoized result to all subsequent callers!
 
-```
+```text
 Request Memoization Pipeline (Single Server Request):
 [Layout: fetch('/api/user/1')] ──► (Network Call Executed) ──► Stored in Memory Cache
 [Page:   fetch('/api/user/1')] ──► (Cache Hit! Zero Network Call)
@@ -53,7 +54,7 @@ Request Memoization Pipeline (Single Server Request):
 
 ## 3. Memoizing Non-Fetch Database Calls (`React.cache()`)
 
-If you fetch data via an ORM (Prisma, Drizzle, Mongoose) rather than `fetch()`, native `fetch` memoization does not apply. 
+If you fetch data via an ORM (Prisma, Drizzle, Mongoose) rather than `fetch()`, native `fetch` memoization does not apply.
 
 Use React's **`cache()`** utility to wrap ORM queries with the exact same per-request deduplication:
 
@@ -140,6 +141,7 @@ export default async function DashboardPage() {
 
 1. **Opting Out of Caching Globally for a Route**
    If an entire route must always be dynamic (e.g. real-time telemetry):
+
    ```typescript
    // At the top of page.tsx:
    export const dynamic = "force-dynamic";

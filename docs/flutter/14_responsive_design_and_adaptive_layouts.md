@@ -1,6 +1,6 @@
 # Module 14: Responsive & Adaptive Design for Multi-Platform Flutter
 
-**Track:** Flutter — Multi-Platform Architecture & Impeller Engine  
+**Track:** Flutter — Multi-Platform Architecture & Impeller Engine
 **Category:** Multi-Platform UX, Responsive Breakpoints & Adaptive Controls
 
 ---
@@ -9,7 +9,7 @@
 
 Developing for multi-platform (Mobile, Web, macOS, Windows, Linux) requires mastering two distinct dimensions:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 Responsive vs Adaptive Design               │
 ├────────────────────┬────────────────────────────────────────┤

@@ -1,6 +1,6 @@
 # Module 17: Automated Testing — Widget Tests, Golden Toolkit & Integration Tests
 
-**Track:** Flutter — Multi-Platform Architecture & Impeller Engine  
+**Track:** Flutter — Multi-Platform Architecture & Impeller Engine
 **Category:** Automated Testing, WidgetTester & Pixel-Perfect Golden Testing
 
 ---
@@ -9,7 +9,7 @@
 
 Flutter provides a comprehensive, built-in testing suite covering three distinct testing levels:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 The Flutter Testing Pyramid                 │
 ├────────────────────┬────────────────────────────────────────┤
@@ -190,10 +190,11 @@ void main() {
 }
 ```
 
-### Generating Master Golden PNG Images:
+### Generating Master Golden PNG Images
 
 ```bash
-# Generate reference baseline images:
+
+# Generate reference baseline images
 flutter test --update-goldens
 ```
 
@@ -204,6 +205,7 @@ flutter test --update-goldens
 Integration tests run on real iOS/Android devices and verify native platform interactions:
 
 ```yaml
+
 # pubspec.yaml
 dev_dependencies:
   integration_test:
@@ -241,6 +243,7 @@ void main() {
 ```
 
 Run integration test:
+
 ```bash
 flutter test integration_test/app_flow_test.dart -d macos
 ```

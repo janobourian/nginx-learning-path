@@ -1,13 +1,13 @@
 # Module 17: Performance Profiling, V8 Heap Analysis & Memory Leak Elimination
 
-**Track:** Modern JavaScript — Backend Systems & Distributed Architecture  
+**Track:** Modern JavaScript — Backend Systems & Distributed Architecture
 **Category:** Systems Diagnostics, V8 Profiling & Garbage Collection Analysis
 
 ---
 
 ## 1. The 3 Diagnostic Tools of Server-Side JavaScript
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 Performance Diagnostic Suite                │
 ├────────────────────┬────────────────────────────────────────┤
@@ -32,11 +32,13 @@ To inspect GC pauses and allocation rates in production:
 node --trace-gc --trace-gc-verbose src/server.js
 ```
 
-### Deciphering the GC Output:
+### Deciphering the GC Output
+
 ```text
 [12345:0x104000000]   120 ms: Scavenge 18.2 (24.0) -> 6.1 (24.0) MB, 0.4 / 0.0 ms  (average mu = 0.999) allocation failure
 [12345:0x104000000]   850 ms: Mark-sweep 64.5 (80.0) -> 32.1 (80.0) MB, 4.2 / 0.0 ms (average mu = 0.985) GC in old space
 ```
+
 - **Scavenge (0.4ms)**: Fast Young Space collection. Normal and healthy!
 - **Mark-sweep (4.2ms)**: Old Space full collection. If this exceeds 20ms or fires every 2 seconds, the application is allocating objects too quickly or suffering from a memory leak.
 
@@ -69,7 +71,7 @@ export function setupAutomaticMemoryGuard(maxHeapMb = 1024) {
 
 Not all memory leaks occur inside the V8 JavaScript heap:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 V8 Heap vs External (Off-Heap) Memory       │
 ├──────────────────────────┬──────────────────────────────────┤
@@ -82,6 +84,7 @@ Not all memory leaks occur inside the V8 JavaScript heap:
 ```
 
 If `process.memoryUsage().rss` continues climbing while `heapUsed` stays constant, the leak is **Off-Heap**:
+
 1. **Unclosed File Descriptors**: Check `lsof -p <PID>` on Linux/macOS.
 2. **Buffer Accumulation**: Look for unclosed streams or lingering `Buffer` arrays.
 

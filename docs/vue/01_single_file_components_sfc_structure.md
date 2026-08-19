@@ -1,6 +1,6 @@
 # Module 01: Single File Components — SFC Structure & Template Syntax
 
-**Track:** Vue — Progressive Web Framework  
+**Track:** Vue — Progressive Web Framework
 **Category:** Component Fundamentals
 
 ---
@@ -148,6 +148,7 @@ function handleKeydown(event: KeyboardEvent) {
 ```
 
 Event modifier cheat sheet:
+
 - `.stop` — calls `event.stopPropagation()`
 - `.prevent` — calls `event.preventDefault()`
 - `.self` — only fires if the target is the element itself (not a child)
@@ -343,14 +344,14 @@ The `key` attribute is Vue's way of tracking which DOM nodes correspond to which
 
 ## Troubleshooting
 
-**`v-for` doesn't update the DOM when array is mutated**
+### `v-for` doesn't update the DOM when array is mutated
 
 Vue tracks array mutations for the following methods: `push`, `pop`, `shift`, `unshift`, `splice`, `sort`, `reverse`. Direct index assignment (`arr[0] = newValue`) is **not** tracked in Vue 3 if `arr` is a plain array. Use `arr.splice(0, 1, newValue)` or replace the array: `arr.value = [...arr.value]`.
 
-**`v-if` and `v-for` on the same element causes unexpected behavior**
+### `v-if` and `v-for` on the same element causes unexpected behavior
 
 In Vue 3, `v-if` has higher priority than `v-for` on the same element (opposite of Vue 2). The `v-if` condition cannot access the loop variable. Always use `<template v-for>` as the outer wrapper.
 
-**Two-way binding on a component doesn't work**
+### Two-way binding on a component doesn't work
 
 When using `v-model` on a custom component, the component must accept a `modelValue` prop and emit `update:modelValue`. Use `defineModel()` (Vue 3.4+) as the simplest way to implement this.

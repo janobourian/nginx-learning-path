@@ -1,6 +1,6 @@
 # Module 02: Sound Null Safety & Control Flow Analysis
 
-**Track:** Dart — Language & VM Architecture  
+**Track:** Dart — Language & VM Architecture
 **Category:** Type System, Sound Null Safety & Flow Analysis
 
 ---
@@ -15,7 +15,7 @@ In modern **Dart 3**, **Sound Null Safety is 100% mandatory**:
 2. **Explicit Nullability**: To allow `null`, you must explicitly suffix the type with `?` (`String? nullableName = null;`).
 3. **100% Soundness**: The compiler guarantees that a non-nullable variable can *never* be `null` at runtime. In AOT compiled machine code, the Dart VM **completely eliminates redundant null checks**, resulting in smaller binaries and up to 20% faster CPU execution!
 
-```
+```text
 Dart Type System:
 Non-Nullable: [int]    [String]    [User]    [List<int>]  ◄── Can NEVER be null!
 Nullable:     [int?]   [String?]   [User?]   [List<int>?] ◄── Must be checked before access!
@@ -33,7 +33,7 @@ Nullable:     [int?]   [String?]   [User?]   [List<int>?] ◄── Must be chec
 | **`?[]`** | **Null-Aware Index** | Safely indexes into a nullable list/map | `items?[0]` |
 | **`!`** | **Null Assertion (Bang)** | Forces non-null cast; **throws runtime error if null!** | `user!.save()` |
 
-### Code Examples:
+### Code Examples
 
 ```dart
 void main() {
@@ -76,7 +76,7 @@ void processUserProfile(String? rawInput) {
 }
 ```
 
-### Type Promotion with `is` Type Tests:
+### Type Promotion with `is` Type Tests
 
 ```dart
 void handlePayload(Object data) {
@@ -110,6 +110,7 @@ class AccountManager {
 ```
 
 ### Why does this happen?
+
 Because another method, subclass override, or concurrent isolate could theoretically modify the field between the `if` check and the method call.
 
 ### The Solution: Shadow with a Local Variable (or Private Fields in Dart 3.2+)

@@ -1,6 +1,6 @@
 # Module 00: Server-Side JavaScript Runtimes — Node.js, Deno & Bun
 
-**Track:** Modern JavaScript — Backend Systems & Distributed Architecture  
+**Track:** Modern JavaScript — Backend Systems & Distributed Architecture
 **Category:** Server Runtime Foundations, Engine Architecture & Toolchain Comparison
 
 ---
@@ -9,7 +9,7 @@
 
 Server-side JavaScript is no longer a Node.js monopoly. Today, enterprise architectures choose between three premier runtimes:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 The 3 Server JavaScript Runtimes            │
 ├───────────────────┬──────────────────┬──────────────────────┤
@@ -28,12 +28,14 @@ Server-side JavaScript is no longer a Node.js monopoly. Today, enterprise archit
 
 ## 2. Architectural Comparison: V8 vs JavaScriptCore
 
-### 1. Google V8 (Node.js & Deno):
+### 1. Google V8 (Node.js & Deno)
+
 - **Ignition Bytecode Interpreter** + **TurboFan Optimizing JIT Compiler**.
 - Aggressive JIT inlining and Hidden Class optimizations.
 - Generational GC (Orinoco) optimized for long-lived backend heaps.
 
-### 2. Apple JavaScriptCore / JSC (Bun):
+### 2. Apple JavaScriptCore / JSC (Bun)
+
 - Multi-tier execution: **LLInt (Low-Level Interpreter) ──► Baseline JIT ──► DFG (Data Flow Graph) JIT ──► FTL (Faster Than Light) JIT**.
 - Faster cold-start initialization and lower baseline memory usage than V8.
 
@@ -69,7 +71,7 @@ export default {
 
 ## 4. When to Choose Which Runtime
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 Runtime Selection Decision Guide            │
 ├─────────────────────────────────────────────────────────────┤

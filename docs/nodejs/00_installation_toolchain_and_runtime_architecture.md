@@ -1,6 +1,6 @@
 # Module 00: Node.js Architecture, Multi-Runtime Toolchains & Foundations
 
-**Track:** Node.js — Enterprise Architecture & Libuv Internals  
+**Track:** Node.js — Enterprise Architecture & Libuv Internals
 **Category:** Runtime Foundations, Toolchains & Architecture
 
 ---
@@ -10,11 +10,12 @@
 **Node.js** is an open-source, cross-platform JavaScript runtime environment built on Google's high-performance **V8 JavaScript Engine** and the **libuv** asynchronous I/O platform abstraction library.
 
 Before Node.js was created by Ryan Dahl in 2009, JavaScript was confined to web browsers. Node.js brought JavaScript to servers, command-line tooling, and desktop systems by combining:
+
 1. **Google V8 Engine**: Compiles JavaScript source code directly into native machine code (x86_64 / ARM64).
 2. **libuv**: A high-performance C library that implements the asynchronous **Event Loop**, thread pool, and non-blocking I/O across epoll (Linux), kqueue (macOS/BSD), and IOCP (Windows).
 3. **Core C++ Bindings & Node.js Native API (N-API)**: Bridges JavaScript userland code to OS-level system calls (networking, file system, cryptography, child processes).
 
-```
+```text
 Node.js Runtime Architecture Stack:
 ┌─────────────────────────────────────────────────────────────┐
 │          1. Application Code (JavaScript / TypeScript)      │
@@ -41,14 +42,15 @@ Node.js Runtime Architecture Stack:
 In enterprise engineering, developers switch between multiple Active LTS (Long-Term Support) versions across microservices. **Fast Node Manager (`fnm`)** is modern, written in Rust, and 20x faster than legacy shell-based managers:
 
 ```bash
-# Install fnm (macOS / Linux):
+
+# Install fnm (macOS / Linux)
 curl -fsSL https://fnm.vercel.app/install | bash
 
-# Install and switch to latest LTS:
+# Install and switch to latest LTS
 fnm install --lts
 fnm use lts-latest
 
-# Pin project Node version via .nvmrc or .node-version:
+# Pin project Node version via .nvmrc or .node-version
 node -v > .node-version
 ```
 
@@ -63,7 +65,8 @@ node -v > .node-version
 | **`yarn` (Berry/PnP)** | Plug'n'Play Zip Cache | In-memory dependency virtual file system | Fast |
 
 ```bash
-# Enable corepack (built into Node.js) to manage pnpm & yarn automatically:
+
+# Enable corepack (built into Node.js) to manage pnpm & yarn automatically
 corepack enable
 corepack prepare pnpm@latest --activate
 ```
@@ -74,7 +77,7 @@ corepack prepare pnpm@latest --activate
 
 Node.js supports two distinct module systems:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │               CommonJS (CJS) vs ECMAScript Modules (ESM)    │
 ├────────────────────┬──────────────────┬─────────────────────┤
@@ -92,7 +95,7 @@ Node.js supports two distinct module systems:
 └────────────────────┴──────────────────┴─────────────────────┘
 ```
 
-### Enabling ESM in `package.json`:
+### Enabling ESM in `package.json`
 
 ```json
 {
@@ -113,16 +116,17 @@ Node.js supports two distinct module systems:
 Node.js 20+ includes native replacements for legacy external tools:
 
 ```bash
-# 1. Native File Watcher (Replaces nodemon):
+
+# 1. Native File Watcher (Replaces nodemon)
 node --watch src/server.js
 
-# 2. Native Environment Variable Loader (Replaces dotenv):
+# 2. Native Environment Variable Loader (Replaces dotenv)
 node --env-file=.env src/server.js
 
-# 3. Native Test Runner (Replaces Jest/Mocha for unit tests):
+# 3. Native Test Runner (Replaces Jest/Mocha for unit tests)
 node --test test/**/*.test.js
 
-# 4. Native TypeScript Execution (Node.js 22.6+ type stripping):
+# 4. Native TypeScript Execution (Node.js 22.6+ type stripping)
 node --experimental-strip-types src/index.ts
 ```
 

@@ -1,6 +1,6 @@
 # Module 18: Compiler Optimizations — Block Trees, PatchFlags & Static Hoisting
 
-**Track:** Vue — Progressive Web Framework  
+**Track:** Vue — Progressive Web Framework
 **Category:** Compiler Architecture & Runtime Performance
 
 ---
@@ -10,12 +10,13 @@
 One of Vue 3's greatest architectural advantages over pure virtual DOM frameworks (such as React) is its **compiler-informed runtime**.
 
 In a traditional Virtual DOM implementation:
+
 1. Every state change causes the entire component virtual DOM tree to be regenerated.
 2. The runtime diff algorithm recursively traverses every single DOM node in the tree — even purely static elements (`<div><h1>Title</h1></div>`) — to check for changes.
 
 In Vue 3, the compiler analyzes template structure at build time and embeds optimization hints directly into the generated render functions. The runtime diffing algorithm then **bypasses all static nodes entirely** and updates dynamic bindings in constant time ($O(1)$ dynamic nodes rather than $O(N)$ total nodes).
 
-```
+```text
 Traditional Virtual DOM Diff (O(N) total nodes):
 [Root Component]
   ├── [Static Header]           ◄── Diffed unnecessarily on every render
@@ -36,6 +37,7 @@ Vue 3 Block Tree Diff (O(M) dynamic nodes only):
 A **Block** is a virtual node container that tracks only its nested **dynamic children**.
 
 When a component renders:
+
 1. `openBlock()` initializes an empty dynamic child tracking buffer.
 2. Only nodes containing dynamic bindings (`{{ msg }}`, `:class`, `@click`) register themselves into the current Block's `dynamicChildren` array.
 3. Static nodes are ignored by the tracker.
@@ -51,7 +53,7 @@ export function render(_ctx, _cache) {
     createElementBlock("div", null, [
       // Static node: NOT in dynamicChildren
       _cache[0] || (_cache[0] = createElementVNode("h1", null, "Static Header", -1 /* HOISTED */)),
-      
+
       // Dynamic node: Tracked in dynamicChildren with PatchFlag 1 (TEXT)
       createElementVNode("p", null, toDisplayString(_ctx.username), 1 /* TEXT */),
     ])
@@ -109,9 +111,10 @@ if (patchFlag > 0) {
 
 ## 3. Static Hoisting
 
-When the compiler detects completely static subtrees, it extracts (hoists) their VNode creation **outside the render function**. 
+When the compiler detects completely static subtrees, it extracts (hoists) their VNode creation **outside the render function**.
 
 As a result:
+
 - Static VNodes are instantiated **only once** when the module loads, not on every render.
 - Memory allocation and Garbage Collection pressure during re-renders drops to near zero.
 
@@ -150,11 +153,13 @@ export function render(_ctx, _cache) {
 In standard templates, inline event handlers like `@click="count++"` or `@click="() => handleClick(id)"` would create a new function closure on every render, triggering unnecessary child component re-renders.
 
 With handler caching:
+
 ```vue
 <button @click="handleClick">Click Me</button>
 ```
 
 Compiles to:
+
 ```typescript
 // Generated render function with cached handler:
 _createElementVNode(
@@ -192,6 +197,7 @@ During client hydration, the browser simply inserts this string via `innerHTML` 
 You can explore how Vue compiles any template at the official **Vue Template Explorer** (`template-explorer.vuejs.org`) or in your local Vite terminal by running:
 
 ```bash
+
 # Vite debug mode to view transformed SFC output
 DEBUG=vite:transform npm run build
 ```

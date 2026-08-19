@@ -1,6 +1,6 @@
 # Module 09: HTTP Server — `Deno.serve` & Hono Framework
 
-**Track:** Deno Secure Engine & Edge Runtime  
+**Track:** Deno Secure Engine & Edge Runtime
 **Category:** Web Server & HTTP Framework
 
 ---
@@ -126,6 +126,7 @@ async function handler(req: Request): Promise<Response> {
 Hono is a lightweight, ultrafast web framework that runs on Deno, Node.js, Bun, Cloudflare Workers, and browsers. It uses the same Request/Response types as `Deno.serve()` and adds routing, middleware, validation, and helpers.
 
 ```bash
+
 # Add to deno.json imports
 ```
 
@@ -361,6 +362,7 @@ Deno.serve({ port: 8080 }, app.fetch);
 ## Running and Testing the Server
 
 ```bash
+
 # Development with watch mode (restart on file changes)
 deno run --watch --allow-net --allow-env src/main.ts
 
@@ -385,14 +387,14 @@ deno test --allow-net tests/http_test.ts
 
 ## Troubleshooting
 
-**`Error: Deno.serve is not a function`**
+### `Error: Deno.serve is not a function`
 
 Requires Deno 1.35+. Run `deno upgrade` to get the latest version.
 
-**Hono routes not matching for paths with trailing slashes**
+### Hono routes not matching for paths with trailing slashes
 
 By default Hono is strict about trailing slashes. Use `app.get("/api/users/", ...)` alongside `app.get("/api/users", ...)` or configure the router to be lenient. Alternatively, add middleware that normalizes trailing slashes.
 
-**CORS preflight returning 404**
+### CORS preflight returning 404
 
 Hono's `cors()` middleware handles OPTIONS automatically only for paths that have other method handlers. Add an explicit OPTIONS handler or ensure `cors()` middleware is applied before route definitions with `app.use("*", cors(...))`.

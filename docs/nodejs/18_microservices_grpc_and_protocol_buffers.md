@@ -1,9 +1,9 @@
 # Module 18: High-Throughput Microservices: gRPC & Protocol Buffers
 
-**Track:** Node.js Enterprise Backend & Runtime  
-**Directory:** `docs/nodejs/`  
-**File:** `18_microservices_grpc_and_protocol_buffers.md`  
-**Category:** Inter-Service Communication, gRPC & Binary Protocol Buffers  
+**Track:** Node.js Enterprise Backend & Runtime
+**Directory:** `docs/nodejs/`
+**File:** `18_microservices_grpc_and_protocol_buffers.md`
+**Category:** Inter-Service Communication, gRPC & Binary Protocol Buffers
 **Status:** ✅ Production-Grade Reference Textbook (Zero to Master)
 
 ---
@@ -13,11 +13,12 @@
 In high-concurrency microservice architectures executing millions of internal service-to-service Remote Procedure Calls (RPCs), standard REST/JSON over HTTP/1.1 introduces severe latency and serialization overhead. Verbose text-based JSON keys and repeated TCP handshakes consume significant CPU cycles and network bandwidth.
 
 **gRPC** solves inter-service communication through three core innovations:
+
 1. **Binary Protocol Buffers (Proto3)**: Encodes structured data into compact binary payloads using varint and Tag-Length-Value (TLV) encoding, yielding payloads up to **80% smaller than JSON**.
 2. **HTTP/2 Transport Multiplexing**: Multiplexes thousands of bidirectional RPC streams over a single persistent TCP connection with binary framing, eliminating head-of-line blocking.
 3. **Four Distinct Streaming Modes**: Supports **Unary RPC**, **Server Streaming RPC**, **Client Streaming RPC**, and **Bidirectional Streaming RPC**.
 
-```
+```text
 +-------------------------------------------------------------------------------+
 |                       gRPC over HTTP/2 Binary Architecture                    |
 +-------------------------------------------------------------------------------+
@@ -52,10 +53,10 @@ Below is the complete API dictionary for gRPC microservice development in Node.j
 | `protoLoader.loadSync(path, opts)` | `@grpc/proto-loader` | `loadSync(filename, opts?): PackageDefinition` | Parses `.proto` definition file into binary serialization descriptors. |
 | `grpc.loadPackageDefinition(def)` | `@grpc/grpc-js` | `loadPackageDefinition(def): GrpcObject` | Generates typed client stubs and service definitions from package descriptors. |
 | `new grpc.Server([options])` | `@grpc/grpc-js` | `new grpc.Server(opts?): Server` | Instantiates gRPC server managing HTTP/2 connection endpoints. |
-| `server.addService(service, impl)`| `@grpc/grpc-js` | `server.addService(serviceDef, implMap): void` | Binds business logic handlers to protobuf RPC service definitions. |
-| `server.bindAsync(port, creds, cb)`| `@grpc/grpc-js`| `server.bindAsync(addr, creds, cb): void` | Binds gRPC server to network port with TLS/SSL credentials. |
-| `grpc.ServerCredentials.createInsecure()`| `@grpc/grpc-js`| `createInsecure(): ServerCredentials` | Creates unencrypted channel credentials for internal VPC communication. |
-| `grpc.credentials.createSsl()` | `@grpc/grpc-js` | `createSsl(ca?, key?, cert?): ChannelCredentials`| Creates mutual TLS (mTLS) credentials with client certificate verification. |
+| `server.addService(service, impl)` | `@grpc/grpc-js` | `server.addService(serviceDef, implMap): void` | Binds business logic handlers to protobuf RPC service definitions. |
+| `server.bindAsync(port, creds, cb)` | `@grpc/grpc-js` | `server.bindAsync(addr, creds, cb): void` | Binds gRPC server to network port with TLS/SSL credentials. |
+| `grpc.ServerCredentials.createInsecure()` | `@grpc/grpc-js` | `createInsecure(): ServerCredentials` | Creates unencrypted channel credentials for internal VPC communication. |
+| `grpc.credentials.createSsl()` | `@grpc/grpc-js` | `createSsl(ca?, key?, cert?): ChannelCredentials` | Creates mutual TLS (mTLS) credentials with client certificate verification. |
 | `new grpc.Metadata()` | `@grpc/grpc-js` | `new Metadata(): Metadata` | Encapsulates HTTP/2 headers (tracing IDs, bearer tokens, deadlines). |
 | `call.write(chunk)` | `@grpc/grpc-js` | `call.write(message: T): boolean` | Streams binary message chunk over active bidirectional/client stream. |
 | `call.end()` | `@grpc/grpc-js` | `call.end(): void` | Closes the client side of the streaming RPC call. |
@@ -68,12 +69,13 @@ In standard JSON serialization:
 `{"orderId": 88019, "status": "COMPLETED", "amount": 250.50}` $\to$ **61 raw ASCII bytes**.
 
 In Protobuf Wire Format:
+
 * Field names are replaced with compact **integer field tags (1 byte)**.
 * Numbers are encoded using variable-length **ZigZag/Varint compression (1–4 bytes)**.
 * Strings are encoded as **Tag + Length + UTF-8 bytes**.
 * **Total Protobuf Payload**: **14 raw binary bytes** (a **77% size reduction**!).
 
-```
+```json
 [ Field 1 Tag: 0x08 ] [ Varint Value: 88019 ]
 [ Field 2 Tag: 0x12 ] [ Len: 9 ] [ String: "COMPLETED" ]
 [ Field 3 Tag: 0x1D ] [ 32-bit Float Value: 250.50 ]
@@ -86,6 +88,7 @@ In Protobuf Wire Format:
 This production lab creates a complete gRPC microservice implementing Unary RPC, Bidirectional Streaming, and client deadline timeouts.
 
 ### File 1: `src/proto/order_service.proto`
+
 ```protobuf
 syntax = "proto3";
 
@@ -122,6 +125,7 @@ message OrderStatusUpdate {
 ```
 
 ### File 2: `src/grpc_microservice_engine.ts`
+
 ```typescript
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
@@ -182,7 +186,7 @@ export class EnterpriseGrpcServer {
 
                 call.on('data', (telemetry: any) => {
                     console.log(`  [TELEMETRY RECEIVED] Order ${telemetry.order_id}: Lat ${telemetry.latitude}, Lon ${telemetry.longitude}`);
-                    
+
                     // Stream response back to client immediately
                     call.write({
                         order_id: telemetry.order_id,
@@ -276,6 +280,7 @@ runGrpcLab();
 ## 5. Pure Escaped CLI Snippets (Production Operations)
 
 ```bash
+
 # 1. Compile TypeScript source code
 npx tsc \
     --target ES2022 \
@@ -301,15 +306,19 @@ grpcurl -plaintext \
 ## 6. Detailed Sub-Components & Diagnostics
 
 ### Protobuf Binary Wire Codec
+
 * **Role & Function**: Converts JavaScript objects directly into binary Tag-Length-Value (TLV) wire frames without intermediate text allocations.
 * **Inspection Command**:
+
   ```bash
   protoc --decode_raw < /tmp/binary_payload.bin
   ```
 
 ### HTTP/2 Multiplexed Session Manager
+
 * **Role & Function**: Manages concurrent stream IDs (1, 3, 5, ...) over single TCP sockets inside `@grpc/grpc-js`, handling `SETTINGS` frames and stream window updates.
 * **Inspection Command**:
+
   ```bash
   GRPC_VERBOSITY=DEBUG GRPC_TRACE=http2_stream node src/grpc_microservice_engine.js
   ```
@@ -319,6 +328,7 @@ grpcurl -plaintext \
 ## References
 
 ### Official Documentation
+
 * [gRPC Official Documentation](https://grpc.io/docs/) — Core gRPC architecture.
 * [Protocol Buffers Language Guide (proto3)](https://protobuf.dev/programming-guides/proto3/) — Protobuf specification.
 * [@grpc/grpc-js GitHub Repository](https://github.com/grpc/grpc-node/tree/master/packages/grpc-js) — Pure JS gRPC client.
@@ -326,6 +336,7 @@ grpcurl -plaintext \
 * [grpcurl Command-Line Utility Reference](https://github.com/fullstorydev/grpcurl) — gRPC testing tool.
 
 ### Authoritative Engineering Blogs
+
 * [Brendan Gregg: gRPC vs REST Network Latency Analysis](https://www.brendangregg.com/) — Protocol benchmarks.
 * [Netflix TechBlog: Adopting gRPC for Internal Microservices](https://netflixtechblog.com/) — Enterprise RPC migration.
 * [Matteo Collina: High-Throughput HTTP/2 & gRPC in Node.js](https://noders.com/) — Socket multiplexing.
@@ -339,9 +350,11 @@ grpcurl -plaintext \
 *gRPC binary payloads and HTTP/2 multiplexing cut inter-service network bandwidth by 80% and lower CPU usage by 60%.*
 
 ### 1. 80% Reduction in Inter-Service Network Bandwidth
+
 In enterprise microservice clusters processing 1 billion internal RPC calls monthly, switching from JSON over REST to Protobuf over gRPC shrinks total network payload volume from 60TB down to **12TB**, saving over $4,300/month in inter-AZ AWS network transfer costs.
 
 ### 2. Eliminating Persistent TCP Handshake Overhead
+
 Multiplexing all service-to-service requests across persistent HTTP/2 connections eliminates thousands of continuous TCP handshakes and TLS negotiations, cutting CPU utilization across all container fleets by 25%.
 
 ---
@@ -351,13 +364,16 @@ Multiplexing all service-to-service requests across persistent HTTP/2 connection
 ### Common Anti-Patterns
 
 1. **Omitting Deadlines (Timeouts) on Client Calls**:
-   - *Anti-Pattern*: Calling `client.GetOrder(req, callback)` without specifying `{ deadline }`. If the upstream server hangs, the client stream remains open indefinitely, leaking TCP sockets.
-   - *Fix*: Always supply a deadline: `{ deadline: new Date(Date.now() + 3000) }`.
+
+   * *Anti-Pattern*: Calling `client.GetOrder(req, callback)` without specifying `{ deadline }`. If the upstream server hangs, the client stream remains open indefinitely, leaking TCP sockets.
+   * *Fix*: Always supply a deadline: `{ deadline: new Date(Date.now() + 3000) }`.
 
 2. **Creating New gRPC Client Instances per Request**:
-   - *Anti-Pattern*: Instantiating `new OrderServiceClient()` inside every HTTP request handler. This forces a new TCP connection and HTTP/2 handshake per request.
-   - *Fix*: Maintain singleton gRPC client instances and reuse them across all requests.
+
+   * *Anti-Pattern*: Instantiating `new OrderServiceClient()` inside every HTTP request handler. This forces a new TCP connection and HTTP/2 handshake per request.
+   * *Fix*: Maintain singleton gRPC client instances and reuse them across all requests.
 
 3. **Field Tag Renumbering in `.proto` Files**:
-   - *Anti-Pattern*: Changing a field tag number (e.g. changing `string order_id = 1;` to `= 2;`) in an existing service. Protobuf wire decoding relies entirely on tag numbers; changing tags breaks backwards compatibility instantly.
-   - *Fix*: Treat field tag numbers as immutable; mark deprecated fields with `[deprecated = true]` or `reserved`.
+
+   * *Anti-Pattern*: Changing a field tag number (e.g. changing `string order_id = 1;` to `= 2;`) in an existing service. Protobuf wire decoding relies entirely on tag numbers; changing tags breaks backwards compatibility instantly.
+   * *Fix*: Treat field tag numbers as immutable; mark deprecated fields with `[deprecated = true]` or `reserved`.

@@ -1,6 +1,6 @@
 # Module 01: The 3 Trees of Flutter — Widgets, Elements & RenderObjects
 
-**Track:** Flutter — Multi-Platform Architecture & Impeller Engine  
+**Track:** Flutter — Multi-Platform Architecture & Impeller Engine
 **Category:** Internals Architecture, Reconciliation & Render Tree Mechanics
 
 ---
@@ -9,7 +9,7 @@
 
 In Flutter, when you write `Container(child: Text('Hello'))`, you are not interacting directly with the screen's pixels. Flutter maintains **three parallel trees in memory simultaneously**:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                     The 3 Flutter Architecture Trees                    │
 ├────────────────────┬────────────────────────────────────────────────────┤
@@ -29,7 +29,7 @@ In Flutter, when you write `Container(child: Text('Hello'))`, you are not intera
 └────────────────────┴────────────────────────────────────────────────────┘
 ```
 
-```
+```text
 Tree Synchronization Hierarchy:
 [Widget: Container] ──────► [Element: ComponentElement]
         │                             │
@@ -61,12 +61,15 @@ static bool canUpdate(Widget oldWidget, Widget newWidget) {
 }
 ```
 
-### What Happens During Reconciliation:
+### What Happens During Reconciliation
+
 1. **If `canUpdate` returns `true`** (Same `runtimeType` and same `key`):
+
    - The persistent **`Element` stays alive**.
    - The Element simply updates its reference to the new Widget and calls `renderObject.markNeedsLayout()` or `renderObject.markNeedsPaint()` **only if specific properties changed**.
    - **Zero RenderObjects are re-allocated!**
 2. **If `canUpdate` returns `false`**:
+
    - The old Element and its associated RenderObject are unmounted and disposed.
    - A new Element and RenderObject are created.
 
@@ -74,12 +77,14 @@ static bool canUpdate(Widget oldWidget, Widget newWidget) {
 
 ## 3. What Is `BuildContext` Really?
 
-Every Flutter developer writes `Widget build(BuildContext context)`. 
+Every Flutter developer writes `Widget build(BuildContext context)`.
 
-### The Secret of `BuildContext`:
-**`BuildContext` is an abstract interface implemented directly by the `Element` itself!**
+### The Secret of `BuildContext`
+
+### `BuildContext` is an abstract interface implemented directly by the `Element` itself
 
 When you write `Theme.of(context)` or `Navigator.of(context)`:
+
 1. The `context` (the Element node) traverses upward through the **Element Tree**.
 2. It looks for the nearest ancestor Element of type `InheritedElement` (e.g. `_InheritedTheme`).
 3. It registers a reactive dependency so that if the ancestor theme changes, this Element is automatically marked for rebuild.
@@ -90,7 +95,7 @@ When you write `Theme.of(context)` or `Navigator.of(context)`:
 
 When Flutter reconciles a collection of stateful child widgets (e.g. a list of editable rows or swappable tiles), it matches elements by their position in the array. If you reorder the list, elements retain their old state unless you attach **Keys**:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                       Flutter Key Types                     │
 ├───────────────────┬─────────────────────────────────────────┤
@@ -128,6 +133,7 @@ ListView.builder(
 ## 5. Inspecting the Trees with Flutter Inspector
 
 Use the **Flutter DevTools Widget Inspector** to visualize the tree architecture:
+
 1. **Widget Details**: Shows property configurations.
 2. **RenderObject Inspector**: Shows exact box dimensions, padding values, and layout constraints.
 3. **Debug Painting**: Press `debugPaintSizeEnabled = true` in code to draw layout bounding boxes directly onto the screen.

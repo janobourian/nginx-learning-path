@@ -1,6 +1,6 @@
 # Module 05: Incremental Static Regeneration (ISR) & Cache Tags
 
-**Track:** Next.js — Full-Stack App Router & Edge Architecture  
+**Track:** Next.js — Full-Stack App Router & Edge Architecture
 **Category:** Static Site Generation, On-Demand Cache Invalidation & Edge Purging
 
 ---
@@ -8,15 +8,17 @@
 ## 1. What Is Incremental Static Regeneration (ISR)?
 
 Traditional web architectures forced a choice between two extremes:
+
 1. **Static Site Generation (SSG)**: Blazing fast CDN delivery, but rebuilding 100,000 pages when a single typo is fixed takes 45 minutes of CI build time.
 2. **Server-Side Rendering (SSR)**: Always fresh, but queries the database on every single hit, driving up database CPU costs and increasing server response latency.
 
 **Incremental Static Regeneration (ISR)** combines the best of both worlds:
+
 - Pages are generated as static HTML and cached on global Edge CDNs.
 - Pages are revalidated in the background **without rebuilding the entire website**.
 - Revalidation can occur on a **time schedule** (e.g. every 60 seconds) or **on-demand via webhooks/tags**.
 
-```
+```text
 Time-Based ISR Workflow:
 1. User visits /products/keyboard ──► Edge CDN serves cached static HTML in 15ms.
 2. (60 seconds elapse)
@@ -72,7 +74,7 @@ export default async function NewsFeed() {
 
 ## 3. On-Demand Revalidation with Cache Tags (`revalidateTag`)
 
-Time-based revalidation is insufficient when data changes unpredictably (e.g. an e-commerce price drop or a headless CMS publish event). 
+Time-based revalidation is insufficient when data changes unpredictably (e.g. an e-commerce price drop or a headless CMS publish event).
 
 **Cache Tags** allow grouping related data across multiple routes and **purging the cache instantly on-demand**:
 
@@ -93,7 +95,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 }
 ```
 
-### Triggering Cache Invalidation in a Server Action or Webhook:
+### Triggering Cache Invalidation in a Server Action or Webhook
 
 ```typescript
 // src/app/actions/productActions.ts
@@ -184,6 +186,7 @@ export async function POST(request: NextRequest) {
 
 1. **`dynamicParams` Configuration**
    When using `generateStaticParams()`, control what happens when a user requests a path that was **not** pre-rendered at build time:
+
    ```typescript
    export const dynamicParams = true;  // Default: Generates the page on-demand on first visit
    export const dynamicParams = false; // Returns a 404 for any path not in generateStaticParams

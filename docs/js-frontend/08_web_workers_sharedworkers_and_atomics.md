@@ -1,6 +1,6 @@
 # Module 08: Web Workers, SharedWorkers, `SharedArrayBuffer` & Multi-Threading
 
-**Track:** Modern JavaScript — Frontend Architecture & Web APIs  
+**Track:** Modern JavaScript — Frontend Architecture & Web APIs
 **Category:** Browser Concurrency, Multi-Threading & Shared Memory
 
 ---
@@ -11,7 +11,7 @@ JavaScript execution on the main browser thread is single-threaded. Running CPU-
 
 **Web Workers** allow you to execute JavaScript in true background OS threads without blocking the main UI thread:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 The 3 Web Worker Paradigms                  │
 ├────────────────────┬────────────────────────────────────────┤

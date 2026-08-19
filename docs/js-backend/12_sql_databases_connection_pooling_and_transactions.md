@@ -1,6 +1,6 @@
 # Module 12: Relational Databases — Connection Pooling, ACID Transactions & Isolation Levels
 
-**Track:** Modern JavaScript — Backend Systems & Distributed Architecture  
+**Track:** Modern JavaScript — Backend Systems & Distributed Architecture
 **Category:** Database Engineering, PostgreSQL & Transaction Isolation
 
 ---
@@ -11,7 +11,7 @@ Opening a TCP connection to PostgreSQL incurs TLS handshakes, authentication che
 
 A **Connection Pool** maintains pre-warmed connections ready for immediate reuse:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 PostgreSQL Connection Pool Sizing           │
 ├─────────────────────────────────────────────────────────────┤
@@ -112,8 +112,10 @@ await client.query('BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE');
 ## 4. Zero-Downtime Database Migration Best Practices
 
 When deploying schema changes in high-traffic applications:
+
 1. **Never rename columns directly** (Breaks active microservices running old code).
 2. **The Expand/Contract Pattern**:
+
    - **Expand**: Add new column `full_name`.
    - **Dual-Write**: Update application code to write to both `name` and `full_name`.
    - **Backfill**: Migrate historical records in small batches.

@@ -1,6 +1,6 @@
 # Module 17: Frontend Performance & Google Core Web Vitals (LCP, INP, CLS)
 
-**Track:** Modern JavaScript — Frontend Architecture & Web APIs  
+**Track:** Modern JavaScript — Frontend Architecture & Web APIs
 **Category:** Performance Engineering, Core Web Vitals & Main-Thread Scheduling
 
 ---
@@ -9,7 +9,7 @@
 
 **Core Web Vitals** are Google's standardized metrics for measuring real-world user experience and SEO ranking:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 Google Core Web Vitals Matrix               │
 ├────────────────────┬──────────────────┬─────────────────────┤
@@ -70,25 +70,33 @@ new PerformanceObserver((entryList) => {
 
 ## 3. High-Impact CWV Optimization Playbook
 
-### Optimizing LCP (< 2.5s):
+### Optimizing LCP (< 2.5s)
+
 1. **`fetchpriority="high"` on Hero Images**: Tells the browser preload scanner to prioritize the LCP hero banner over secondary CSS/JS scripts:
+
    ```html
    <img src="/hero-banner.webp" fetchpriority="high" alt="Platform Dashboard">
    ```
+
 2. **Preload Critical Web Fonts**:
+
    ```html
    <link rel="preload" href="/fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
    ```
 
 ---
 
-### Optimizing CLS (< 0.1):
+### Optimizing CLS (< 0.1)
+
 1. **Explicit Dimensions on All Images & Embeds**: Never omit `width` and `height` attributes (which causes zero-height containers that suddenly expand when images load, shifting the whole page):
+
    ```html
    <!-- ✅ Browser reserves aspect ratio space immediately: -->
    <img src="card.png" width="800" height="450" style="aspect-ratio: 16 / 9; width: 100%; height: auto;">
    ```
+
 2. **Reserve Ad & Banner Slots with CSS `min-height`**:
+
    ```css
    .ad-slot-container {
      min-height: 250px; /* Prevents text below from jumping when ad loads! */

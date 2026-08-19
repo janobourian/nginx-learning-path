@@ -1,6 +1,6 @@
 # Module 19: Standalone Native Compilation, Distroless Docker & Package Publishing
 
-**Track:** Dart — Language & VM Architecture  
+**Track:** Dart — Language & VM Architecture
 **Category:** DevOps, Native AOT Deployment & Package Registry Publishing
 
 ---
@@ -8,15 +8,17 @@
 ## 1. Standalone Native AOT Compilation (`dart compile exe`)
 
 Dart can compile full-stack backend servers and command-line utilities into **self-contained native machine code executables**:
+
 - Requires **zero Dart SDK or VM installed** on the production host or container!
 - Cold-start execution in **< 10 milliseconds**.
 - Minimal heap memory usage (often under 20MB baseline).
 
 ```bash
-# Compile to self-contained native binary:
+
+# Compile to self-contained native binary
 dart compile exe bin/server.dart -o build/server_app
 
-# Verify binary execution directly:
+# Verify binary execution directly
 ./build/server_app
 ```
 
@@ -27,6 +29,7 @@ dart compile exe bin/server.dart -o build/server_app
 By combining Dart's native AOT compilation with Google's **Distroless Linux Base Image** (which contains only minimal glibc runtime libraries with zero shell, zero package manager, and zero attack surface), you can produce hardened, sub-25MB production containers:
 
 ```dockerfile
+
 # ─── Stage 1: Build & Compile Native Binary ───
 FROM dart:stable AS builder
 WORKDIR /app
@@ -41,7 +44,7 @@ COPY . .
 # Ensure all dependencies are resolved
 RUN dart pub get --offline
 
-# Compile to standalone native executable binary:
+# Compile to standalone native executable binary
 RUN dart compile exe bin/server.dart -o /app/bin/server
 
 # ─── Stage 2: Distroless Production Runner ───
@@ -62,9 +65,11 @@ ENTRYPOINT ["/app/bin/server"]
 ```
 
 ```bash
-# Build and inspect container image size:
+
+# Build and inspect container image size
 docker build -t enterprise-dart-microservice:latest .
 docker images enterprise-dart-microservice:latest
+
 # SIZE: ~24.8 MB (Ultra-compact, instant boot!)
 ```
 
@@ -77,6 +82,7 @@ docker images enterprise-dart-microservice:latest
 Before publishing an open-source library to Google's official `pub.dev` registry:
 
 1. **Verify Package Health (`pana`)**:
+
    ```bash
    dart pub global activate pana
    pana .
@@ -87,11 +93,13 @@ Before publishing an open-source library to Google's official `pub.dev` registry
    Ensure `LICENSE` (e.g. MIT/Apache-2.0), `README.md`, and `CHANGELOG.md` are present at the root.
 
 3. **Dry-Run Validation**:
+
    ```bash
    dart pub publish --dry-run
    ```
 
 4. **Publish**:
+
    ```bash
    dart pub publish
    ```
@@ -103,7 +111,8 @@ Before publishing an open-source library to Google's official `pub.dev` registry
 For proprietary corporate code, avoid publishing to public `pub.dev`. Use a private registry (such as **Unpub**, **JFrog Artifactory**, or **AWS CodeArtifact**):
 
 ```yaml
-# pubspec.yaml in enterprise consumer project:
+
+# pubspec.yaml in enterprise consumer project
 dependencies:
   acme_core_auth:
     hosted:
@@ -128,6 +137,7 @@ jobs:
   test-and-build-native:
     runs-on: ubuntu-latest
     steps:
+
       - name: Checkout Source Code
         uses: actions/checkout@v4
 
@@ -159,6 +169,7 @@ jobs:
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
     steps:
+
       - name: Checkout Code
         uses: actions/checkout@v4
 

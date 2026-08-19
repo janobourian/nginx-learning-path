@@ -1,6 +1,6 @@
 # Module 12: Styling Solutions — Tailwind CSS, CSS Modules & Design Tokens
 
-**Track:** Next.js — Full-Stack App Router & Edge Architecture  
+**Track:** Next.js — Full-Stack App Router & Edge Architecture
 **Category:** Styling Solutions, Design Systems & CSS Architecture
 
 ---
@@ -14,7 +14,7 @@ The introduction of React Server Components (RSC) fundamentally changed styling 
 | **Tailwind CSS** | **100% Native** | **Zero Runtime** (Pure static CSS) | Ultra-fast development, tiny purged production CSS |
 | **CSS Modules (`.module.css`)** | **100% Native** | **Zero Runtime** (Pure static CSS) | Scoped classes, zero naming collisions, standard CSS syntax |
 | **Vanilla CSS & CSS Variables** | **100% Native** | **Zero Runtime** | Built-in browser theming, design tokens |
-| **Runtime CSS-in-JS (styled-components)**| **Requires `'use client'`** | **High JS Runtime Overhead** | Legacy dynamic style evaluation |
+| **Runtime CSS-in-JS (styled-components)** | **Requires `'use client'`** | **High JS Runtime Overhead** | Legacy dynamic style evaluation |
 
 Because Server Components execute strictly on the server and do not ship runtime JavaScript to the client, **Zero-Runtime styling solutions (Tailwind CSS, CSS Modules, CSS Variables)** are the gold standard for Next.js.
 
@@ -167,7 +167,7 @@ export function Badge({
 
 ## 5. Class Merging Utility (`clsx` & `tailwind-merge`)
 
-When building polymorphic UI components with conditional classes and prop overrides, class conflicts can occur (e.g. `bg-red-500` conflicting with `bg-blue-500`). 
+When building polymorphic UI components with conditional classes and prop overrides, class conflicts can occur (e.g. `bg-red-500` conflicting with `bg-blue-500`).
 
 Use the industry standard **`cn()`** helper:
 
@@ -215,6 +215,7 @@ export function Button({ className, variant = "default", ...props }: ButtonProps
 
 1. **Dynamic Tailwind Class Names Anti-Pattern**
    Tailwind uses a build-time regex scanner. Constructing dynamic class strings like `className={`bg-${color}-500`}` will fail because Tailwind does not know which color classes to generate in the output CSS. Always use full class names in lookup objects:
+
    ```typescript
    const COLOR_MAP = {
      red: "bg-red-500",

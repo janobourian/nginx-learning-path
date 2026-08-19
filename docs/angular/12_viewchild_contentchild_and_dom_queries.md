@@ -1,6 +1,6 @@
 # Module 12: DOM Queries, Signal Queries & Platform-Agnostic `Renderer2`
 
-**Track:** Angular — Signals Platform & Ivy Architecture  
+**Track:** Angular — Signals Platform & Ivy Architecture
 **Category:** DOM Queries, View Trees & Native Element Manipulation
 
 ---
@@ -12,7 +12,7 @@ In Angular component architecture, there are two distinct DOM query spaces:
 1. **View DOM (`viewChild` / `viewChildren`)**: Elements and components declared **inside the component's own HTML template**.
 2. **Projected Content DOM (`contentChild` / `contentChildren`)**: Elements and components passed into the component from a parent via `<ng-content>` content projection.
 
-```
+```text
 Component Query Scope:
 <app-card> ◄── Parent passes projected content
   <span class="user-badge">Alice</span> ◄── Targeted by @ContentChild / contentChild
@@ -33,7 +33,7 @@ In modern Angular (v17.2+), **Signal Queries** replace legacy decorators:
 
 | Feature | Legacy `@ViewChild('id')` | Modern `viewChild('id')` |
 | :--- | :--- | :--- |
-| **Return Type** | Plain property (initially `undefined` until `ngAfterViewInit`) | **Reactive `Signal<T | undefined>`** |
+| **Return Type** | Plain property (initially `undefined` until `ngAfterViewInit`) | **Reactive `Signal<T \| undefined>`** |
 | **Lifecycle Timing** | Only accessible after `ngAfterViewInit` | Accessible reactively inside `effect()` and `computed()` |
 | **Dynamic Elements** | Required manual `ngOnChanges` checks | **Automatically updates when `@if` branches toggle!** |
 
@@ -170,7 +170,7 @@ export class AccordionComponent {
 
 ## 5. Platform-Agnostic DOM Manipulation with `Renderer2`
 
-Direct DOM manipulation (`element.style.color = 'red'`, `document.body.appendChild`) will crash during Server-Side Rendering (SSR) and web workers. 
+Direct DOM manipulation (`element.style.color = 'red'`, `document.body.appendChild`) will crash during Server-Side Rendering (SSR) and web workers.
 
 Always use **`Renderer2`** for platform-agnostic DOM operations:
 

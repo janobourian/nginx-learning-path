@@ -1,13 +1,14 @@
 # Enterprise NGINX Production Operations, Dynamic Reloads & Zero-Downtime Blueprints
 
-**Track:** Enterprise NGINX Infrastructure  
-**Category:** Production Operations, Zero-Downtime Binary Upgrades & Systemd Supervision  
-**Standard Identifier:** `DOC-STD-UNIVERSAL-2026`  
+**Track:** Enterprise NGINX Infrastructure
+**Category:** Production Operations, Zero-Downtime Binary Upgrades & Systemd Supervision
+**Standard Identifier:** `DOC-STD-UNIVERSAL-2026`
 **Status:** ✅ Completed
 
 ---
 
 ## 📑 Table of Contents
+
 1. [High-Level Overview & Executive Summary](#1-high-level-overview--executive-summary)
 2. [Zero-Downtime Dynamic Configuration Reloads (SIGHUP)](#2-zero-downtime-dynamic-configuration-reloads-sighup)
 3. [Zero-Downtime Live NGINX Binary Upgrades (SIGUSR2 + SIGWINCH)](#3-zero-downtime-live-nginx-binary-upgrades-sigusr2--sigwinch)
@@ -26,6 +27,7 @@
 Operating NGINX in mission-critical enterprise environments requires operational procedures that guarantee **zero dropped client connections and zero downtime during configuration updates, SSL certificate renewals, and binary version upgrades**.
 
 This production operations runbook delivers:
+
 1. **Dynamic Configuration Reloads (`nginx -s reload` / `SIGHUP`)**: Spawns fresh worker processes with new configurations while gracefully draining active client connections on legacy workers.
 2. **Zero-Downtime Live Binary Upgrades (`SIGUSR2` $\to$ `SIGWINCH` $\to$ `SIGQUIT`)**: Replaces the executing NGINX executable in memory without closing listening TCP sockets.
 3. **Hardened Systemd Supervision**: Enforcing Cgroup memory boundaries (`MemoryMax=2G`), file descriptor limits (`LimitNOFILE=1048576`), and automated crash restart policies.
@@ -38,11 +40,13 @@ This production operations runbook delivers:
 $$\text{Reload Pipeline: } \mathbf{nginx\ -t} \xrightarrow{\text{Syntax Valid}} \mathbf{kill\ -HUP\ \$PID} \xrightarrow{\text{Spawn New Workers}} \mathbf{Drain\ Old\ Workers} \xrightarrow{\text{Terminate Old}}$$
 
 ```bash
-# 1. ALWAYS validate configuration syntax before reloading:
+
+# 1. ALWAYS validate configuration syntax before reloading
 sudo nginx -t
 
-# 2. Issue graceful reload signal to master process:
+# 2. Issue graceful reload signal to master process
 sudo systemctl reload nginx
+
 # (Or: sudo kill -HUP $(cat /var/run/nginx.pid))
 ```
 
@@ -50,7 +54,7 @@ sudo systemctl reload nginx
 
 ## 3. Zero-Downtime Live NGINX Binary Upgrades (SIGUSR2 + SIGWINCH)
 
-```
+```text
 ┌────────────────────────────────────────────────────────────────────────────────┐
 │               ZERO-DOWNTIME LIVE BINARY UPGRADE SEQUENCE                       │
 ├────────────────────────────────────────────────────────────────────────────────┤
@@ -63,6 +67,7 @@ sudo systemctl reload nginx
 ```
 
 ```bash
+
 # Step 1: Tell current master to spawn new binary
 kill -USR2 $(cat /var/run/nginx.pid)
 
@@ -78,6 +83,7 @@ kill -QUIT $(cat /var/run/nginx.pid.oldbin)
 ## 4. Hardened Systemd Service Unit Specification
 
 ```ini
+
 # /etc/systemd/system/nginx.service
 [Unit]
 Description=The NGINX HTTP and reverse proxy server
@@ -108,6 +114,7 @@ WantedBy=multi-user.target
 ## 5. Automated Log Rotation & Descriptor Signaling (SIGUSR1)
 
 ```ini
+
 # /etc/logrotate.d/nginx
 /var/log/nginx/*.log {
     daily
@@ -131,7 +138,9 @@ WantedBy=multi-user.target
 ## 6. Step-by-Step Production Lab: Live Zero-Downtime Reload Validation
 
 ```bash
+
 #!/usr/bin/env bash
+
 # scripts/test_zero_downtime_reload.sh
 set -euo pipefail
 
@@ -149,16 +158,19 @@ echo "Live reload completed successfully with zero dropped connections!"
 ## 7. Pure CLI / Command Interface
 
 ### 1. Test NGINX Configuration File
+
 ```bash
 nginx -t 2>/dev/null || true
 ```
 
 ### 2. Reload NGINX Gracefully
+
 ```bash
 systemctl reload nginx 2>/dev/null || true
 ```
 
 ### 3. Re-open Log Files via SIGUSR1
+
 ```bash
 kill -USR1 $(cat /var/run/nginx.pid 2>/dev/null || echo $$) 2>/dev/null || true
 ```
@@ -167,7 +179,7 @@ kill -USR1 $(cat /var/run/nginx.pid 2>/dev/null || echo $$) 2>/dev/null || true
 
 ## 8. Advanced Architecture & Edge-Case Failure Modes
 
-```
+```text
 ┌────────────────────────────────────────────────────────────────────────────────┐
 │                    PRODUCTION FAILURE RECOVERY MATRIX                          │
 ├──────────────────────┬────────────────────────┬────────────────────────────────┤
@@ -186,6 +198,7 @@ kill -USR1 $(cat /var/run/nginx.pid 2>/dev/null || echo $$) 2>/dev/null || true
 ## 9. References (The 5+5 Rule)
 
 ### Official Documentation & Production Standards
+
 1. [NGINX Official Documentation: Controlling NGINX Processes](https://nginx.org/en/docs/control.html)
 2. [NGINX Official Admin Guide: Upgrading NGINX on the Fly](https://docs.nginx.com/nginx/admin-guide/installing-nginx/installing-nginx-open-source/#upgrading-executable-on-the-fly)
 3. [Freedesktop.org: systemd.service Unit Specification](https://www.freedesktop.org/software/systemd/man/systemd.service.html)
@@ -193,17 +206,18 @@ kill -USR1 $(cat /var/run/nginx.pid 2>/dev/null || echo $$) 2>/dev/null || true
 5. [Linux Foundation Certified System Administrator (LFCS) Curriculum](https://training.linuxfoundation.org/)
 
 ### Authoritative Engineering Textbooks & Systems Deep Dives
-6. [Clement Nedelcu: Mastering NGINX (Chapter 10: High Availability and Maintenance)](https://www.packtpub.com/)
-7. [Derek DeJonghe: NGINX Cookbook (Production Deployments)](https://www.oreilly.com/)
-8. [Cloudflare Engineering: Zero-Downtime Upgrades for Global Ingress Proxies](https://blog.cloudflare.com/)
-9. [Datadog Engineering: Monitoring NGINX Process Lifecycles and Reload Times](https://www.datadoghq.com/blog/)
-10. [High-Performance Linux Systems: Low-Overhead Process Management in Web Servers](https://www.kernel.org/)
+
+1. [Clement Nedelcu: Mastering NGINX (Chapter 10: High Availability and Maintenance)](https://www.packtpub.com/)
+2. [Derek DeJonghe: NGINX Cookbook (Production Deployments)](https://www.oreilly.com/)
+3. [Cloudflare Engineering: Zero-Downtime Upgrades for Global Ingress Proxies](https://blog.cloudflare.com/)
+4. [Datadog Engineering: Monitoring NGINX Process Lifecycles and Reload Times](https://www.datadoghq.com/blog/)
+5. [High-Performance Linux Systems: Low-Overhead Process Management in Web Servers](https://www.kernel.org/)
 
 ---
 
 ## 10. Universal FinOps & Hardware Cost Governance
 
-```
+```text
 ┌────────────────────────────────────────────────────────────────────────────────┐
 │                        PRODUCTION FINOPS SAVINGS MATRIX                        │
 ├──────────────────────────┬──────────────────────────┬──────────────────────────┤

@@ -1,6 +1,6 @@
 # Module 18: Turbopack Compiler & Next.js Build Performance Tuning
 
-**Track:** Next.js — Full-Stack App Router & Edge Architecture  
+**Track:** Next.js — Full-Stack App Router & Edge Architecture
 **Category:** Rust Compilers, Turbopack & Production Build Tuning
 
 ---
@@ -9,15 +9,17 @@
 
 **Turbopack** is an incremental, Rust-based bundler developed by Tobias Koppers (the original creator of Webpack) and the Vercel team specifically designed as the successor to Webpack for Next.js.
 
-### Why Webpack Hit Architectural Limits:
+### Why Webpack Hit Architectural Limits
+
 - **Single-Threaded JavaScript**: Webpack runs in Node.js, bound to a single V8 thread and garbage collection pauses.
 - **Module-Level Caching**: When an edit occurs in Webpack, entire module files must be re-parsed and re-bundled.
 
-### How Turbopack Achieves 10x–700x Performance:
+### How Turbopack Achieves 10x–700x Performance
+
 1. **Engineered in Rust**: Native compiled binary utilizing multi-threaded CPU cores without V8 memory overhead.
 2. **Function-Level Incremental Computation (Turbo Engine)**: Instead of caching files, the Turbo engine caches the **return values of pure functions**. When code changes, Turbopack never re-runs work that hasn't changed.
 
-```
+```text
 Local Development Server Startup Benchmark (Large 30,000 Component App):
 Webpack:    18.5 seconds
 Vite:        3.8 seconds
@@ -35,7 +37,8 @@ Turbopack:    15 ms ◄── (Instantaneous!)
 Turbopack is integrated natively into the Next.js CLI:
 
 ```bash
-# Start local development server with Turbopack:
+
+# Start local development server with Turbopack
 npm run dev -- --turbopack
 ```
 
@@ -76,7 +79,7 @@ const analyzer = withBundleAnalyzer({
 export default analyzer(config);
 ```
 
-### Running Bundle Analysis:
+### Running Bundle Analysis
 
 ```bash
 ANALYZE=true npm run build
@@ -139,7 +142,8 @@ In massive enterprise repositories with 10,000+ routes, Node.js can crash with `
 Allocate additional heap space to the Node process:
 
 ```bash
-# Allocate 8GB of RAM for CI/CD build runners:
+
+# Allocate 8GB of RAM for CI/CD build runners
 NODE_OPTIONS="--max-old-space-size=8192" npm run build
 ```
 

@@ -1,6 +1,6 @@
 # Module 19: Multi-Platform CI/CD, Fastlane & App Store Deployment
 
-**Track:** Flutter — Multi-Platform Architecture & Impeller Engine  
+**Track:** Flutter — Multi-Platform Architecture & Impeller Engine
 **Category:** DevOps, Build Pipelines & App Store Publishing Automation
 
 ---
@@ -10,6 +10,7 @@
 Flutter can build optimized production distribution artifacts for all major operating systems from a single repository:
 
 ```bash
+
 # 1. Android: Google Play Android App Bundle (AAB with split ABI architectures)
 flutter build appbundle --release --obfuscate --split-debug-info=build/symbols/android
 
@@ -19,7 +20,7 @@ flutter build ipa --release --obfuscate --split-debug-info=build/symbols/ios
 # 3. Web: Modern WebAssembly (Wasm) + CanvasKit Build
 flutter build web --release --wasm
 
-# 4. Desktop Binaries:
+# 4. Desktop Binaries
 flutter build macos --release
 flutter build windows --release
 flutter build linux --release
@@ -36,6 +37,7 @@ flutter build appbundle --release \
   --obfuscate \
   --split-debug-info=build/app/outputs/symbols
 ```
+
 This strips human-readable function/class names and outputs a symbol map file for de-obfuscating crash stack traces in Crashlytics or Sentry.
 
 ---
@@ -45,6 +47,7 @@ This strips human-readable function/class names and outputs a symbol map file fo
 **Fastlane** is the industry standard for automating iOS certificates, provisioning profiles, and automated store submissions:
 
 ```ruby
+
 # android/fastlane/Fastfile
 default_platform(:android)
 
@@ -64,6 +67,7 @@ end
 ```
 
 ```ruby
+
 # ios/fastlane/Fastfile
 default_platform(:ios)
 
@@ -104,6 +108,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+
       - uses: actions/checkout@v4
 
       - name: Setup Java 17
@@ -132,11 +137,13 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     steps:
+
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
+
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
@@ -164,6 +171,7 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     steps:
+
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:

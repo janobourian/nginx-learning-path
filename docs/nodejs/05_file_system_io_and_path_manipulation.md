@@ -1,6 +1,6 @@
 # Module 05: File System Architecture, POSIX FileHandles & Atomic Operations
 
-**Track:** Node.js — Enterprise Architecture & Libuv Internals  
+**Track:** Node.js — Enterprise Architecture & Libuv Internals
 **Category:** File System Engineering, POSIX System Calls & Path Resolution
 
 ---
@@ -9,7 +9,7 @@
 
 Node.js provides three separate APIs for interacting with the file system:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                     The 3 `node:fs` Paradigms               │
 ├────────────────────┬────────────────────────────────────────┤
@@ -54,7 +54,7 @@ export class BinaryAppendLog {
     if (!this.handle) throw new Error('Log not initialized');
 
     const buffer = Buffer.from(`${new Date().toISOString()} ${dataString}\n`, 'utf8');
-    
+
     // Write buffer directly to file descriptor:
     await this.handle.write(buffer);
 
@@ -77,7 +77,8 @@ export class BinaryAppendLog {
 
 If your server crashes or loses power in the middle of `fs.writeFile('state.json', data)`, the file on disk will be left half-written and corrupt.
 
-### The Atomic Write Pattern:
+### The Atomic Write Pattern
+
 1. Write the payload to a temporary file (`state.json.tmp_12345`).
 2. Flush to disk (`handle.sync()`).
 3. Atomically **rename** the temporary file over the target file using **`fs.rename()`**.
@@ -162,6 +163,7 @@ const rel = path.relative('/app/src/features', '/app/assets/images');
 ## Troubleshooting & Best Practices
 
 1. **`fs.watch` vs `fs.watchFile`**
+
    - **`fs.watch`**: Uses OS kernel event notifications (`inotify` on Linux, `FSEvents` on macOS). Ultra-fast, near-zero CPU usage.
    - **`fs.watchFile`**: Polls the file stat every few seconds. High CPU usage. Never use `fs.watchFile` in production!
 

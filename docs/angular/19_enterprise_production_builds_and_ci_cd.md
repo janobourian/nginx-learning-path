@@ -1,6 +1,6 @@
 # Module 19: Enterprise Production Builds, Docker & CI/CD Pipelines
 
-**Track:** Angular — Signals Platform & Ivy Architecture  
+**Track:** Angular — Signals Platform & Ivy Architecture
 **Category:** DevOps, Build Optimization & Enterprise Production Deployment
 
 ---
@@ -8,12 +8,14 @@
 ## 1. The Modern Angular Application Builder (`@angular-devkit/build-angular:application`)
 
 In Angular 17+, the legacy Webpack build pipeline is replaced by the unified **`application` builder**:
+
 - Powered by **esbuild** for ultra-fast bundling and tree-shaking.
 - Powered by **Vite** for local development server and Hot Module Replacement (HMR).
 - Simultaneously generates the **Browser Client Bundle**, **Server SSR Node Bundle**, and **Prerendered HTML files** in a single execution pass!
 
 ```bash
-# Execute production optimized build:
+
+# Execute production optimized build
 ng build --configuration production
 ```
 
@@ -53,6 +55,7 @@ Enterprise repositories enforce **Bundle Budgets** in `angular.json` to automati
 For pure client-side SPA Angular applications, this multi-stage Docker build produces a hardened, sub-30MB container served by NGINX:
 
 ```dockerfile
+
 # ─── Stage 1: Build Angular Application ───
 FROM node:20-alpine AS builder
 WORKDIR /app
@@ -92,6 +95,7 @@ CMD ["nginx", "-g", "daemon off;"]
 Angular uses HTML5 PushState routing. If a user directly visits `/dashboard/projects` or refreshes the browser, NGINX must fallback to `index.html`:
 
 ```nginx
+
 # nginx.conf
 server {
     listen 80;
@@ -150,6 +154,7 @@ jobs:
   validate-and-test:
     runs-on: ubuntu-latest
     steps:
+
       - name: Checkout Source Code
         uses: actions/checkout@v4
 
@@ -179,6 +184,7 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
+
       - name: Checkout Code
         uses: actions/checkout@v4
 

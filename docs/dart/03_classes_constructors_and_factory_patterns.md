@@ -1,6 +1,6 @@
 # Module 03: Classes, Constructors & Factory Design Patterns
 
-**Track:** Dart — Language & VM Architecture  
+**Track:** Dart — Language & VM Architecture
 **Category:** Object-Oriented Design, Constructor Architectures & Memory Allocation
 
 ---
@@ -8,6 +8,7 @@
 ## 1. Class Structure & Initializer Lists
 
 In Dart, all classes inherit from `Object`. Field initialization in Dart occurs in a strict order:
+
 1. **Field Initializers** & Default Values
 2. **Initializer List** (Executed *before* constructor body and *before* `super()`)
 3. **Superclass Constructor**
@@ -37,7 +38,7 @@ class DatabaseConfig {
 
 Dart provides five distinct constructor types designed for different memory and instantiation patterns:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 Dart Constructor Architecture               │
 ├─────────────────────┬───────────────────────────────────────┤
@@ -113,6 +114,7 @@ class UserAccount {
 ## 4. Factory Constructors & The Singleton Pattern
 
 Unlike standard constructors (which *must* allocate and return a brand-new instance of the current class), a **`factory` constructor**:
+
 - Can return an existing instance from an in-memory cache (Singleton Pattern).
 - Can return an instance of a subclass.
 - Can perform asynchronous or complex pre-processing logic before returning.

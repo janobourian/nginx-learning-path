@@ -1,6 +1,6 @@
 # Module 06: Gestures, Hit Testing & The Gesture Arena Disambiguation
 
-**Track:** Flutter — Multi-Platform Architecture & Impeller Engine  
+**Track:** Flutter — Multi-Platform Architecture & Impeller Engine
 **Category:** Input Dispatch, Hit Testing & Gesture Disambiguation
 
 ---
@@ -10,11 +10,13 @@
 In Flutter, handling touch, mouse, and stylus input involves two distinct layers:
 
 1. **Raw Pointer Events (Hardware Layer)**: Dispatched directly from the OS embedder describing raw physical coordinates:
+
    - `PointerDownEvent`, `PointerMoveEvent`, `PointerUpEvent`, `PointerCancelEvent`, `PointerHoverEvent`.
 2. **Semantic Gestures (Recognition Layer)**: High-level gestures recognized from sequences of raw pointer events:
+
    - Taps, Double-Taps, Long-Presses, Horizontal Drags, Vertical Drags, Scales, Pinches.
 
-```
+```text
 Gesture Pipeline:
 [OS Touch Event]
        │
@@ -50,7 +52,7 @@ bool hitTest(BoxHitTestResult result, {required Offset position}) {
 }
 ```
 
-### The 3 `HitTestBehavior` Modes:
+### The 3 `HitTestBehavior` Modes
 
 | `HitTestBehavior` Mode | Behavior | Use Case |
 | :--- | :--- | :--- |
@@ -77,13 +79,13 @@ GestureDetector(
 
 ## 3. The Gesture Arena (Disambiguation Algorithm)
 
-What happens when a user touches a widget inside a horizontally scrollable list placed inside a vertically scrollable list? 
+What happens when a user touches a widget inside a horizontally scrollable list placed inside a vertically scrollable list?
 
 Both the `HorizontalDragGestureRecognizer` and the `VerticalDragGestureRecognizer` want to handle the touch.
 
 Flutter resolves this competition using the **Gesture Arena**:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                    The Gesture Arena Rules                  │
 ├─────────────────────────────────────────────────────────────┤

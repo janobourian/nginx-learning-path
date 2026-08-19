@@ -1,9 +1,9 @@
 # Module 01: Complete JavaScript Syntax, Reserved Keywords & Control Flow
 
-**Track:** Node.js Enterprise Backend & Runtime  
-**Directory:** `docs/nodejs/`  
-**File:** `01_javascript_syntax_keywords_statements_and_operators.md`  
-**Category:** Core Language Grammar & Lexical Specification  
+**Track:** Node.js Enterprise Backend & Runtime
+**Directory:** `docs/nodejs/`
+**File:** `01_javascript_syntax_keywords_statements_and_operators.md`
+**Category:** Core Language Grammar & Lexical Specification
 **Status:** ✅ Production-Grade Reference Textbook (Zero to Master)
 
 ---
@@ -14,7 +14,7 @@ Node.js executes ECMAScript standard specifications directly within the Google V
 
 Unlike browser environments where execution is ephemeral and tied to UI renders, backend Node.js applications run persistent long-lived server processes. Minor lexical inefficiencies—such as causing V8 Hidden Class transitions (Megamorphic shapes), creating unneeded closures in hot loops, or misusing `try/catch` de-optimization boundaries—compound over billions of iterations, causing CPU latency spikes and young generation garbage collection thrashing.
 
-```
+```json
 [ JavaScript Source Text ]
             |
             v
@@ -88,7 +88,7 @@ Below is the complete dictionary of ECMAScript keywords, reserved words, and con
 
 JavaScript is dynamically typed, meaning object properties can be added or deleted at runtime. However, looking up properties in dynamic hash maps is slow ($O(1)$ with hash collision overhead). To achieve C++-level performance, Google V8 creates **Hidden Classes (Shapes)**:
 
-```
+```json
 [ Object 1: const o1 = {} ]  -----> Shape C0 (Empty Object)
        |
   (o1.id = 100)
@@ -102,7 +102,8 @@ JavaScript is dynamically typed, meaning object properties can be added or delet
 [ Shape C2: offset 0 -> 'id', offset 1 -> 'email' ]  <=== MONOMORPHIC SHAPE!
 ```
 
-### The 3 Inline Cache (IC) States in V8:
+### The 3 Inline Cache (IC) States in V8
+
 1. **Monomorphic Inline Cache (1 CPU Cycle)**: All objects passed to a function share the identical Shape (`Shape C2`). TurboFan hardcodes direct memory offset reads without checking property keys.
 2. **Polymorphic Inline Cache (2–4 Shapes)**: Function receives 2 to 4 different Shapes. TurboFan emits a switch check verifying the Shape pointer before reading memory offsets.
 3. **Megamorphic Inline Cache (Dynamic Hash Table Lookup — 10x Slower)**: Function receives 5+ different Shapes. TurboFan gives up on offset caching and falls back to slow dynamic hash table lookups.
@@ -145,6 +146,7 @@ class MonomorphicOrder {
 This production lab implements a benchmark comparing Monomorphic property access against Megamorphic shape transitions.
 
 ### File 1: `src/shape_benchmark.ts`
+
 ```typescript
 import { performance } from 'node:perf_hooks';
 
@@ -254,6 +256,7 @@ runV8ShapeBenchmark();
 ## 5. Pure Escaped CLI Snippets (Production Operations)
 
 ```bash
+
 # 1. Compile TypeScript code
 npx tsc \
     --target ES2022 \
@@ -279,17 +282,21 @@ perf record -g node src/shape_benchmark.js \
 ## 6. Detailed Sub-Components & Diagnostics
 
 ### V8 Ignition Bytecode Register Allocator
+
 * **Role & Function**: Allocates virtual accumulator and parameter registers when compiling ECMAScript AST nodes into compact bytecode opcodes.
 * **Runtime Mechanics**: Avoids memory allocation overhead by executing bytecode directly on an interpreter stack frame.
 * **Inspection Command**:
+
   ```bash
   node --print-bytecode --print-bytecode-filter="computeTotalRevenue" src/shape_benchmark.js
   ```
 
 ### V8 TurboFan Feedback Vector Manager
+
 * **Role & Function**: Records type feedback at every call site and property load instruction during bytecode execution.
 * **Runtime Mechanics**: Guides speculative JIT optimization by feeding observed runtime types into TurboFan graph builders.
 * **Inspection Command**:
+
   ```bash
   node --trace-opt-verbose src/shape_benchmark.js
   ```
@@ -299,6 +306,7 @@ perf record -g node src/shape_benchmark.js \
 ## References
 
 ### Official Documentation
+
 * [ECMAScript 2024 Language Specification (ECMA-262)](https://tc39.es/ecma262/) — Official language standard.
 * [V8 Fast Properties in V8 Engine](https://v8.dev/blog/fast-properties) — Google V8 team on Hidden Classes and Shapes.
 * [MDN JavaScript Reference](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference) — Language syntax manual.
@@ -306,6 +314,7 @@ perf record -g node src/shape_benchmark.js \
 * [TC39 Proposals Repository](https://github.com/tc39/proposals) — Active ECMAScript language proposals.
 
 ### Authoritative Engineering Blogs
+
 * [Mathias Bynens: JavaScript Engine Fundamentals: Shapes and Inline Caches](https://mathiasbynens.be/notes/shapes-ics) — Deep dive into V8 engine shapes.
 * [Vyacheslav Egorov: Performance Profiling in V8](https://mrale.ph/) — Compiler internals and optimization guides.
 * [Brendan Gregg: FlameGraph CPU Profiling for V8](https://www.brendangregg.com/flamegraphs.html) — Performance visualization.
@@ -319,9 +328,11 @@ perf record -g node src/shape_benchmark.js \
 *Stable V8 object shapes eliminate megamorphic CPU overhead in high-throughput microservices.*
 
 ### 1. Eliminating Megamorphic CPU Thrashing
+
 In high-throughput API gateways parsing 50,000 JSON requests per second, instantiating data transfer objects (DTOs) through consistent class constructors guarantees monomorphic Inline Caching. By avoiding Megamorphic hash table lookups, CPU instruction cycles per request drop by **up to 35%**, directly lowering the CPU baseline and preventing autoscalers from provisioning redundant VMs.
 
 ### 2. Eliminating Closure Allocation in Hot Event Loops
+
 Writing loops with standard indexing `for (let i = 0; i < len; i++)` instead of `array.forEach()` or `array.map()` inside hot request pipelines avoids allocating intermediate function closures on the V8 heap. This eliminates millions of young generation nursery allocations, reducing Garbage Collection Scavenger pause times to $< 0.2\text{ms}$.
 
 ---
@@ -331,13 +342,16 @@ Writing loops with standard indexing `for (let i = 0; i < len; i++)` instead of 
 ### Common Anti-Patterns
 
 1. **Mutating Object Hidden Classes with `delete`**:
-   - *Anti-Pattern*: Using `delete user.password` to remove sensitive fields before serialization. `delete` forces V8 to drop the object's fast Hidden Class shape and transition to slow dictionary mode.
-   - *Fix*: Set the property to `undefined` (`user.password = undefined`) or construct a clean DTO with only required fields.
+
+   * *Anti-Pattern*: Using `delete user.password` to remove sensitive fields before serialization. `delete` forces V8 to drop the object's fast Hidden Class shape and transition to slow dictionary mode.
+   * *Fix*: Set the property to `undefined` (`user.password = undefined`) or construct a clean DTO with only required fields.
 
 2. **Accidental Prototype Pollution & Global Mutation**:
-   - *Anti-Pattern*: Mutating `Object.prototype` or assigning dynamic keys without checking `Object.hasOwn()`.
-   - *Fix*: Use `Object.create(null)` for raw dictionary lookups, or use standard `Map<string, T>` instances.
+
+   * *Anti-Pattern*: Mutating `Object.prototype` or assigning dynamic keys without checking `Object.hasOwn()`.
+   * *Fix*: Use `Object.create(null)` for raw dictionary lookups, or use standard `Map<string, T>` instances.
 
 3. **Temporal Dead Zone (TDZ) Runtime Errors**:
-   - *Anti-Pattern*: Referencing `let` or `const` variables in outer scopes before their declaration line is executed.
-   - *Fix*: Structure code deterministically with all declarations at the top of their enclosing lexical blocks.
+
+   * *Anti-Pattern*: Referencing `let` or `const` variables in outer scopes before their declaration line is executed.
+   * *Fix*: Structure code deterministically with all declarations at the top of their enclosing lexical blocks.

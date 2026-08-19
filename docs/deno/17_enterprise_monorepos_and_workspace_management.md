@@ -1,6 +1,6 @@
 # Module 17: Enterprise Monorepos & Workspace Management
 
-**Track:** Deno Secure Engine & Edge Runtime  
+**Track:** Deno Secure Engine & Edge Runtime
 **Category:** Project Architecture & Team Collaboration
 
 ---
@@ -15,7 +15,7 @@ A Deno workspace is a root `deno.json` that declares multiple member packages. E
 
 ## Workspace Structure
 
-```
+```text
 my-monorepo/
 ├── deno.json              ← Root workspace configuration
 ├── deno.lock              ← Single lockfile for all packages
@@ -209,15 +209,18 @@ console.log("Created user:", user.id);
 ## Dependency Management Across the Workspace
 
 The root `deno.lock` pins all dependencies for every package in the workspace. This guarantees that:
+
 - All packages use the same version of shared dependencies
 - A `deno cache` at the root downloads everything
 - CI reproduces exactly the same dependency graph
 
 ```bash
+
 # Cache all dependencies for the entire workspace from the root
 deno cache packages/api/main.ts packages/cli/main.ts
 
 # Update a dependency across the workspace
+
 # Edit the version in root deno.json, then re-run to update the lock file
 deno cache --reload packages/*/mod.ts
 ```
@@ -229,6 +232,7 @@ deno cache --reload packages/*/mod.ts
 For internal packages that aren't published to JSR:
 
 ```bash
+
 # Use git tags to version the entire workspace
 git tag v1.2.0
 git push origin v1.2.0
@@ -237,6 +241,7 @@ git push origin v1.2.0
 For packages that are published to JSR:
 
 ```bash
+
 # Publish a specific package
 cd packages/core
 deno publish --dry-run     # Preview what will be published
@@ -246,6 +251,7 @@ deno publish               # Publish to JSR
 For automated publishing via CI:
 
 ```yaml
+
 # .github/workflows/publish.yml
 name: Publish to JSR
 
@@ -261,6 +267,7 @@ jobs:
       id-token: write
 
     steps:
+
       - uses: actions/checkout@v4
       - uses: denoland/setup-deno@v2
         with:
@@ -280,6 +287,7 @@ jobs:
 ## Running Tasks Across the Workspace
 
 ```bash
+
 # Run a task in a specific package
 deno task --cwd packages/api dev
 
@@ -301,6 +309,7 @@ deno lint packages/ apps/
 ## Docker Multi-Stage Build for a Workspace Package
 
 ```dockerfile
+
 # Dockerfile — builds the API package from the workspace
 FROM denoland/deno:2.1.4 AS deps
 
@@ -332,14 +341,14 @@ CMD ["run", "--allow-net", "--allow-env=DATABASE_URL,PORT", "packages/api/main.t
 
 ## Troubleshooting
 
-**`Module not found "@myorg/core"`**
+### `Module not found "@myorg/core"`
 
 The workspace member's `name` in its `deno.json` must match exactly. Check for typos. Also ensure the package directory is listed in the root `deno.json` workspace array.
 
-**Workspace member changes not picked up after edit**
+### Workspace member changes not picked up after edit
 
 Deno workspaces resolve cross-package imports from the local filesystem — changes are picked up immediately on the next `deno run`. If you're caching aggressively, run `deno cache --reload` on the affected entry point.
 
-**Lock file conflicts in git**
+### Lock file conflicts in git
 
 The single `deno.lock` in the root captures all workspace dependencies. When merging branches that updated different packages, merge conflicts in `deno.lock` are resolved by regenerating it: delete `deno.lock`, then run `deno cache packages/api/main.ts packages/cli/main.ts` to regenerate.

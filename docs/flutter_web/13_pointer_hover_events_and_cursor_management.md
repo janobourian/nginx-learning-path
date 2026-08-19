@@ -1,17 +1,23 @@
 # Track 11: Flutter for Web & WebAssembly (WasmGC) - Pointer & Hover Events
-## Introduction
-Welcome to the module on Pointer & Hover Events. MouseRegion, hovering, cursors. Flutter Web brings the power of Dart and the Flutter rendering engine to the browser. It allows developers to compile their existing Flutter applications to web technologies like HTML, CSS, JavaScript, and increasingly, WebAssembly (WasmGC).
 
 ## Introduction
+
 Welcome to the module on Pointer & Hover Events. MouseRegion, hovering, cursors. Flutter Web brings the power of Dart and the Flutter rendering engine to the browser. It allows developers to compile their existing Flutter applications to web technologies like HTML, CSS, JavaScript, and increasingly, WebAssembly (WasmGC).
 
-## Introduction
+## Introduction - Part 2
+
 Welcome to the module on Pointer & Hover Events. MouseRegion, hovering, cursors. Flutter Web brings the power of Dart and the Flutter rendering engine to the browser. It allows developers to compile their existing Flutter applications to web technologies like HTML, CSS, JavaScript, and increasingly, WebAssembly (WasmGC).
 
-## Introduction
+## Introduction - Part 3
+
 Welcome to the module on Pointer & Hover Events. MouseRegion, hovering, cursors. Flutter Web brings the power of Dart and the Flutter rendering engine to the browser. It allows developers to compile their existing Flutter applications to web technologies like HTML, CSS, JavaScript, and increasingly, WebAssembly (WasmGC).
 
-## Introduction
+## Introduction - Part 4
+
+Welcome to the module on Pointer & Hover Events. MouseRegion, hovering, cursors. Flutter Web brings the power of Dart and the Flutter rendering engine to the browser. It allows developers to compile their existing Flutter applications to web technologies like HTML, CSS, JavaScript, and increasingly, WebAssembly (WasmGC).
+
+## Introduction - Part 5
+
 Welcome to the module on Pointer & Hover Events. MouseRegion, hovering, cursors. Flutter Web brings the power of Dart and the Flutter rendering engine to the browser. It allows developers to compile their existing Flutter applications to web technologies like HTML, CSS, JavaScript, and increasingly, WebAssembly (WasmGC).
 
 ## Architecture Overview
@@ -28,10 +34,11 @@ Welcome to the module on Pointer & Hover Events. MouseRegion, hovering, cursors.
     |               Browser Environment                 |
     |  V8 / SpiderMonkey / JavaScriptCore / WebAssembly |
     +---------------------------------------------------+
-    
+
 ## Core API Dictionary
+
 | API / Class / Command | Signature | Description |
-|---|---|---|
+| --- | --- | --- |
 | `Widget0Class` | `Widget0Class({Key? key})` | Essential component for pointer & hover events implementation in Flutter Web. Handles lifecycle and state management. |
 | `Widget1Class` | `Widget1Class({Key? key})` | Essential component for pointer & hover events implementation in Flutter Web. Handles lifecycle and state management. |
 | `Widget2Class` | `Widget2Class({Key? key})` | Essential component for pointer & hover events implementation in Flutter Web. Handles lifecycle and state management. |
@@ -59,6 +66,7 @@ Welcome to the module on Pointer & Hover Events. MouseRegion, hovering, cursors.
 | `Widget24Class` | `Widget24Class({Key? key})` | Essential component for pointer & hover events implementation in Flutter Web. Handles lifecycle and state management. |
 
 ## Technical Deep Dive
+
 Understanding the internal mechanics is crucial for production deployments. The Flutter engine for the web operates differently from mobile. Instead of rendering to a native surface, it targets either the DOM (HTML renderer) or a `<canvas>` element (CanvasKit). With the advent of WasmGC, Dart code is compiled directly to WebAssembly, bypassing JS parsing overhead and leveraging standard garbage collection mechanisms provided by modern browsers.
 Understanding the internal mechanics is crucial for production deployments. The Flutter engine for the web operates differently from mobile. Instead of rendering to a native surface, it targets either the DOM (HTML renderer) or a `<canvas>` element (CanvasKit). With the advent of WasmGC, Dart code is compiled directly to WebAssembly, bypassing JS parsing overhead and leveraging standard garbage collection mechanisms provided by modern browsers.
 Understanding the internal mechanics is crucial for production deployments. The Flutter engine for the web operates differently from mobile. Instead of rendering to a native surface, it targets either the DOM (HTML renderer) or a `<canvas>` element (CanvasKit). With the advent of WasmGC, Dart code is compiled directly to WebAssembly, bypassing JS parsing overhead and leveraging standard garbage collection mechanisms provided by modern browsers.
@@ -71,13 +79,17 @@ Understanding the internal mechanics is crucial for production deployments. The 
 Understanding the internal mechanics is crucial for production deployments. The Flutter engine for the web operates differently from mobile. Instead of rendering to a native surface, it targets either the DOM (HTML renderer) or a `<canvas>` element (CanvasKit). With the advent of WasmGC, Dart code is compiled directly to WebAssembly, bypassing JS parsing overhead and leveraging standard garbage collection mechanisms provided by modern browsers.
 
 ## Beginner Step-by-Step Tutorial
+
 ### Step 1: Initializing the Project
+
 ```bash
 flutter create my_web_app
 cd my_web_app
 flutter run -d chrome
 ```
+
 ### Step 2: Implementation
+
 ```dart
 import 'package:flutter/material.dart';
 
@@ -99,6 +111,7 @@ class MyApp extends StatelessWidget {
   }
 }
 ```
+
 Explanation: The `runApp` function initializes the binding. The `MaterialApp` configures the top-level navigator. This compiles down to a canvas element when using CanvasKit.
 Explanation: The `runApp` function initializes the binding. The `MaterialApp` configures the top-level navigator. This compiles down to a canvas element when using CanvasKit.
 Explanation: The `runApp` function initializes the binding. The `MaterialApp` configures the top-level navigator. This compiles down to a canvas element when using CanvasKit.
@@ -106,7 +119,9 @@ Explanation: The `runApp` function initializes the binding. The `MaterialApp` co
 Explanation: The `runApp` function initializes the binding. The `MaterialApp` configures the top-level navigator. This compiles down to a canvas element when using CanvasKit.
 
 ## Intermediate Lab
+
 In this lab, we build a robust implementation for Pointer & Hover Events.
+
 ```dart
 // Intermediate Implementation
 class IntermediateWidget extends StatefulWidget {
@@ -128,6 +143,7 @@ class _IntermediateWidgetState extends State<IntermediateWidget> {
   }
 }
 ```
+
 This code demonstrates stateful operations and event handling in a web context. We ensure constraints are passed down correctly.
 This code demonstrates stateful operations and event handling in a web context. We ensure constraints are passed down correctly.
 This code demonstrates stateful operations and event handling in a web context. We ensure constraints are passed down correctly.
@@ -135,7 +151,9 @@ This code demonstrates stateful operations and event handling in a web context. 
 This code demonstrates stateful operations and event handling in a web context. We ensure constraints are passed down correctly.
 
 ## Production Lab (Advanced)
+
 Enterprise-grade implementation of Pointer & Hover Events requires rigorous error handling and performance profiling.
+
 ```dart
 // Advanced Implementation
 class AdvancedProductionManager {
@@ -150,6 +168,7 @@ class AdvancedProductionManager {
   }
 }
 ```
+
 Memory management in WasmGC vs JS compilation has different profiles. Ensure you don't leak JS references when using `dart:js_interop`.
 Memory management in WasmGC vs JS compilation has different profiles. Ensure you don't leak JS references when using `dart:js_interop`.
 Memory management in WasmGC vs JS compilation has different profiles. Ensure you don't leak JS references when using `dart:js_interop`.
@@ -162,14 +181,19 @@ Memory management in WasmGC vs JS compilation has different profiles. Ensure you
 Memory management in WasmGC vs JS compilation has different profiles. Ensure you don't leak JS references when using `dart:js_interop`.
 
 ## CLI Reference
+
 ```bash
+
 # Standard build
 flutter build web
+
 # Specific renderer
 flutter build web --web-renderer canvaskit
+
 # Wasm compilation
 flutter build web --wasm
 ```
+
 The `--wasm` flag requires Flutter 3.22+ and a browser supporting WasmGC.
 The `--wasm` flag requires Flutter 3.22+ and a browser supporting WasmGC.
 The `--wasm` flag requires Flutter 3.22+ and a browser supporting WasmGC.
@@ -177,33 +201,39 @@ The `--wasm` flag requires Flutter 3.22+ and a browser supporting WasmGC.
 The `--wasm` flag requires Flutter 3.22+ and a browser supporting WasmGC.
 
 ## FinOps & Cloud Cost Analysis
+
 Hosting Flutter Web applications involves static asset delivery. Costs are generally low, tied to CDN bandwidth. CanvasKit adds ~1.5MB to the initial payload, impacting egress costs. Wasm builds may reduce JS parse time but the binary size remains a factor.
 Hosting Flutter Web applications involves static asset delivery. Costs are generally low, tied to CDN bandwidth. CanvasKit adds ~1.5MB to the initial payload, impacting egress costs. Wasm builds may reduce JS parse time but the binary size remains a factor.
 Hosting Flutter Web applications involves static asset delivery. Costs are generally low, tied to CDN bandwidth. CanvasKit adds ~1.5MB to the initial payload, impacting egress costs. Wasm builds may reduce JS parse time but the binary size remains a factor.
 Hosting Flutter Web applications involves static asset delivery. Costs are generally low, tied to CDN bandwidth. CanvasKit adds ~1.5MB to the initial payload, impacting egress costs. Wasm builds may reduce JS parse time but the binary size remains a factor.
 Hosting Flutter Web applications involves static asset delivery. Costs are generally low, tied to CDN bandwidth. CanvasKit adds ~1.5MB to the initial payload, impacting egress costs. Wasm builds may reduce JS parse time but the binary size remains a factor.
+
 - S3 Storage: $0.023 per GB
 - CloudFront Data Out: $0.085 per GB
 - Optimizing with `--tree-shake-icons` reduces bandwidth costs by ~5%.
 
 ## Troubleshooting Guide
+
 ### Anti-Pattern 1: Large Initial Load
+
 **Symptom:** App takes >5 seconds to render.
 **Cause:** CanvasKit payload and large fonts.
 **Fix:** Use HTML renderer for text-heavy apps or implement deferred loading.
 
 ### Anti-Pattern 2: CORS Failures
+
 **Symptom:** API requests fail with XMLHttpRequest error.
 **Cause:** Browser blocks cross-origin requests.
 **Fix:** Configure NGINX reverse proxy or update backend `Access-Control-Allow-Origin` headers.
 
 ### Anti-Pattern 3: State Loss on Refresh
+
 **Symptom:** Refreshing the browser loses user location.
 **Cause:** Not using `GoRouter` with `PathUrlStrategy`.
 **Fix:** Implement proper deep linking via `GoRouter`.
 
-
 ## References
+
 1. [Flutter Web Docs](https://flutter.dev/multi-platform/web)
 2. [Dart WasmGC](https://dart.dev/web/wasm)
 3. [CanvasKit Internals](https://skia.org/docs/user/modules/canvaskit/)

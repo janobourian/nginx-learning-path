@@ -1,6 +1,6 @@
 # Module 15: Global State Management with Zustand & the Slices Pattern
 
-**Track:** React — Modern UI & Fiber Architecture  
+**Track:** React — Modern UI & Fiber Architecture
 **Category:** Global State Architecture, Fine-Grained Selectors & Middleware
 
 ---
@@ -9,7 +9,8 @@
 
 While Redux Toolkit (RTK) is powerful for large enterprise legacy systems and React Context works for simple low-frequency settings, **Zustand** (German for "State") has emerged as the modern gold standard for React state management.
 
-### Why Developers Choose Zustand:
+### Why Developers Choose Zustand
+
 1. **Zero Boilerplate**: No Providers (`<StoreProvider>`), no reducers, no action creators, no context wrapping.
 2. **Fine-Grained Selector Subscriptions**: Components only re-render when the **specifically selected slice of state** changes (`useStore(s => s.user.name)`).
 3. **Ultra-Lightweight**: **~1.1 KB** minified and gzipped (compared to Redux Toolkit's ~30KB).
@@ -124,7 +125,7 @@ export const useUserStore = create<UserStoreState>()((set, get) => ({
 
 In large enterprise applications with hundreds of state fields, maintaining a single giant store file is unmaintainable. The **Slices Pattern** splits state into domain-specific slices that compose into a single unified root store.
 
-```
+```text
 Monolithic Store Split into Slices:
 ┌────────────────────────────────────────────────────────┐
 │                      Root Store                        │
@@ -269,6 +270,7 @@ export async function secureFetch(url: string) {
 ## Troubleshooting & Best Practices
 
 1. **Avoid Destructuring Without Selectors**
+
    ```tsx
    // ❌ BAD: Destructuring the whole store causes component to re-render on ANY change!
    const { count, user, cart } = useRootStore();
@@ -280,6 +282,7 @@ export async function secureFetch(url: string) {
 
 2. **Selecting Multiple Values with `useShallow`**
    If you must select multiple properties in a single selector, use `useShallow` to prevent false re-renders:
+
    ```tsx
    import { useShallow } from "zustand/react/shallow";
 

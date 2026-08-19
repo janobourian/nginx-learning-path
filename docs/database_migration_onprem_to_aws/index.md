@@ -36,7 +36,7 @@ AWS segments the migration process into three sequential phases. Completing the 
 AWS defines six common migration strategies (the 6 R's). For databases, the most relevant are:
 
 | Strategy | Description | When to Use | Target |
-|----------|-------------|-------------|--------|
+| ---------- | ------------- | ------------- | -------- |
 | **Rehost** (Lift & Shift) | Move database as-is to EC2 | Minimal changes needed, tight timeline | EC2 self-managed |
 | **Replatform** | Move to a managed service with minor adjustments | Reduce operational overhead, same engine | Amazon RDS |
 | **Refactor** | Change database engine entirely | Cost optimization, modernization, license reduction | Amazon Aurora, RDS PostgreSQL/MySQL |
@@ -46,7 +46,7 @@ AWS defines six common migration strategies (the 6 R's). For databases, the most
 ## AWS Services for Database Migration
 
 | Service | Role in Migration | Documentation |
-|---------|-------------------|---------------|
+| --------- | ------------------- | --------------- |
 | **AWS DMS** | Data replication (full load + CDC) | [DMS User Guide](https://docs.aws.amazon.com/dms/latest/userguide/Welcome.html) |
 | **AWS SCT** | Schema conversion for heterogeneous migrations | [SCT User Guide](https://docs.aws.amazon.com/SchemaConversionTool/latest/userguide/CHAP_Welcome.html) |
 | **DMS Fleet Advisor** | Automated discovery and inventory of source databases | [Fleet Advisor](https://docs.aws.amazon.com/dms/latest/userguide/CHAP_FleetAdvisor.html) |
@@ -95,7 +95,7 @@ An AWS DMS migration consists of five components:
 Based on the [official DMS sources documentation](https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Introduction.Sources.html):
 
 | Engine | Supported Versions | CDC Support |
-|--------|--------------------|-------------|
+| -------- | -------------------- | ------------- |
 | Oracle | 10.2+, 11g, 12.2, 18c, 19c (Enterprise, Standard, Standard One, Standard Two) | Yes |
 | Microsoft SQL Server | 2008, 2008R2, 2012, 2014, 2016, 2017, 2019, 2022 | Enterprise, Standard (2016+), Developer only |
 | MySQL | 5.5, 5.6, 5.7, 8.0, 8.4 | Yes |
@@ -116,7 +116,7 @@ Based on the [official DMS sources documentation](https://docs.aws.amazon.com/dm
 Based on the [official DMS targets documentation](https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Introduction.Targets.html):
 
 | Target | Notes |
-|--------|-------|
+| -------- | ------- |
 | Amazon RDS (Oracle, SQL Server, MySQL, PostgreSQL, MariaDB) | Managed, Multi-AZ available |
 | Amazon Aurora (MySQL-Compatible, PostgreSQL-Compatible) | High performance, auto-scaling storage |
 | Amazon Redshift | Data warehouse target |
@@ -136,7 +136,7 @@ Based on the [official DMS targets documentation](https://docs.aws.amazon.com/dm
 AWS DMS supports three migration types per task:
 
 | Type | Description | Use Case |
-|------|-------------|----------|
+| ------ | ------------- | ---------- |
 | **Full load** | Migrates existing data from source to target | One-time migration, no ongoing sync needed |
 | **Full load + CDC** | Migrates existing data, then replicates ongoing changes | Production migrations with minimal downtime |
 | **CDC only** | Captures and applies only ongoing changes | Source data already loaded via other means (native tools, S3) |
@@ -146,7 +146,7 @@ AWS DMS supports three migration types per task:
 ## Section Contents
 
 | Page | Description |
-|------|-------------|
+| ------ | ------------- |
 | [Implementation Plan](implementation_plan.md) | Four-phase detailed plan: Discovery → Network → Schema → Data Migration |
 | [Checklist](checklist.md) | Complete pre/during/post migration checklist with checkboxes |
 | [Step by Step](step_by_step.md) | Concrete walkthrough with AWS CLI commands for each step |
@@ -158,7 +158,7 @@ AWS DMS supports three migration types per task:
 ## Key References
 
 | Resource | URL |
-|----------|-----|
+| ---------- | ----- |
 | AWS DMS User Guide | [docs.aws.amazon.com/dms/latest/userguide/](https://docs.aws.amazon.com/dms/latest/userguide/Welcome.html) |
 | AWS DMS Best Practices | [docs.aws.amazon.com/dms/.../CHAP_BestPractices](https://docs.aws.amazon.com/dms/latest/userguide/CHAP_BestPractices.html) |
 | Replication Instance Sizing | [docs.aws.amazon.com/dms/.../SizingReplicationInstance](https://docs.aws.amazon.com/dms/latest/userguide/CHAP_BestPractices.SizingReplicationInstance.html) |

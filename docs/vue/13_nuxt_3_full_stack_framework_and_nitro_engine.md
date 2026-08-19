@@ -1,6 +1,6 @@
 # Module 13: Nuxt 3 — Full-Stack Framework & Nitro Engine
 
-**Track:** Vue — Progressive Web Framework  
+**Track:** Vue — Progressive Web Framework
 **Category:** Full-Stack & Server-Side Rendering (SSR)
 
 ---
@@ -21,7 +21,7 @@
 
 At the core of Nuxt 3 is **Nitro**, an ultrafast, lightweight server engine powered by **H3** (a composable, minimal HTTP framework).
 
-```
+```text
 ┌────────────────────────────────────────────────────────┐
 │                      Client / Browser                  │
 └──────────────────────────┬─────────────────────────────┘
@@ -53,6 +53,7 @@ At the core of Nuxt 3 is **Nitro**, an ultrafast, lightweight server engine powe
 ## Scaffolding a Nuxt 3 Project
 
 ```bash
+
 # Initialize a new Nuxt 3 project
 npx nuxi@latest init my-nuxt-app
 
@@ -63,7 +64,7 @@ npm run dev
 
 ### Standard Nuxt 3 Project Structure
 
-```
+```text
 my-nuxt-app/
 ├── .nuxt/                  ← Auto-generated build artifacts & TypeScript types
 ├── assets/                 ← Uncompiled assets (SASS, LESS, raw images)
@@ -129,7 +130,7 @@ export default defineNuxtConfig({
     // Private server-only secrets (never exposed to client bundle)
     databaseUrl: process.env.DATABASE_URL || "postgres://localhost:5432/app",
     jwtSecret: process.env.JWT_SECRET || "default-dev-secret",
-    
+
     // Public keys exposed to both server and browser
     public: {
       apiBaseUrl: process.env.NUXT_PUBLIC_API_BASE || "https://api.example.com",
@@ -315,6 +316,7 @@ useHead({
 Deploying Nuxt to different clouds requires changing just one environment variable or config flag:
 
 ```bash
+
 # 1. Standard Node.js Production Server
 NITRO_PRESET=node-server npm run build
 node .output/server/index.mjs

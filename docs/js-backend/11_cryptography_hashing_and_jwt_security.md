@@ -1,13 +1,13 @@
 # Module 11: Backend Cryptography — AES-256-GCM, Ed25519 Signatures & JWT Hardening
 
-**Track:** Modern JavaScript — Backend Systems & Distributed Architecture  
+**Track:** Modern JavaScript — Backend Systems & Distributed Architecture
 **Category:** Cryptography, Identity Engineering & JWT Token Security
 
 ---
 
 ## 1. Cryptographic Primitive Hierarchy
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 Enterprise Cryptography Primitives          │
 ├────────────────────┬────────────────────────────────────────┤
@@ -64,10 +64,11 @@ export class Ed25519Signer {
 ## 3. Hardened JWT Implementation (Preventing Algorithm Confusion Attacks)
 
 Common security flaws in JWT libraries:
+
 1. **`alg: none` Vulnerability**: Attackers modify header to `"alg": "none"` to bypass verification.
 2. **Algorithm Confusion**: Attacker verifies an RS256 token using the public key as an HS256 HMAC secret!
 
-### Secure JWT Verification Engine:
+### Secure JWT Verification Engine
 
 ```javascript
 // src/security/secure_jwt.js

@@ -1,6 +1,6 @@
 # Module 15: Internationalization (i18n) Architecture in the App Router
 
-**Track:** Next.js — Full-Stack App Router & Edge Architecture  
+**Track:** Next.js — Full-Stack App Router & Edge Architecture
 **Category:** Globalization, Multi-Language Routing & Dictionaries
 
 ---
@@ -9,7 +9,7 @@
 
 In the Next.js App Router, internationalization is implemented via **Sub-Path Routing** using a top-level dynamic segment: **`src/app/[lang]/...`**.
 
-```
+```text
 Directory Structure:
 src/app/
 └── [lang]/

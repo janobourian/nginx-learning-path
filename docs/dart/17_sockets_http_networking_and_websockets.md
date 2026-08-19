@@ -1,6 +1,6 @@
 # Module 17: Sockets, HTTP Networking, WebSockets & Shelf Microservices
 
-**Track:** Dart — Language & VM Architecture  
+**Track:** Dart — Language & VM Architecture
 **Category:** Network Engineering, TCP Sockets, WebSockets & HTTP Microservices
 
 ---
@@ -89,6 +89,7 @@ void main() async {
 While `HttpServer` from `dart:io` is low-level, **`Shelf`** is Dart's standard, composable web server ecosystem (equivalent to Express in Node or Axum in Rust):
 
 ```yaml
+
 # pubspec.yaml
 dependencies:
   shelf: ^1.4.1

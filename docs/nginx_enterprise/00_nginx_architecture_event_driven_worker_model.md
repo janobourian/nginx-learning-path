@@ -1,7 +1,7 @@
 # Module 00: NGINX Architecture & Asynchronous Event-Driven Worker Model
 
-**Track:** Enterprise NGINX  
-**Category:** High-Performance Web Servers & Reverse Proxies  
+**Track:** Enterprise NGINX
+**Category:** High-Performance Web Servers & Reverse Proxies
 **Status:** ✅ Production-Grade Reference Textbook (Zero to Master)
 
 ---
@@ -10,7 +10,7 @@
 
 If you are completely new to web servers, think of NGINX as a highly efficient **traffic controller** sitting between the internet and your applications. When millions of visitors hit your website simultaneously, NGINX decides how to route each request, balances load across servers, caches responses, enforces security rules, and terminates TLS — all with remarkably low memory usage.
 
-**NGINX vs Traditional Servers (Apache MPM Prefork)**
+### NGINX vs Traditional Servers (Apache MPM Prefork)
 
 Traditional servers like Apache in pre-fork mode create a new **process or thread for each connection**. A process consumes 4–8 MB of RAM. If 10,000 users connect simultaneously, that is 40–80 GB of RAM just for thread overhead — the server collapses. This is the **C10K Problem** (the challenge of handling 10,000 concurrent connections), documented by Dan Kegel in 1999.
 
@@ -20,7 +20,7 @@ NGINX solved this with a radical architectural shift: the **asynchronous event-d
 
 ## 2. Core Architecture: Master Process & Worker Processes
 
-```
+```text
 +--------------------------------------------------------------------------+
 |                     NGINX Process Architecture                           |
 +--------------------------------------------------------------------------+
@@ -47,9 +47,11 @@ NGINX solved this with a radical architectural shift: the **asynchronous event-d
   |
   +-> Process all ready events without blocking
   +-> Return to epoll_wait()
+
 ```
 
 ### Master Process Responsibilities
+
 - Reads and validates `nginx.conf` syntax
 - Binds to privileged ports (80, 443) before dropping privileges
 - Manages worker process lifecycle via Unix signals
@@ -57,13 +59,16 @@ NGINX solved this with a radical architectural shift: the **asynchronous event-d
 - Creates shared memory zones for rate limiting, caching, upstream health data
 
 ### Worker Process Responsibilities
+
 - Each runs an independent **single-threaded event loop**
 - Handles all I/O non-blocking: accept(), read(), write(), close()
 - Executes Lua scripts (when using OpenResty/lua-nginx-module)
 - Number set via `worker_processes auto;` — auto = number of CPU cores
 
 ### Why Single-Threaded?
+
 Single-threaded workers eliminate:
+
 - **Mutex contention**: No locking needed for shared in-process data
 - **Context switching overhead**: No OS scheduler thrashing between threads
 - **Cache invalidation**: Each worker's L1/L2 CPU cache stays warm
@@ -75,24 +80,30 @@ Single-threaded workers eliminate:
 Understanding `epoll` is essential for NGINX performance tuning:
 
 ### Phase 1: Registration
-```
+
+```text
 Worker calls epoll_create1(EPOLL_CLOEXEC)  => creates epoll file descriptor
 Worker calls epoll_ctl(epfd, EPOLL_CTL_ADD, socket_fd, &event)
     => registers each accepted socket with the kernel
+
 ```
 
 ### Phase 2: Waiting
-```
+
+```text
 Worker calls epoll_wait(epfd, events, MAX_EVENTS, timeout_ms)
     => thread blocks here using zero CPU
     => kernel wakes thread ONLY when data arrives on registered sockets
+
 ```
 
 ### Phase 3: Processing
-```
+
+```text
 Kernel returns list of ready events (O(1) complexity, not O(N) poll scan)
 Worker processes each ready event: read/write without blocking
 Worker re-enters epoll_wait()
+
 ```
 
 This cycle processes **thousands of connections per second** in one thread. The critical insight: the worker is never blocked waiting — it only runs when there is actual work to do.
@@ -102,6 +113,7 @@ This cycle processes **thousands of connections per second** in one thread. The 
 ## 4. Key nginx.conf Performance Directives
 
 ```nginx
+
 # nginx.conf — Production Performance Configuration
 
 # Auto-detect CPU core count for worker processes
@@ -143,12 +155,15 @@ http {
     # Maximum requests per keepalive connection
     keepalive_requests 10000;
 }
+
 ```
 
 ### Maximum Concurrent Connections Formula
-```
+
+```text
 Max Connections = worker_processes × worker_connections
                = 4 workers × 16,384 = 65,536 connections
+
 ```
 
 ---
@@ -156,7 +171,9 @@ Max Connections = worker_processes × worker_connections
 ## 5. Beginner Step-by-Step Lab: Your First NGINX Installation
 
 ### Step 1: Install NGINX on Ubuntu/Debian
+
 ```bash
+
 # Update package index
 sudo apt-get update
 
@@ -165,10 +182,13 @@ sudo apt-get install -y nginx
 
 # Verify installation and compiled options
 nginx -V 2>&1 | tr ' ' '\n'
+
 ```
 
 ### Step 2: Verify NGINX is Running
+
 ```bash
+
 # Check service status
 sudo systemctl status nginx
 
@@ -177,10 +197,13 @@ sudo nginx -t
 
 # View NGINX processes
 ps aux | grep nginx
+
 ```
 
 ### Step 3: Inspect the Default Configuration
+
 ```bash
+
 # View the main configuration
 cat /etc/nginx/nginx.conf
 
@@ -189,10 +212,13 @@ cat /etc/nginx/sites-enabled/default
 
 # View available configuration includes
 ls /etc/nginx/conf.d/
+
 ```
 
 ### Step 4: Make a Change and Reload Without Downtime
+
 ```bash
+
 # Edit configuration
 sudo nano /etc/nginx/nginx.conf
 
@@ -207,6 +233,7 @@ sudo nginx -s quit
 
 # Immediate shutdown (drops all connections)
 sudo nginx -s stop
+
 ```
 
 ---
@@ -214,8 +241,11 @@ sudo nginx -s stop
 ## 6. Complete CLI Reference for NGINX Operations
 
 ```bash
+
 # ─────────────────────────────────────────────
+
 # NGINX BINARY COMMANDS
+
 # ─────────────────────────────────────────────
 
 # Test configuration syntax validity
@@ -246,7 +276,9 @@ sudo nginx -s quit
 sudo nginx -s stop
 
 # ─────────────────────────────────────────────
+
 # SYSTEMD SERVICE MANAGEMENT
+
 # ─────────────────────────────────────────────
 
 # Start NGINX service
@@ -271,7 +303,9 @@ sudo systemctl status nginx
 sudo journalctl -u nginx -f
 
 # ─────────────────────────────────────────────
+
 # ZERO-DOWNTIME BINARY UPGRADE
+
 # ─────────────────────────────────────────────
 
 # 1. Get current master PID
@@ -288,6 +322,7 @@ ps aux | grep nginx
 
 # 5. If upgrade successful, send QUIT to old master
 sudo kill -QUIT $(cat /var/run/nginx.pid.oldbin)
+
 ```
 
 ---
@@ -307,11 +342,13 @@ sudo kill -QUIT $(cat /var/run/nginx.pid.oldbin)
 NGINX uses **level-triggered** epoll by default for correctness (safe to miss an event and retry). OpenResty/Lua uses level-triggered as well.
 
 ```bash
+
 # Check current epoll watcher limit
 cat /proc/sys/fs/epoll/max_user_watches
 
 # Increase epoll watcher limit (for very high connection counts)
 echo 524288 | sudo tee /proc/sys/fs/epoll/max_user_watches
+
 ```
 
 ### NGINX Shared Memory Zone Allocator
@@ -329,15 +366,20 @@ http {
         keepalive 32;
     }
 }
+
 ```
 
 ```bash
+
 # Inspect shared memory zones at runtime via nginx-module-vts
+
 # or with nginx stub status
 curl http://localhost/nginx_status
+
 ```
 
 ### NGINX Slab Allocator
+
 Within shared memory zones, NGINX uses a **slab allocator** to efficiently manage variable-size memory blocks for rate limit counters, cache metadata, and SSL session caches without `malloc()/free()` fragmentation.
 
 ---
@@ -345,6 +387,7 @@ Within shared memory zones, NGINX uses a **slab allocator** to efficiently manag
 ## 8. Monitoring & Diagnostics
 
 ### Enable NGINX Status Page
+
 ```nginx
 server {
     listen 127.0.0.1:8080;
@@ -355,19 +398,24 @@ server {
         deny all;
     }
 }
+
 ```
 
 ```bash
+
 # Scrape status
 curl http://127.0.0.1:8080/nginx_status
+
 ```
 
 Output:
-```
+
+```text
 Active connections: 847
 server accepts handled requests
  1289354 1289354 2348100
 Reading: 3 Writing: 156 Waiting: 688
+
 ```
 
 | Metric | Meaning |
@@ -385,21 +433,27 @@ Reading: 3 Writing: 156 Waiting: 688
 ## 9. FinOps & Cloud Resource Cost Governance
 
 ### 1. Worker Process Rightsizing
+
 Setting `worker_processes auto;` automatically matches worker count to available vCPUs. Over-provisioning workers beyond CPU count wastes memory (each idle worker consumes ~3 MB RSS) and increases OS context switching.
 
 **Recommendation**: On a 4-vCPU EC2 instance, `worker_processes 4;` serves 65,536 connections for ~12 MB worker memory — allowing the remaining 4 GB RAM for application cache.
 
 ### 2. Keepalive Connection Pooling Eliminates Load Balancer Costs
+
 NGINX keepalive upstream connections reuse existing TCP connections to backends:
+
 ```nginx
 upstream backend {
     server 10.0.0.1:8080;
     keepalive 128;  # Keep 128 idle connections per worker warm
 }
+
 ```
+
 This eliminates the 3-way TCP handshake for every proxied request, reducing backend CPU by 15% and allowing removal of 1–2 Elastic Load Balancer instances ($16-$25/month each).
 
 ### 3. Event Loop Efficiency: 10× Server Consolidation
+
 A single c5.xlarge ($0.17/hr) running NGINX can proxy 100,000 concurrent HTTP/2 connections, replacing 10 application servers that Apache would require for the same load. Monthly savings: **$1,200/month** in EC2 compute alone.
 
 ---
@@ -407,35 +461,48 @@ A single c5.xlarge ($0.17/hr) running NGINX can proxy 100,000 concurrent HTTP/2 
 ## 10. Troubleshooting & Common Anti-Patterns
 
 ### Anti-Pattern 1: `worker_processes 1` on Multi-Core Servers
+
 **Symptom**: CPU usage stays at 100% on one core while others are idle.
 **Cause**: A single worker cannot take advantage of multi-core parallelism.
 **Fix**: `worker_processes auto;`
 
 ### Anti-Pattern 2: `worker_connections 512` (Too Low)
+
 **Symptom**: "worker_connections are not enough" in error.log; connection resets under load.
 **Fix**:
+
 ```nginx
 events {
     worker_connections 16384;
 }
+
 ```
+
 Also raise the OS file descriptor limit:
+
 ```bash
+
 # In /etc/security/limits.conf
 nginx   soft    nofile  65535
 nginx   hard    nofile  65535
+
 ```
+
 And in nginx.conf:
+
 ```nginx
 worker_rlimit_nofile 65535;
+
 ```
 
 ### Anti-Pattern 3: Using `nginx -s reload` After Binary Upgrade
+
 **Symptom**: Old binary code still running despite package upgrade.
 **Cause**: `nginx -s reload` only re-reads config, does not replace the running binary in memory.
 **Fix**: Use the full zero-downtime binary upgrade sequence with `SIGUSR2` + `SIGWINCH` + `SIGQUIT` as documented above.
 
 ### Anti-Pattern 4: Missing `nginx -t` Before Production Changes
+
 **Symptom**: `nginx -s reload` causes NGINX to crash and take down production traffic.
 **Cause**: Configuration syntax error not caught before reload.
 **Fix**: Always run `nginx -t` first. Automate this in CI/CD pipelines.
@@ -445,15 +512,17 @@ worker_rlimit_nofile 65535;
 ## References
 
 ### Official Documentation
-* [NGINX Architecture Documentation](https://www.nginx.com/resources/wiki/overview/) — Official architectural overview.
-* [NGINX Core Module Directives](https://nginx.org/en/docs/ngx_core_module.html) — Complete core directive reference.
-* [NGINX Admin Guide](https://docs.nginx.com/nginx/admin-guide/installing-nginx/installing-nginx-open-source/) — Installation and operations guide.
-* [Linux epoll(7) Man Page](https://man7.org/linux/man-pages/man7/epoll.7.html) — Kernel event notification interface.
-* [NGINX Tuning Tips for Performance](https://www.nginx.com/blog/tuning-nginx/) — Official performance guide.
+
+- [NGINX Architecture Documentation](https://www.nginx.com/resources/wiki/overview/) — Official architectural overview.
+- [NGINX Core Module Directives](https://nginx.org/en/docs/ngx_core_module.html) — Complete core directive reference.
+- [NGINX Admin Guide](https://docs.nginx.com/nginx/admin-guide/installing-nginx/installing-nginx-open-source/) — Installation and operations guide.
+- [Linux epoll(7) Man Page](https://man7.org/linux/man-pages/man7/epoll.7.html) — Kernel event notification interface.
+- [NGINX Tuning Tips for Performance](https://www.nginx.com/blog/tuning-nginx/) — Official performance guide.
 
 ### Authoritative Engineering Blogs
-* [Andrew Alexeev: Inside NGINX — How We Designed for Performance](https://www.nginx.com/blog/inside-nginx-how-we-designed-for-performance-scale/) — NGINX founder's design rationale.
-* [Dan Kegel: The C10K Problem](http://www.kegel.com/c10k.html) — Historical paper motivating event-driven servers.
-* [Brendan Gregg: NGINX Flame Graphs and Latency Analysis](https://www.brendangregg.com/blog/2015-02-26/linux-perf-tools-2015.html) — Profiling NGINX with perf.
-* [Cloudflare: How We Made Our Network Faster Using NGINX](https://blog.cloudflare.com/) — NGINX at 100Gbps scale.
-* [Julia Evans: Networking! ACE! How Epoll Works](https://jvns.ca/blog/2017/06/03/async-io-on-linux--select--poll--and-epoll/) — Accessible explanation of Linux async I/O.
+
+- [Andrew Alexeev: Inside NGINX — How We Designed for Performance](https://www.nginx.com/blog/inside-nginx-how-we-designed-for-performance-scale/) — NGINX founder's design rationale.
+- [Dan Kegel: The C10K Problem](http://www.kegel.com/c10k.html) — Historical paper motivating event-driven servers.
+- [Brendan Gregg: NGINX Flame Graphs and Latency Analysis](https://www.brendangregg.com/blog/2015-02-26/linux-perf-tools-2015.html) — Profiling NGINX with perf.
+- [Cloudflare: How We Made Our Network Faster Using NGINX](https://blog.cloudflare.com/) — NGINX at 100Gbps scale.
+- [Julia Evans: Networking! ACE! How Epoll Works](https://jvns.ca/blog/2017/06/03/async-io-on-linux--select--poll--and-epoll/) — Accessible explanation of Linux async I/O.

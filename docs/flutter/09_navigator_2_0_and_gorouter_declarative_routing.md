@@ -1,6 +1,6 @@
 # Module 09: Declarative Routing with `go_router` & Deep Linking
 
-**Track:** Flutter — Multi-Platform Architecture & Impeller Engine  
+**Track:** Flutter — Multi-Platform Architecture & Impeller Engine
 **Category:** Declarative Navigation, Router Architecture & Deep Linking
 
 ---
@@ -8,17 +8,20 @@
 ## 1. The Evolution of Flutter Routing: Navigator 1.0 to `go_router`
 
 In legacy Flutter (Navigator 1.0), navigation was imperative:
+
 ```dart
 Navigator.push(context, MaterialPageRoute(builder: (c) => DetailScreen()));
 ```
+
 While simple for basic mobile apps, Navigator 1.0 failed on Web and Desktop:
+
 - The browser URL bar did not synchronize with the navigation stack.
 - The browser "Back" button broke navigation stacks.
 - Deep linking (e.g. clicking `myapp://profile/42` in an email) was brittle.
 
 **`go_router`** is the official, declarative routing package maintained by the Flutter team built on top of Flutter's Navigator 2.0 Router API.
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 Why go_router Is the Standard               │
 ├─────────────────────────────────────────────────────────────┤
@@ -41,12 +44,13 @@ While simple for basic mobile apps, Navigator 1.0 failed on Web and Desktop:
 ## 2. Setting Up `go_router`
 
 ```yaml
+
 # pubspec.yaml
 dependencies:
   go_router: ^14.0.0
 ```
 
-### Basic `GoRouter` Configuration:
+### Basic `GoRouter` Configuration
 
 ```dart
 // lib/core/routing/app_router.dart
@@ -82,7 +86,7 @@ final GoRouter appRouter = GoRouter(
 );
 ```
 
-### Integrating with `MaterialApp.router`:
+### Integrating with `MaterialApp.router`
 
 ```dart
 // lib/main.dart

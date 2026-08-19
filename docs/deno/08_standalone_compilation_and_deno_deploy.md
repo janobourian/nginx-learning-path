@@ -1,6 +1,6 @@
 # Module 08: Standalone Compilation & Deno Deploy
 
-**Track:** Deno Secure Engine & Edge Runtime  
+**Track:** Deno Secure Engine & Edge Runtime
 **Category:** Distribution & Edge Deployment
 
 ---
@@ -16,6 +16,7 @@ This solves a common deployment problem: how do you distribute a TypeScript CLI 
 ## Basic Compilation
 
 ```bash
+
 # Compile the current platform's native binary
 deno compile \
   --allow-net \
@@ -36,6 +37,7 @@ The permissions you specify in `deno compile` are **baked into the binary**. Use
 ## Cross-Compilation for Different Platforms
 
 ```bash
+
 # Compile for Linux x86_64 (from macOS or any platform)
 deno compile \
   --target x86_64-unknown-linux-gnu \
@@ -70,6 +72,7 @@ deno compile \
 ```
 
 Available targets:
+
 - `x86_64-unknown-linux-gnu`
 - `aarch64-unknown-linux-gnu`
 - `x86_64-pc-windows-msvc`
@@ -145,6 +148,7 @@ for (const f of files.slice(0, 5)) {
 ```
 
 ```bash
+
 # Compile it into a CLI tool
 deno compile \
   --allow-read \
@@ -194,6 +198,7 @@ deno run --allow-read --allow-write --allow-env build.ts
 Deno Deploy is a serverless edge computing platform that runs Deno programs globally on V8 isolates. Your code runs in 35+ regions simultaneously, with requests routed to the nearest region.
 
 Key characteristics:
+
 - **Isolate-based**: No containers, no cold start. V8 isolates start in milliseconds.
 - **Edge-native**: Code runs 20-50ms from most users globally.
 - **KV included**: Deno KV on Deploy uses FoundationDB for globally consistent storage.
@@ -203,6 +208,7 @@ Key characteristics:
 ### Deploying to Deno Deploy
 
 ```bash
+
 # Install the deployctl CLI
 deno install --allow-read --allow-write --allow-env --allow-net --allow-run \
   --name deployctl \
@@ -224,6 +230,7 @@ deployctl deploy \
 ### GitHub Actions Deployment
 
 ```yaml
+
 # .github/workflows/deploy.yml
 name: Deploy to Deno Deploy
 
@@ -239,6 +246,7 @@ jobs:
       contents: read
 
     steps:
+
       - uses: actions/checkout@v4
 
       - name: Deploy to Deno Deploy
@@ -312,18 +320,18 @@ Deno.serve(app.fetch);
 
 ## Troubleshooting
 
-**Compiled binary is very large (~100MB)**
+### Compiled binary is very large (~100MB)
 
 The binary includes the entire Deno runtime. This is expected. For container deployments, use the official Deno Docker image instead of compiling — it layers the runtime separately. For CLI distribution, 100MB is acceptable for most tools.
 
-**`deno compile` fails with "permission denied" during cross-compilation**
+### `deno compile` fails with "permission denied" during cross-compilation
 
 Deno downloads the target platform's binary during cross-compilation. Ensure you have internet access and that your firewall allows connections to `dl.deno.land`.
 
-**On Deno Deploy, `Deno.readTextFile` throws "permission denied"**
+### On Deno Deploy, `Deno.readTextFile` throws "permission denied"
 
 Deno Deploy runs with `--allow-read` restricted to assets bundled at deploy time. You cannot read arbitrary filesystem paths. Use Deno KV for persistent data and bundle static assets in the deployment.
 
-**KV data differs between edge regions on Deno Deploy**
+### KV data differs between edge regions on Deno Deploy
 
 Deno KV on Deploy uses strong consistency by default — reads see the latest committed value from any region. If you see stale data, ensure you are awaiting the `kv.get()` call and not using any local caching layer that bypasses KV.

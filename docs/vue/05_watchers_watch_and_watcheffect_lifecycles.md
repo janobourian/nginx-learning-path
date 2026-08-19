@@ -1,6 +1,6 @@
 # Module 05: Watchers — `watch`, `watchEffect` & Lifecycle Hooks
 
-**Track:** Vue — Progressive Web Framework  
+**Track:** Vue — Progressive Web Framework
 **Category:** Side Effects & Component Lifecycle
 
 ---
@@ -8,7 +8,7 @@
 ## When to Use Watchers vs Computed
 
 | Scenario | Use |
-|---|---|
+| --- | --- |
 | Derive a value from other state | `computed()` |
 | React to state changes with a side effect (API call, logging, DOM manipulation) | `watch()` or `watchEffect()` |
 | Run setup code when a component mounts | `onMounted()` |
@@ -197,7 +197,7 @@ watch(
 
 Vue 3 lifecycle hooks are functions you call inside `<script setup>`. They run in a specific order as the component moves through its lifecycle:
 
-```
+```text
 Creation:
   setup() / <script setup>
     → onBeforeMount()
@@ -325,14 +325,14 @@ async function updateMessage() {
 
 ## Troubleshooting
 
-**`watchEffect` doesn't re-run when a reactive value changes**
+### `watchEffect` doesn't re-run when a reactive value changes
 
 The reactive value must be read synchronously inside the `watchEffect` callback. Reads inside async callbacks after the first `await` are NOT tracked (because the tracking context is lost across await boundaries). Access all reactive dependencies before the first `await`.
 
-**`watch` fires on component mount even without `immediate: true`**
+### `watch` fires on component mount even without `immediate: true`
 
 A `watch` with `{ deep: true }` on a reactive object may fire once at setup if the object is freshly created and Vue does an initial traversal. Remove `deep: true` and use a getter function (`() => obj.specificProp`) if you only need to watch specific properties.
 
-**Cleanup function in `watchEffect` not running**
+### Cleanup function in `watchEffect` not running
 
 The cleanup function is called via the `onCleanup` parameter, not via a return value. Pattern: `watchEffect((onCleanup) => { ...; onCleanup(() => cleanup()); })`. Returning a function from `watchEffect` does NOT register it as cleanup.

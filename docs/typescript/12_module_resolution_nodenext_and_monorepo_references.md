@@ -1,6 +1,6 @@
 # Module 12: Module Resolution (`NodeNext`), ESM/CJS Dual Packages & Project References
 
-**Track:** TypeScript — Enterprise Type System  
+**Track:** TypeScript — Enterprise Type System
 **Category:** Module Systems, Monorepos & Build Graph Optimization
 
 ---
@@ -23,6 +23,7 @@ Historically, the ecosystem had fragmented resolution algorithms. TypeScript mod
 ## 2. `NodeNext` Resolution & Mandatory File Extensions
 
 In pure ECMAScript Modules under `NodeNext`:
+
 1. Every relative import **must specify its output file extension** (`.js`, `.mjs`, or `.cjs`), even when authoring in TypeScript!
 2. TypeScript does **not** rewrite `.ts` to `.js` during compilation; therefore, you import `./utils.js`, which points to `./utils.ts` during compilation and `./utils.js` at runtime.
 
@@ -99,7 +100,7 @@ In large monorepos containing dozens of packages, running `tsc` across all sourc
 
 **Project References** allow partitioning a monorepo into independent, modular compilation units with explicit dependencies.
 
-```
+```text
 Monorepo Architecture Graph:
         ┌─────────────┐
         │  apps/web   │
@@ -116,7 +117,8 @@ Monorepo Architecture Graph:
         └─────────────┘
 ```
 
-### Benefits of Project References:
+### Benefits of Project References
+
 1. **Topological Incremental Compilation**: Packages are built in dependency order.
 2. **Build Cache Isolation**: If `packages/core` hasn't changed, `tsc --build` skips it entirely using its `.tsbuildinfo` cache.
 3. **Strict Architecture Enforcement**: `apps/web` cannot import private internals of `packages/core` unless declared in `references`.
@@ -185,6 +187,7 @@ Monorepo Architecture Graph:
 To build the entire monorepo in topological order with incremental caching:
 
 ```bash
+
 # Build entire dependency graph
 npx tsc --build --verbose
 
@@ -197,8 +200,10 @@ npx tsc --build --watch
 ```
 
 Output:
-```
-[12:00:01] Projects in this build: 
+
+```json
+[12:00:01] Projects in this build:
+
     * packages/core/tsconfig.json
     * packages/ui/tsconfig.json
     * apps/web/tsconfig.json
@@ -214,6 +219,7 @@ Output:
 ## Troubleshooting & Best Practices
 
 1. **`TS6305: Output file has not been built from project`**
+
    - This occurs when `packages/ui` imports from `packages/core`, but `packages/core` has not yet been built to generate its `.d.ts` declaration files.
    - Always compile with `tsc --build` rather than `tsc` so TypeScript builds upstream dependencies first.
 

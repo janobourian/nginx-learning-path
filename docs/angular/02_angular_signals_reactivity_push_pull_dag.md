@@ -1,6 +1,6 @@
 # Module 02: Angular Signals & The Push-Pull Reactivity DAG
 
-**Track:** Angular — Signals Platform & Ivy Architecture  
+**Track:** Angular — Signals Platform & Ivy Architecture
 **Category:** Reactivity Internals, Reactive Primitives & Graph Theory
 
 ---
@@ -10,6 +10,7 @@
 A **Signal** is a wrapper around a value that notifies interested consumers when that value changes. Signals are synchronous, glitch-free, and fine-grained.
 
 Signals solve the foundational limitation of legacy Angular's change detection:
+
 - **Legacy Zone.js**: Monkey-patches all browser async APIs (`setTimeout`, `fetch`, `addEventListener`). Whenever *any* event fires anywhere on the page, Zone.js traverses the **entire component tree from root to leaf** (`ApplicationRef.tick()`) to check if any bindings changed.
 - **Signals**: When a signal changes, **only the specific component bindings that read that signal are notified and updated**.
 
@@ -19,7 +20,7 @@ Signals solve the foundational limitation of legacy Angular's change detection:
 
 Angular Signals use a **Push-Pull Reactivity Algorithm** modeled as a **Directed Acyclic Graph (DAG)**:
 
-```
+```text
 Reactivity Graph (Diamond Problem Resolution):
             [Signal A: count]
                /         \
@@ -30,8 +31,10 @@ Reactivity Graph (Diamond Problem Resolution):
           [Computed D: B + C]
 ```
 
-### The Diamond Dependency Problem in Pure Push Systems:
+### The Diamond Dependency Problem in Pure Push Systems
+
 In pure push reactive systems (e.g. RxJS `BehaviorSubject` chains):
+
 1. Signal `A` updates from `1` to `2`.
 2. `A` pushes to `B` (`B` becomes `4`).
 3. `B` pushes to `D` (`D` computes `4 + 3 = 7` ◄── **GLITCH! Stale C value used!**).
@@ -39,7 +42,8 @@ In pure push reactive systems (e.g. RxJS `BehaviorSubject` chains):
 5. `C` pushes to `D` (`D` computes `4 + 6 = 10`).
 `D` emitted an intermediate corrupt state (`7`) before reaching its final value (`10`).
 
-### How Angular's Push-Pull DAG Solves This:
+### How Angular's Push-Pull DAG Solves This
+
 1. **Push Phase (Dirty Marking)**: When Signal `A` changes, it sends a lightweight "dirty" notification down the DAG marking `B`, `C`, and `D` as stale. **No computations are executed during this phase.**
 2. **Pull Phase (Lazy Evaluation)**: When the UI or an effect requests the value of `D`, `D` pulls from `B` and `C`. `B` and `C` pull from `A`. All values are evaluated in topological order **exactly once**. Zero glitches, zero redundant computations.
 
@@ -160,5 +164,6 @@ export class AuthService {
    Always return fresh object and array copies from `.update()`. Mutating properties in-place without changing reference equality will cause default `Object.is` checks to assume nothing changed.
 
 2. **Signals vs RxJS Observables**
+
    - Use **Signals** for synchronous UI state, derived computations, and template bindings.
    - Use **RxJS Observables** for asynchronous streams, event debouncing, WebSockets, and complex HTTP retry pipelines (Module 06 & 07).

@@ -1,6 +1,6 @@
 # Module 01: Standalone Components, Built-in Control Flow & `@defer`
 
-**Track:** Angular — Signals Platform & Ivy Architecture  
+**Track:** Angular — Signals Platform & Ivy Architecture
 **Category:** Component Architecture, Template Control Flow & Deferrable Views
 
 ---
@@ -10,6 +10,7 @@
 In legacy Angular (v2–v14), every component had to be declared inside an `@NgModule`. This created tight coupling, confusing import loops, and forced entire modules to be bundled together.
 
 In modern Angular (v17+):
+
 - Components declare `standalone: true` and explicitly list only the direct dependencies they consume in `imports: [...]`.
 - Standalone components can be imported directly into other standalone components, routes, or tests.
 - **NgModules are completely optional and deprecated for new projects.**
@@ -86,7 +87,8 @@ The `@empty` block renders automatically when the array is empty:
 </ul>
 ```
 
-### Contextual Variables in `@for`:
+### Contextual Variables in `@for`
+
 - `$index`: 0-indexed position of the item.
 - `$count`: Total number of items in the iterable.
 - `$first`: Boolean, true if first item.
@@ -119,7 +121,7 @@ The `@empty` block renders automatically when the array is empty:
 
 **Deferrable Views (`@defer`)** is one of modern Angular's most revolutionary features. It allows developers to **lazy-load and code-split any template section and its component dependencies automatically** with zero manual routing or dynamic `import()` code!
 
-```
+```text
 @defer Lifecycle Blocks:
 1. @placeholder ──► Lightweight markup shown before defer condition triggers
 2. @loading     ──► Skeletons shown while component JavaScript chunk downloads
@@ -127,7 +129,7 @@ The `@empty` block renders automatically when the array is empty:
 4. @error       ──► Fallback UI shown if network request fails
 ```
 
-### Defer Triggers:
+### Defer Triggers
 
 | Trigger | Meaning | Example |
 | :--- | :--- | :--- |
@@ -138,7 +140,7 @@ The `@empty` block renders automatically when the array is empty:
 | **`when condition`** | Loads when a custom signal evaluates to `true` | `@defer (when isChartVisible())` |
 | **`prefetch`** | Pre-fetches chunk in background before user triggers it | `@defer (on interaction; prefetch on idle)` |
 
-### Production Defer Example (Heavy Data Chart):
+### Production Defer Example (Heavy Data Chart)
 
 ```html
 <!-- src/app/features/analytics/analytics.component.html -->

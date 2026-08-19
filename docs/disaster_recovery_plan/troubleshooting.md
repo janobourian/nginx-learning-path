@@ -9,7 +9,7 @@ Common issues encountered when implementing and operating DR across us-east-1 an
 ### Route 53 Failover Not Triggering
 
 | Cause | Diagnosis | Fix |
-|-------|-----------|-----|
+| ------- | ----------- | ----- |
 | Health check not failing | Check health check status in Route 53 console | Verify health check endpoint, port, path, and protocol |
 | TTL too high | `dig +short myapp.example.com` returns stale IP | Reduce TTL to 60 seconds for failover records |
 | Client DNS caching | Clients still resolve to old IP after failover | TTL is a suggestion; some resolvers ignore it. Use Global Accelerator for instant failover |
@@ -17,6 +17,7 @@ Common issues encountered when implementing and operating DR across us-east-1 an
 | Failover record misconfigured | Check record set type and routing policy | Ensure primary has `Failover: PRIMARY` and secondary has `Failover: SECONDARY` |
 
 ```bash
+
 # Check health check status
 aws route53 get-health-check-status \
     --health-check-id <id> \
@@ -38,12 +39,13 @@ aws route53 list-resource-record-sets \
 ### Global Accelerator Not Routing to DR
 
 | Cause | Fix |
-|-------|-----|
+| ------- | ----- |
 | DR endpoint group health check failing | Verify DR ALB/NLB is healthy and targets are registered |
 | Traffic dial set to 0 for DR | Set traffic dial to 100 for DR endpoint group |
 | Endpoint weight is 0 | Set endpoint weight > 0 |
 
 ```bash
+
 # Check endpoint group health
 aws globalaccelerator describe-endpoint-group \
     --endpoint-group-arn <arn> \
@@ -63,6 +65,7 @@ aws globalaccelerator update-endpoint-group \
 ### VPC Peering Routes Missing
 
 ```bash
+
 # Verify peering connection is active
 aws ec2 describe-vpc-peering-connections \
     --filters "Name=status-code,Values=active" \
@@ -85,13 +88,14 @@ aws ec2 describe-route-tables \
 ### Aurora Global Database Failover Fails
 
 | Cause | Fix |
-|-------|-----|
+| ------- | ----- |
 | Secondary cluster not healthy | Check cluster status: `aws rds describe-db-clusters --region us-west-2` |
 | Replication lag too high | Wait for lag to decrease; check `AuroraGlobalDBReplicationLag` metric |
 | Global cluster in `failing-over` state | Wait for previous failover to complete |
 | Insufficient capacity in DR region | Ensure DB instance class is available in us-west-2 |
 
 ```bash
+
 # Check global cluster status
 aws rds describe-global-clusters \
     --global-cluster-identifier my-global-cluster \
@@ -115,7 +119,7 @@ aws cloudwatch get-metric-statistics \
     --region us-west-2
 ```
 
-**Managed planned failover vs unplanned failover:**
+### Managed planned failover vs unplanned failover
 
 | Type | Command | Use Case | Data Loss |
 |------|---------|----------|-----------|
@@ -126,6 +130,7 @@ aws cloudwatch get-metric-statistics \
     If us-east-1 is completely unavailable, you cannot use `failover-global-cluster`. Instead, detach the secondary cluster from the global cluster and promote it. This may result in data loss equal to the replication lag at the time of failure.
 
 ```bash
+
 # Unplanned failover: detach secondary and promote
 aws rds remove-from-global-cluster \
     --global-cluster-identifier my-global-cluster \
@@ -138,6 +143,7 @@ aws rds remove-from-global-cluster \
 ### DynamoDB Global Table Replication Lag
 
 ```bash
+
 # Check replication lag
 aws cloudwatch get-metric-statistics \
     --namespace "AWS/DynamoDB" \
@@ -152,7 +158,7 @@ aws cloudwatch get-metric-statistics \
 ```
 
 | Cause | Fix |
-|-------|-----|
+| ------- | ----- |
 | High write throughput exceeding capacity | Increase WCU or switch to on-demand capacity |
 | Large items (> 400 KB) | Optimize item size; store large data in S3 |
 | Throttling | Check `ThrottledRequests` metric; increase capacity |
@@ -162,6 +168,7 @@ aws cloudwatch get-metric-statistics \
 Per [RDS documentation](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ReadRepl.html): promoting a cross-region read replica involves a reboot and can take several minutes.
 
 ```bash
+
 # Promote read replica
 aws rds promote-read-replica \
     --db-instance-identifier my-rds-dr-replica \
@@ -180,6 +187,7 @@ watch -n 10 "aws rds describe-db-instances \
 ### ElastiCache Global Datastore Failover Fails
 
 ```bash
+
 # Check global datastore status
 aws elasticache describe-global-replication-groups \
     --global-replication-group-id my-global-redis \
@@ -195,7 +203,7 @@ aws elasticache describe-global-replication-groups \
 ```
 
 | Cause | Fix |
-|-------|-----|
+| ------- | ----- |
 | Secondary not in `associated` status | Wait for association to complete |
 | Insufficient node capacity in DR | Verify node type is available in us-west-2 |
 | Global datastore in `modifying` state | Wait for current operation to complete |
@@ -207,6 +215,7 @@ aws elasticache describe-global-replication-groups \
 ### S3 Replication Not Working
 
 ```bash
+
 # Check replication configuration
 aws s3api get-bucket-replication \
     --bucket my-primary-bucket \
@@ -230,7 +239,7 @@ aws cloudwatch get-metric-statistics \
 ```
 
 | Cause | Fix |
-|-------|-----|
+| ------- | ----- |
 | Versioning not enabled | Enable versioning on both source and destination buckets |
 | IAM role missing permissions | Verify replication role has `s3:GetReplicationConfiguration`, `s3:ReplicateObject`, `s3:ReplicateDelete` |
 | KMS key not accessible in DR region | Use multi-region KMS key or grant cross-region access |
@@ -240,6 +249,7 @@ aws cloudwatch get-metric-statistics \
 ### EFS Replication Lag High
 
 ```bash
+
 # Check replication status
 aws efs describe-replication-configurations \
     --file-system-id fs-xxxx \
@@ -251,7 +261,7 @@ aws efs describe-replication-configurations \
 ```
 
 | Cause | Fix |
-|-------|-----|
+| ------- | ----- |
 | High write throughput on source | EFS replication RPO is ~15 minutes; this is expected |
 | Replication status is `Error` | Check EFS service events; may need to delete and recreate replication |
 | Large number of small files | EFS replication is optimized for throughput, not file count |
@@ -259,6 +269,7 @@ aws efs describe-replication-configurations \
 ### AWS Backup Cross-Region Copy Fails
 
 ```bash
+
 # Check backup job status
 aws backup list-copy-jobs \
     --by-state FAILED \
@@ -272,7 +283,7 @@ aws backup list-copy-jobs \
 ```
 
 | Cause | Fix |
-|-------|-----|
+| ------- | ----- |
 | Backup vault doesn't exist in DR region | Create vault: `aws backup create-backup-vault --backup-vault-name my-vault --region us-west-2` |
 | KMS key not accessible in DR region | Use multi-region KMS key or create a key in DR region and specify in copy action |
 | IAM role missing permissions | Verify backup role has `backup:CopyIntoBackupVault` permission |
@@ -285,6 +296,7 @@ aws backup list-copy-jobs \
 ### Auto Scaling Group Not Scaling Up in DR
 
 ```bash
+
 # Check ASG status
 aws autoscaling describe-auto-scaling-groups \
     --auto-scaling-group-names my-asg-dr \
@@ -298,7 +310,7 @@ aws autoscaling describe-auto-scaling-groups \
 ```
 
 | Cause | Fix |
-|-------|-----|
+| ------- | ----- |
 | Desired capacity still at 0 | Update: `aws autoscaling update-auto-scaling-group --desired-capacity N` |
 | Launch template AMI not available in DR | Copy AMI to us-west-2 before failover |
 | Instance type not available in DR AZs | Use multiple instance types in launch template |
@@ -309,6 +321,7 @@ aws autoscaling describe-auto-scaling-groups \
     Per [AWS DR whitepaper](https://docs.aws.amazon.com/whitepapers/latest/disaster-recovery-workloads-on-aws/disaster-recovery-options-in-the-cloud.html): "Ensure that service quotas in your DR Region are set high enough so as to not limit you from scaling up to production capacity."
 
 ```bash
+
 # Check EC2 instance quota in DR region
 aws service-quotas get-service-quota \
     --service-code ec2 \
@@ -320,6 +333,7 @@ aws service-quotas get-service-quota \
 ### ECR Images Not Available in DR
 
 ```bash
+
 # Check ECR replication status
 aws ecr describe-registry \
     --region us-east-1 \
@@ -333,7 +347,7 @@ aws ecr describe-images \
 ```
 
 | Cause | Fix |
-|-------|-----|
+| ------- | ----- |
 | Replication not configured | `aws ecr put-replication-configuration` |
 | Repository doesn't exist in DR | ECR replication auto-creates repos; verify replication rule |
 | Image too large / timeout | Check ECR service limits; retry |
@@ -341,7 +355,7 @@ aws ecr describe-images \
 ### ECS Service Won't Start in DR
 
 | Cause | Fix |
-|-------|-----|
+| ------- | ----- |
 | Task definition not registered in DR | Register task definition in us-west-2 |
 | ECR image not available | Verify ECR replication (see above) |
 | Secrets Manager secrets not replicated | Replicate secrets to us-west-2 |
@@ -355,6 +369,7 @@ aws ecr describe-images \
 ### KMS Multi-Region Key Not Working in DR
 
 ```bash
+
 # Verify replica key exists
 aws kms describe-key \
     --key-id mrk-xxxx \
@@ -368,7 +383,7 @@ aws kms describe-key \
 ```
 
 | Cause | Fix |
-|-------|-----|
+| ------- | ----- |
 | Replica key not created | `aws kms replicate-key --key-id mrk-xxxx --replica-region us-west-2` |
 | Key is disabled | `aws kms enable-key --key-id mrk-xxxx --region us-west-2` |
 | Key policy doesn't allow DR region services | Update key policy to allow services in us-west-2 |
@@ -376,6 +391,7 @@ aws kms describe-key \
 ### Secrets Manager Secret Not Available in DR
 
 ```bash
+
 # Check secret replication
 aws secretsmanager describe-secret \
     --secret-id my-secret \
@@ -384,7 +400,7 @@ aws secretsmanager describe-secret \
 ```
 
 | Cause | Fix |
-|-------|-----|
+| ------- | ----- |
 | Replication not configured | `aws secretsmanager replicate-secret-to-regions --secret-id my-secret --add-replica-regions '[{"Region":"us-west-2"}]'` |
 | Replication status is `Failed` | Check KMS key availability in DR; delete and re-replicate |
 | Secret value out of sync | Replication is automatic; check for replication errors |
@@ -394,6 +410,7 @@ aws secretsmanager describe-secret \
 ACM certificates are regional. They cannot be replicated.
 
 ```bash
+
 # Request new certificate in DR region
 aws acm request-certificate \
     --domain-name myapp.example.com \
@@ -410,7 +427,7 @@ aws acm request-certificate \
 ## Common Mistakes
 
 | Mistake | Impact | Prevention |
-|---------|--------|------------|
+| --------- | -------- | ------------ |
 | Never testing DR | Failover fails when needed | Test quarterly minimum |
 | DR region service quotas too low | Cannot scale up during failover | Request quota increases in advance |
 | AMIs not copied to DR region | Cannot launch EC2 instances | Automate AMI copy with Image Builder |

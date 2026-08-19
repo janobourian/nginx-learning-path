@@ -1,6 +1,6 @@
 # Module 02: State Management with `useState` & Automatic Batching
 
-**Track:** React — Modern UI & Fiber Architecture  
+**Track:** React — Modern UI & Fiber Architecture
 **Category:** Local State, Asynchronous Batching & Immutability
 
 ---
@@ -20,6 +20,7 @@ const [state, setState] = useState<T>(initialValue);
 ```
 
 `useState` returns a tuple containing exactly two elements:
+
 1. `state`: The current state snapshot during this render.
 2. `setState`: A state setter function that schedules a re-render with a new state value.
 
@@ -65,7 +66,7 @@ const [items, setItems] = useState<string[]>(() => {
 
 Setting state in React is **asynchronous and scheduled**. State variables are snapshots of the *current* render cycle.
 
-### The Stale State Snapshot Bug:
+### The Stale State Snapshot Bug
 
 ```tsx
 function BadIncrementer() {
@@ -109,7 +110,7 @@ function GoodIncrementer() {
 
 **Batching** is when React groups multiple state updates into a single re-render to prevent unnecessary re-rendering and layout thrashing.
 
-### React 17 vs React 18 Batching Behavior:
+### React 17 vs React 18 Batching Behavior
 
 In **React 17**: Only state updates inside React synthetic event handlers (`onClick`, `onChange`) were batched. State updates inside `setTimeout`, `fetch.then()`, or native event listeners triggered multiple re-renders.
 
@@ -229,6 +230,7 @@ function sortTodosAlphabetically() {
 ## Troubleshooting & Best Practices
 
 1. **Mutating State In-Place Prevents Re-renders**
+
    ```tsx
    // ❌ MUTATION: Array reference does not change -> React assumes state is unchanged!
    todos.push(newItem);
@@ -240,6 +242,7 @@ function sortTodosAlphabetically() {
 
 2. **Redundant State Anti-Pattern**
    If a value can be computed from existing props or state, **do not store it in state**. Use a pure computed variable:
+
    ```tsx
    // ❌ BAD: Storing derived state in useState
    const [items, setItems] = useState<Item[]>([]);

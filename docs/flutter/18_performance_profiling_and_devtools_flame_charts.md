@@ -1,6 +1,6 @@
 # Module 18: Performance Profiling, DevTools Flame Charts & `RepaintBoundary`
 
-**Track:** Flutter — Multi-Platform Architecture & Impeller Engine  
+**Track:** Flutter — Multi-Platform Architecture & Impeller Engine
 **Category:** Performance Profiling, DevTools Diagnostics & GPU Offscreen Buffers
 
 ---
@@ -9,7 +9,7 @@
 
 To achieve rock-solid 60fps (16.6ms per frame) or 120fps (8.3ms per frame) in Flutter, you must distinguish between the two core threads:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 The Two Flutter Frame Threads               │
 ├────────────────────┬────────────────────────────────────────┤
@@ -37,15 +37,17 @@ Launch the application in **Profile Mode** (never test performance in Debug mode
 flutter run --profile
 ```
 
-### DevTools Diagnostic Tabs:
+### DevTools Diagnostic Tabs
 
 1. **Performance View (Frame Chart)**:
+
    - Displays bar charts for every rendered frame.
    - Blue bars = UI Thread duration.
    - Orange bars = Raster (GPU) Thread duration.
    - Red bars = Dropped frames (Jank).
 2. **Flame Chart**: Shows a hierarchical breakdown of every function call and widget `build()` execution on the timeline.
 3. **Enhance Tracing Options**:
+
    - **Track Widget Builds**: Highlights expensive widget rebuilds.
    - **Track Layouts / Paints**: Shows render tree recalculations.
 

@@ -1,6 +1,6 @@
 # Module 03: Client Components & The `'use client'` Boundary
 
-**Track:** Next.js — Full-Stack App Router & Edge Architecture  
+**Track:** Next.js — Full-Stack App Router & Edge Architecture
 **Category:** Component Architecture & Hydration Boundaries
 
 ---
@@ -9,12 +9,12 @@
 
 The `'use client'` directive is a special compiler instruction placed at the very top of a file (before any imports).
 
-### Common Myth vs Reality:
+### Common Myth vs Reality
 
 - **Myth**: *"Adding `'use client'` means this component renders only in the browser and skips SSR."*
 - **Reality**: `'use client'` defines the **boundary** where the module and all its imported dependencies must be packaged into the client JavaScript bundle. **Client Components are STILL pre-rendered to static HTML on the server** during initial page load for fast First Contentful Paint (FCP) and SEO, and then hydrated in the browser.
 
-```
+```text
 Module Dependency Boundary:
 [Server Component: ProductPage.tsx] (Server-Only Module Graph)
         │
@@ -153,6 +153,7 @@ export function LikeButton({
 1. **Hydration Mismatch with Browser-Only Values**
    If a Client Component reads `window.innerWidth` or `new Date().toLocaleTimeString()` during the initial render, the server HTML will differ from the client HTML, triggering a React Hydration Mismatch error.
    *Fix:* Initialize with static default state and update inside `useEffect()`:
+
    ```tsx
    const [mounted, setMounted] = useState(false);
    useEffect(() => setMounted(true), []);

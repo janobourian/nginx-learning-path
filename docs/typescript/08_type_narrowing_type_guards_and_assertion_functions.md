@@ -1,6 +1,6 @@
 # Module 08: Type Narrowing, User-Defined Type Guards & Assertion Functions
 
-**Track:** TypeScript — Enterprise Type System  
+**Track:** TypeScript — Enterprise Type System
 **Category:** Control Flow Analysis & Runtime Validation
 
 ---
@@ -148,7 +148,7 @@ function renderUI<T>(state: AsyncState<T>): string {
 
 ## 4. User-Defined Type Guards (`val is TargetType`)
 
-When validation logic spans multiple checks or is encapsulated in a helper function, standard functions lose type narrowing when they return a plain `boolean`. 
+When validation logic spans multiple checks or is encapsulated in a helper function, standard functions lose type narrowing when they return a plain `boolean`.
 
 A **User-Defined Type Guard** uses the type predicate syntax `parameterName is Type` as its return type annotation:
 
@@ -216,7 +216,7 @@ function handleUserProfile(profileName: unknown) {
   // profileName is 'unknown' here
 
   assertIsString(profileName);
-  
+
   // profileName is automatically narrowed to 'string' for all subsequent lines!
   console.log(profileName.trim().toUpperCase());
 }
@@ -227,6 +227,7 @@ function handleUserProfile(profileName: unknown) {
 ## 6. The `satisfies` Operator (TypeScript 4.9+)
 
 Before `satisfies`, you had to choose between two imperfect options when typing configuration objects:
+
 1. **Type Annotation (`const obj: Schema = ...`)**: Enforces the schema, but **widens** specific literals (e.g. `"red"` becomes `string`, losing exact autocomplete).
 2. **No Annotation**: Preserves specific literal types, but fails to catch missing or misspelled schema properties.
 
@@ -261,6 +262,7 @@ palette.secondary.map((c) => c * 2); // Inferred as [number, number, number] (Ar
    TypeScript completely trusts your `obj is Type` predicate. If your boolean logic inside the guard is buggy or incomplete (e.g. forgetting to check `obj !== null`), runtime crashes will still occur despite valid compile checks.
 
 2. **Always prefer Discriminated Unions over multiple boolean flags**
+
    ```typescript
    // ❌ Anti-pattern: Impossible states possible
    interface State {

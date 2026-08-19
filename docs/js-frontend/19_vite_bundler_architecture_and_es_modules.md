@@ -1,6 +1,6 @@
 # Module 19: Vite Architecture, Native ES Modules & Production Bundling
 
-**Track:** Modern JavaScript — Frontend Architecture & Web APIs  
+**Track:** Modern JavaScript — Frontend Architecture & Web APIs
 **Category:** Build Tooling, Bundler Architecture & Hot Module Replacement (HMR)
 
 ---
@@ -8,15 +8,17 @@
 ## 1. Why Vite Revolutionized Frontend Tooling (Vite vs Webpack)
 
 In legacy bundlers (Webpack, Parcel, Rollup in dev):
+
 - The bundler had to crawl, parse, and bundle your entire codebase into large bundles **before the dev server could even start**.
 - In apps with 5,000 modules, dev server cold start took **30 to 90 seconds**, and saving a file caused a **3 to 5 second lag**.
 
 **Vite (French for "Fast")** completely reimagined this architecture:
+
 1. **Unbundled Dev Server over Native ESM**: The browser requests modules on-demand as standard `<script type="module">`. The dev server starts **instantly in < 100ms** regardless of project size!
 2. **Dependency Pre-Bundling with Esbuild**: Compiles npm CommonJS/UMD dependencies to ESM using **Esbuild (written in Go, 50x faster than JS-based bundlers)**.
 3. **Optimized Production Bundles**: Uses **Rollup / Rolldown** for tree-shaking, chunk splitting, and asset hashing.
 
-```
+```text
 Development Server Comparison:
 
 Webpack (Bundled Dev Server):

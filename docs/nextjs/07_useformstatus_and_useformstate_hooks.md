@@ -1,6 +1,6 @@
 # Module 07: Form Hooks & Progressive Enhancement — `useActionState` & `useFormStatus`
 
-**Track:** Next.js — Full-Stack App Router & Edge Architecture  
+**Track:** Next.js — Full-Stack App Router & Edge Architecture
 **Category:** Form Handling, Accessibility & Progressive Enhancement
 
 ---

@@ -11,7 +11,7 @@ Common issues encountered during database migrations from on-premises to AWS, wi
 **Symptoms:** Endpoint test fails with timeout or connection refused.
 
 | Cause | Diagnosis | Fix |
-|-------|-----------|-----|
+| ------- | ----------- | ----- |
 | Firewall blocking port | `nc -zv <source-ip> <port>` from EC2 in same VPC | Open source DB port from DMS replication instance subnet CIDR on on-premises firewall |
 | VPN tunnel is down | Check VPN status in VPC console | Verify on-premises router config; check tunnel status |
 | Wrong IP/hostname | `nslookup <hostname>` from VPC | Verify source endpoint server name resolves correctly |
@@ -20,6 +20,7 @@ Common issues encountered during database migrations from on-premises to AWS, wi
 | Source DB not listening | Check source DB service status | Verify database service is running and accepting remote connections |
 
 ```bash
+
 # Verify from an EC2 instance in the same VPC/subnet as DMS
 nc -zv <source-ip> 1433
 telnet <source-ip> 1433
@@ -30,7 +31,7 @@ telnet <source-ip> 1433
 **Symptoms:** Target endpoint test fails.
 
 | Cause | Fix |
-|-------|-----|
+| ------- | ----- |
 | Target SG missing ingress from DMS | Add inbound rule: DMS SG → target DB port |
 | Target RDS not in same VPC | Use VPC peering or place DMS in target VPC |
 | Database/user doesn't exist on target | Create database and user before testing endpoint |
@@ -48,7 +49,7 @@ telnet <source-ip> 1433
 
 ### CDC Not Capturing Changes
 
-**SQL Server:**
+### SQL Server
 
 ```sql
 -- Verify CDC is enabled on the database
@@ -66,7 +67,7 @@ EXEC sys.sp_cdc_help_jobs;
 SELECT * FROM sys.dm_server_services WHERE servicename LIKE '%Agent%';
 ```
 
-**PostgreSQL:**
+### PostgreSQL
 
 ```sql
 -- Verify wal_level (must be 'logical')
@@ -81,7 +82,7 @@ SHOW max_replication_slots;
 SHOW max_wal_senders;
 ```
 
-**MySQL:**
+### MySQL
 
 ```sql
 -- Verify binary logging is enabled
@@ -94,7 +95,7 @@ SHOW VARIABLES LIKE 'expire_logs_days';
 -- Must be >= 1 day (3 recommended)
 ```
 
-**Oracle:**
+### Oracle
 
 ```sql
 -- Verify supplemental logging
@@ -114,7 +115,7 @@ SELECT * FROM V$LOGMNR_CONTENTS WHERE ROWNUM < 5;
 Per [DMS Best Practices](https://docs.aws.amazon.com/dms/latest/userguide/CHAP_BestPractices.html), high CDC latency can be caused by:
 
 | Cause | Diagnosis | Fix |
-|-------|-----------|-----|
+| ------- | ----------- | ----- |
 | Replication instance undersized | `CPUUtilization` > 80% or `FreeableMemory` < 1 GB | Scale up instance class |
 | Large transactions on source | `CDCIncomingChanges` spikes | Consider batch optimized apply |
 | Network bandwidth saturated | Check Direct Connect/VPN throughput metrics | Upgrade bandwidth or use Direct Connect |
@@ -123,6 +124,7 @@ Per [DMS Best Practices](https://docs.aws.amazon.com/dms/latest/userguide/CHAP_B
 | Memory swapping | `SwapUsage` > 0 | Scale up to memory-optimized instance (R5/R6g) |
 
 ```bash
+
 # Monitor CDC latency over time
 aws cloudwatch get-metric-statistics \
     --namespace "AWS/DMS" \
@@ -141,7 +143,7 @@ aws cloudwatch get-metric-statistics \
 ### Row Count Mismatch
 
 | Cause | Fix |
-|-------|-----|
+| ------- | ----- |
 | DMS skipped or errored rows | Check CloudWatch task logs for `SOURCE_UNLOAD` and `TARGET_LOAD` errors |
 | Table mappings exclude rows | Verify selection rules don't have filters that exclude data |
 | Tables without primary key | DMS may not migrate all rows; add a PK or use full LOB mode |
@@ -153,7 +155,7 @@ aws cloudwatch get-metric-statistics \
 Common problematic conversions (SQL Server → PostgreSQL):
 
 | Source (SQL Server) | Target (PostgreSQL) | Issue | Solution |
-|---------------------|---------------------|-------|----------|
+| --------------------- | --------------------- | ------- | ---------- |
 | `DATETIME` | `TIMESTAMP` | Precision differences (3ms vs 1μs) | Usually auto-handled; verify edge cases |
 | `DATETIME2` | `TIMESTAMP` | Higher precision | Auto-converted |
 | `MONEY` | `NUMERIC(19,4)` | Verify scale matches | Check SCT mapping |
@@ -172,13 +174,13 @@ Common problematic conversions (SQL Server → PostgreSQL):
 Per [DMS LOB Best Practices](https://docs.aws.amazon.com/dms/latest/userguide/CHAP_BestPractices.html):
 
 | Symptom | Cause | Fix |
-|---------|-------|-----|
+| --------- | ------- | ----- |
 | LOB truncated to 32 KB | Limited LOB mode with default `MaxLobSize` | Increase `LobMaxSize` or switch to Full LOB mode |
 | LOB column is NULL | Target column is NOT NULL but DMS needs it nullable | Make LOB columns nullable on target |
 | LOB data missing entirely | `SupportLobs` is `false` | Set `SupportLobs: true` in task settings |
 | Slow LOB migration | Full LOB mode (two-step process per row) | Use Inline LOB mode for mixed LOB sizes |
 
-**Task settings for Full LOB with Inline optimization:**
+### Task settings for Full LOB with Inline optimization
 
 ```json
 {
@@ -204,7 +206,7 @@ Per [DMS LOB Best Practices](https://docs.aws.amazon.com/dms/latest/userguide/CH
 Per [DMS Best Practices — Improving Performance](https://docs.aws.amazon.com/dms/latest/userguide/CHAP_BestPractices.html):
 
 | Technique | Setting | Notes |
-|-----------|---------|-------|
+| ----------- | --------- | ------- |
 | Increase parallel table loads | `MaxFullLoadSubTasks: 16` | Default 8; increase for large replication instances only |
 | Increase commit rate | `CommitRate: 50000` | Default 10000; higher = fewer commits, faster load |
 | Drop indexes before full load | Manual | Recreate after full load; indexes add overhead during bulk insert |
@@ -227,7 +229,7 @@ Per [DMS Best Practices — Improving Performance](https://docs.aws.amazon.com/d
 ### Target Database High CPU During CDC
 
 | Cause | Diagnosis | Fix |
-|-------|-----------|-----|
+| ------- | ----------- | ----- |
 | Missing indexes on target | `EXPLAIN ANALYZE` shows sequential scans | Add indexes before CDC phase |
 | Lock contention | `pg_stat_activity` shows waiting queries | Check for long-running transactions |
 | Batch apply disabled | Transactional apply is slower | Enable `BatchApplyEnabled: true` (temporarily violates FK constraints) |
@@ -264,6 +266,7 @@ WHERE NOT blocked_locks.granted;
 ### Replication Instance Running Out of Disk
 
 ```bash
+
 # Check free storage
 aws cloudwatch get-metric-statistics \
     --namespace "AWS/DMS" \
@@ -275,7 +278,7 @@ aws cloudwatch get-metric-statistics \
     --statistics Minimum
 ```
 
-**Fixes:**
+### Fixes
 
 * Increase allocated storage: `aws dms modify-replication-instance --allocated-storage 200`
 * Reduce task log verbosity
@@ -287,7 +290,7 @@ aws cloudwatch get-metric-statistics \
 ## Common Error Messages
 
 | Error | Cause | Fix |
-|-------|-------|-----|
+| ------- | ------- | ----- |
 | `Last Error Stop Reason FATAL_ERROR` | Task crashed due to unrecoverable error | Check CloudWatch logs; restart task with `resume-processing` |
 | `Error 1045 Access denied for user` | Wrong credentials | Verify username/password on endpoint |
 | `Replication slot already exists` | Previous DMS task left orphaned slot | Drop slot on source: `SELECT pg_drop_replication_slot('slot_name');` |
@@ -308,7 +311,7 @@ aws cloudwatch get-metric-statistics \
 DMS writes detailed logs to CloudWatch. Key log components:
 
 | Component | What It Logs |
-|-----------|-------------|
+| ----------- | ------------- |
 | `SOURCE_UNLOAD` | Reading data from source during full load |
 | `SOURCE_CAPTURE` | CDC change capture from source |
 | `TARGET_LOAD` | Writing data to target during full load |
@@ -319,6 +322,7 @@ DMS writes detailed logs to CloudWatch. Key log components:
 | `VALIDATOR_EXT` | Data validation results |
 
 ```bash
+
 # View recent task logs
 aws logs get-log-events \
     --log-group-name dms-tasks-<task-id> \

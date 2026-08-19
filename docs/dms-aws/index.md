@@ -1,6 +1,6 @@
 # Workshop
 
-You can check the workshop here: https://catalog.workshops.aws/databasemigration/en-US
+You can check the workshop here: <https://catalog.workshops.aws/databasemigration/en-US>
 
 ## Introduction
 

@@ -1,13 +1,14 @@
 # Enterprise NGINX Security Hardening & Perimeter Defense Guide
 
-**Track:** Enterprise NGINX Infrastructure  
-**Category:** Web Application Security, TLS 1.3, Rate Limiting & Access Control  
-**Standard Identifier:** `DOC-STD-UNIVERSAL-2026`  
+**Track:** Enterprise NGINX Infrastructure
+**Category:** Web Application Security, TLS 1.3, Rate Limiting & Access Control
+**Standard Identifier:** `DOC-STD-UNIVERSAL-2026`
 **Status:** ✅ Completed
 
 ---
 
 ## 📑 Table of Contents
+
 1. [High-Level Overview & Executive Summary](#1-high-level-overview--executive-summary)
 2. [Modern TLS 1.3 Configuration & HSTS Preloading](#2-modern-tls-13-configuration--hsts-preloading)
 3. [Perimeter Security Headers (CSP, X-Frame-Options, Permissions-Policy)](#3-perimeter-security-headers-csp-x-frame-options-permissions-policy)
@@ -26,6 +27,7 @@
 Deploying NGINX as the front door for public web applications demands defense-in-depth security hardening at the transport, network, and application layers.
 
 This guide provides the definitive security standard:
+
 1. **Modern Transport Layer Security**: Enforcing **TLS 1.2 / TLS 1.3 only** with ECDHE Perfect Forward Secrecy (PFS) and 2-year HSTS preloading.
 2. **Browser Security Sandboxing**: Injecting mandatory security headers (`Content-Security-Policy`, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`) across all 2xx, 4xx, and 5xx HTTP responses via the **`always`** directive.
 3. **Perimeter Rate Limiting**: Mitigating brute-force attacks and Slowloris DDoS attempts via `limit_req` leaky bucket algorithms and tight connection timeouts.
@@ -107,7 +109,8 @@ server {
 ## 5. Server Fingerprint Masking & HTTP Basic Authentication
 
 ```bash
-# Generate encrypted htpasswd credential:
+
+# Generate encrypted htpasswd credential
 sudo htpasswd -c /etc/nginx/.htpasswd adminuser
 ```
 
@@ -124,6 +127,7 @@ location /admin/ {
 ## 6. Step-by-Step Production Lab: Hardened TLS & Security Gateway
 
 ```nginx
+
 # /etc/nginx/conf.d/security_hardened.conf
 http {
     limit_req_zone $binary_remote_addr zone=api_limit:10m rate=10r/s;
@@ -158,16 +162,19 @@ http {
 ## 7. Pure CLI / Command Interface
 
 ### 1. Test NGINX Configuration Security Syntax
+
 ```bash
 nginx -t 2>/dev/null || true
 ```
 
 ### 2. Verify TLS 1.3 Handshake & Security Headers
+
 ```bash
 curl -I https://127.0.0.1:8443 -k 2>/dev/null || true
 ```
 
 ### 3. Check Server Header Concealment
+
 ```bash
 curl -I http://127.0.0.1:8080 2>/dev/null | grep -i "Server" || true
 ```
@@ -176,7 +183,7 @@ curl -I http://127.0.0.1:8080 2>/dev/null | grep -i "Server" || true
 
 ## 8. Advanced Architecture & Edge-Case Failure Modes
 
-```
+```text
 ┌────────────────────────────────────────────────────────────────────────────────┐
 │                       SECURITY FAILURE RECOVERY MATRIX                         │
 ├──────────────────────┬────────────────────────┬────────────────────────────────┤
@@ -195,6 +202,7 @@ curl -I http://127.0.0.1:8080 2>/dev/null | grep -i "Server" || true
 ## 9. References (The 5+5 Rule)
 
 ### Official Documentation & Security Standards
+
 1. [OWASP Top 10 Web Application Security Risks](https://owasp.org/www-project-top-ten/)
 2. [MDN Web Docs: Content Security Policy (CSP)](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP)
 3. [RFC 8446: The Transport Layer Security (TLS) Protocol Version 1.3](https://datatracker.ietf.org/doc/html/rfc8446)
@@ -202,17 +210,18 @@ curl -I http://127.0.0.1:8080 2>/dev/null | grep -i "Server" || true
 5. [Mozilla SSL Configuration Generator (Modern Profile)](https://ssl-config.mozilla.org/)
 
 ### Authoritative Engineering Textbooks & Systems Deep Dives
-6. [Ivan Ristić: Bulletproof TLS and PKI (Feisty Duck)](https://www.feistyduck.com/books/bulletproof-tls-and-pki/)
-7. [Derek DeJonghe: NGINX Cookbook (Chapter 5: Security Controls)](https://www.oreilly.com/)
-8. [Cloudflare Engineering: Mitigating Layer 7 DDoS Attacks at the Edge](https://blog.cloudflare.com/)
-9. [Datadog Engineering: Real-Time Detection of Web Application Exploits](https://www.datadoghq.com/blog/)
-10. [High-Performance Linux Systems: Low-Overhead Memory Slab Rate Limiting](https://www.kernel.org/)
+
+1. [Ivan Ristić: Bulletproof TLS and PKI (Feisty Duck)](https://www.feistyduck.com/books/bulletproof-tls-and-pki/)
+2. [Derek DeJonghe: NGINX Cookbook (Chapter 5: Security Controls)](https://www.oreilly.com/)
+3. [Cloudflare Engineering: Mitigating Layer 7 DDoS Attacks at the Edge](https://blog.cloudflare.com/)
+4. [Datadog Engineering: Real-Time Detection of Web Application Exploits](https://www.datadoghq.com/blog/)
+5. [High-Performance Linux Systems: Low-Overhead Memory Slab Rate Limiting](https://www.kernel.org/)
 
 ---
 
 ## 10. Universal FinOps & Hardware Cost Governance
 
-```
+```text
 ┌────────────────────────────────────────────────────────────────────────────────┐
 │                         SECURITY FINOPS SAVINGS MATRIX                         │
 ├──────────────────────────┬──────────────────────────┬──────────────────────────┤

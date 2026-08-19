@@ -1,6 +1,6 @@
 # Module 06: RxJS Core — Observables, Subjects & Interoperability with Signals
 
-**Track:** Angular — Signals Platform & Ivy Architecture  
+**Track:** Angular — Signals Platform & Ivy Architecture
 **Category:** Reactive Streams, Multicasting & Signal Interop
 
 ---
@@ -9,14 +9,16 @@
 
 An **Observable** is a declarative, push-based stream of data that can emit zero, one, or multiple values over time, synchronously or asynchronously.
 
-```
+```text
 Observable Lifecycle Stream:
 ---(next: 1)---(next: 2)---(next: 3)---(error: X)  [Terminated with Error]
 ---(next: "A")---(next: "B")---(next: "C")---|      [Terminated with Complete]
 ```
 
-### The Observer Interface:
+### The Observer Interface
+
 When subscribing to an Observable, an **Observer** object handles three possible notifications:
+
 - **`next(value)`**: Invoked each time the Observable emits a value.
 - **`error(err)`**: Invoked if an unhandled exception occurs (terminates stream).
 - **`complete()`**: Invoked when the stream finishes emitting (terminates stream).
@@ -48,7 +50,7 @@ coldHttp$.subscribe(); // Request 2
 
 A **Subject** is both an **Observable** (can be subscribed to) and an **Observer** (has `.next()`, `.error()`, `.complete()` methods). Subjects are the primary mechanism for multicasting in RxJS.
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                       The Subject Family                    │
 ├────────────────────┬────────────────────────────────────────┤
@@ -225,5 +227,6 @@ export class SearchBoxComponent {
    `toSignal()` subscribes to the Observable **immediately** upon creation (in the injection context), not lazily like the `async` pipe.
 
 2. **Signals vs Observables Decision Framework**
+
    - Use **Signals** for synchronous UI state, component inputs, and template calculations.
    - Use **RxJS** for asynchronous streaming, event throttling/debouncing, WebSockets, and complex API compositions.

@@ -1,6 +1,6 @@
 # Module 17: Performance Diagnostics, Memory Leaks & V8 Profiling
 
-**Track:** Node.js — Enterprise Architecture & Libuv Internals  
+**Track:** Node.js — Enterprise Architecture & Libuv Internals
 **Category:** Diagnostics, Memory Leaks & CPU Flamegraphs
 
 ---
@@ -9,7 +9,7 @@
 
 When an enterprise Node.js microservice suffers from 100% CPU spikes or steadily climbs in RAM until an Out-Of-Memory (OOM) crash, use these three diagnostic layers:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 Node.js Diagnostics Toolset                 │
 ├────────────────────┬────────────────────────────────────────┤
@@ -32,19 +32,24 @@ When an enterprise Node.js microservice suffers from 100% CPU spikes or steadily
 ## 2. Generating & Analyzing CPU Profiles (`node --prof`)
 
 ### Step 1: Collect Profiling Samples Under Load
+
 ```bash
-# Start server with V8 tick profiler enabled:
+
+# Start server with V8 tick profiler enabled
 node --prof src/server.js
 ```
 
-### Step 2: Generate Traffic (e.g. via `autocannon`):
+### Step 2: Generate Traffic (e.g. via `autocannon`)
+
 ```bash
 autocannon -c 50 -d 10 http://localhost:3000/api/heavy-work
 ```
 
-### Step 3: Process the Binary Tick Log:
+### Step 3: Process the Binary Tick Log
+
 ```bash
-# Process isolate log into human-readable text:
+
+# Process isolate log into human-readable text
 node --prof-process isolate-0x*.log > v8_profile.txt
 ```
 
@@ -57,9 +62,11 @@ In `v8_profile.txt`, inspect the **`[Bottom up (heavy) profile]`** section to id
 A **Flamegraph** visualizes the entire call stack over time. The width of each bar corresponds directly to the total CPU time spent in that function:
 
 ```bash
-# Run server with 0x flamegraph profiler:
+
+# Run server with 0x flamegraph profiler
 npx 0x src/server.js
 ```
+
 After stopping the process, `0x` automatically generates an interactive HTML flamegraph in your browser.
 
 ---
@@ -68,7 +75,7 @@ After stopping the process, `0x` automatically generates an interactive HTML fla
 
 A **Memory Leak** occurs when objects in the V8 heap are no longer needed by application logic, but remain referenced by a root variable (preventing the Garbage Collector from collecting them).
 
-### Taking Heap Snapshots Programmatically on Demand:
+### Taking Heap Snapshots Programmatically on Demand
 
 ```javascript
 // src/diagnostics/heap_dumper.js
@@ -86,7 +93,8 @@ export function captureHeapSnapshot() {
 }
 ```
 
-### Analyzing Heap Snapshots in Chrome DevTools:
+### Analyzing Heap Snapshots in Chrome DevTools
+
 1. Open Google Chrome and navigate to `chrome://inspect`.
 2. Click **Open dedicated DevTools for Node**.
 3. Go to the **Memory Tab** and click **Load**.

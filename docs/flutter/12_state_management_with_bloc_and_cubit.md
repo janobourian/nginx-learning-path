@@ -1,6 +1,6 @@
 # Module 12: Enterprise State Management with BLoC & Cubit
 
-**Track:** Flutter — Multi-Platform Architecture & Impeller Engine  
+**Track:** Flutter — Multi-Platform Architecture & Impeller Engine
 **Category:** State Architecture, Event-Driven State Machines & BLoC Testing
 
 ---
@@ -9,7 +9,7 @@
 
 **BLoC** is an architectural pattern created by Google engineered around **Unidirectional Data Flow** and **State Machines**:
 
-```
+```text
 BLoC Unidirectional Data Flow Cycle:
 ┌─────────────────────────────────────────────────────────────┐
 │                       [UI Layer]                            │
@@ -47,6 +47,7 @@ The `flutter_bloc` ecosystem offers two approaches:
 ## 3. Implementing an Enterprise Feature with `Bloc<Event, State>`
 
 ```yaml
+
 # pubspec.yaml
 dependencies:
   flutter_bloc: ^8.1.5

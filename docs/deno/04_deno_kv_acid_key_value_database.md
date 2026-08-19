@@ -1,6 +1,6 @@
 # Module 04: Deno KV — ACID Key-Value Database
 
-**Track:** Deno Secure Engine & Edge Runtime  
+**Track:** Deno Secure Engine & Edge Runtime
 **Category:** Built-In Persistence & Distributed State
 
 ---
@@ -340,14 +340,14 @@ export async function revokeAllUserSessions(userId: string): Promise<number> {
 
 ## Troubleshooting
 
-**`TypeError: Deno.openKv is not a function`**
+### `TypeError: Deno.openKv is not a function`
 
 Deno KV requires `--unstable-kv` in Deno 1.x. In Deno 2, it is stable and available without flags. Upgrade to Deno 2: `deno upgrade`.
 
-**`atomic().commit()` always returns `{ ok: false }`**
+### `atomic().commit()` always returns `{ ok: false }`
 
 The versionstamp check is failing due to a concurrent write. Implement a retry loop as shown in the `updateUserEmail` example. If running tests, ensure tests do not share KV state — use separate key namespaces per test.
 
-**KV data not persisting between runs**
+### KV data not persisting between runs
 
 If you opened with `Deno.openKv(":memory:")`, data is lost when the process exits. For persistence, use `Deno.openKv()` (default path) or `Deno.openKv("./data.db")` (explicit path).

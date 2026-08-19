@@ -3,12 +3,15 @@
 ## 1. Opening (Beginner to Expert Progression)
 
 ### Conceptual Explanation
+
 The Document Object Model (DOM) and CSS Object Model (CSSOM) are the browser's internal representations of HTML and CSS. The Critical Rendering Path is the sequence of steps the browser takes to convert these into pixels on the screen.
 
 ### Why it Matters
+
 In production systems, mastering these concepts ensures robust, performant, and maintainable applications. Browser environments are highly complex; understanding the underlying APIs allows developers to avoid common pitfalls, memory leaks, and performance bottlenecks.
 
 ### Architecture Diagram
+
 ```text
 +-------------------+       +-----------------------+       +-------------------+
 |   Application     | ----> |  Browser Web API      | ----> |  Network/Device   |
@@ -19,7 +22,7 @@ In production systems, mastering these concepts ensures robust, performant, and 
 ## 2. Core API Dictionary Table
 
 | API / Interface / Keyword | Signature | Semantic Explanation |
-|---------------------------|-----------|----------------------|
+| --------------------------- | ----------- | ---------------------- |
 | `document.querySelector()` | `querySelector(sel)` | Returns the first Element matching the CSS selector. |
 | `document.querySelectorAll()` | `querySelectorAll(sel)` | Returns a NodeList of all matching elements. |
 | `document.createElement()` | `createElement(tag)` | Creates a new HTML element node. |
@@ -44,14 +47,17 @@ In production systems, mastering these concepts ensures robust, performant, and 
 ## 3. Technical Deep Dive
 
 ### How it Works Internally
+
 The JavaScript engine (V8, SpiderMonkey) executes code in a single-threaded event loop. When a Web API is called (like `fetch` or `setTimeout`), the engine offloads the work to the browser's background threads. Once complete, a callback or Promise reaction is queued in the Microtask Queue (for Promises) or Macrotask Queue (for events/timers).
 
 ### Memory and Execution Model
+
 JavaScript relies on Garbage Collection (Mark-and-Sweep). Memory boundaries are strict; the JS heap cannot directly access OS memory, interacting only through defined Web API bindings.
 
 ## 4. Beginner Step-by-Step Tutorial
 
 ### Getting Started
+
 ```javascript
 
 // Beginner: Selecting and modifying elements
@@ -68,7 +74,9 @@ document.body.appendChild(newPara);
 ## 5. Intermediate Lab
 
 ### Real-world Scenario
+
 Handling more complex state and integrating with multiple APIs.
+
 ```javascript
 
 // Intermediate: Efficient DOM Manipulation using DocumentFragment
@@ -93,7 +101,9 @@ console.log('List color:', listStyles.color);
 ## 6. Production Lab (Advanced)
 
 ### Enterprise-grade Implementation
+
 Optimized for performance, memory safety, and proper error handling.
+
 ```javascript
 
 // Advanced: Optimizing the Critical Rendering Path (CRP)
@@ -119,6 +129,7 @@ requestAnimationFrame(() => {
 ## 7. CLI Reference
 
 ```bash
+
 # Useful commands for frontend development
 npm init -y
 npm install -D typescript vite
@@ -133,73 +144,90 @@ Efficient use of The DOM, CSSOM, and Critical Rendering Path directly impacts cl
 ## 9. Troubleshooting Guide
 
 ### Anti-pattern 1: Memory Leaks
-*   **Symptom**: Application slows down over time.
-*   **Root Cause**: Unmanaged closures or unremoved event listeners holding onto DOM nodes.
-*   **Fix**: Explicitly remove listeners (`removeEventListener`) and use `WeakMap`/`WeakSet` for DOM node references.
+
+* **Symptom**: Application slows down over time.
+* **Root Cause**: Unmanaged closures or unremoved event listeners holding onto DOM nodes.
+* **Fix**: Explicitly remove listeners (`removeEventListener`) and use `WeakMap`/`WeakSet` for DOM node references.
 
 ### Anti-pattern 2: Blocking the Main Thread
-*   **Symptom**: The UI freezes or becomes janky (low FPS).
-*   **Root Cause**: Running intensive synchronous calculations.
-*   **Fix**: Move heavy computation to Web Workers.
+
+* **Symptom**: The UI freezes or becomes janky (low FPS).
+* **Root Cause**: Running intensive synchronous calculations.
+* **Fix**: Move heavy computation to Web Workers.
 
 ### Anti-pattern 3: Race Conditions
-*   **Symptom**: Unpredictable UI states after async operations.
-*   **Root Cause**: Multiple concurrent network requests resolving out of order.
-*   **Fix**: Use `AbortController` to cancel outdated requests or track request IDs.
+
+* **Symptom**: Unpredictable UI states after async operations.
+* **Root Cause**: Multiple concurrent network requests resolving out of order.
+* **Fix**: Use `AbortController` to cancel outdated requests or track request IDs.
 
 ## 10. References
 
-1.  [MDN Web Docs: Web APIs](https://developer.mozilla.org/en-US/docs/Web/API)
-2.  [W3C Specifications](https://www.w3.org/TR/)
-3.  [V8 Engine Blog](https://v8.dev/blog)
-4.  [Web.dev: Performance](https://web.dev/explore/performance)
-5.  [Smashing Magazine](https://www.smashingmagazine.com/)
-6.  [CSS-Tricks](https://css-tricks.com/)
-7.  [React Engineering Blog](https://react.dev/blog)
-8.  [Google Chrome Developers](https://developer.chrome.com/blog)
-9.  [Mozilla Hacks](https://hacks.mozilla.org/)
+1. [MDN Web Docs: Web APIs](https://developer.mozilla.org/en-US/docs/Web/API)
+2. [W3C Specifications](https://www.w3.org/TR/)
+3. [V8 Engine Blog](https://v8.dev/blog)
+4. [Web.dev: Performance](https://web.dev/explore/performance)
+5. [Smashing Magazine](https://www.smashingmagazine.com/)
+6. [CSS-Tricks](https://css-tricks.com/)
+7. [React Engineering Blog](https://react.dev/blog)
+8. [Google Chrome Developers](https://developer.chrome.com/blog)
+9. [Mozilla Hacks](https://hacks.mozilla.org/)
 10. [High Performance Browser Networking](https://hpbn.co/)
 
 <!-- Extended Content for completeness -->
 
 ### Deep Dive Section 1: Advanced Considerations
+
 When utilizing the concepts in The DOM, CSSOM, and Critical Rendering Path, it is vital to remember the exact execution sequence of the browser. The event loop prioritizes Microtasks (Promises) over Macrotasks (setTimeout). This means that a continuous stream of resolved promises can starve the main thread, preventing rendering. Always yield to the main thread using techniques like `await new Promise(r => setTimeout(r, 0))` or the newer `scheduler.yield()` API when processing large datasets synchronously.
 
 ### Deep Dive Section 2: Advanced Considerations
+
 When utilizing the concepts in The DOM, CSSOM, and Critical Rendering Path, it is vital to remember the exact execution sequence of the browser. The event loop prioritizes Microtasks (Promises) over Macrotasks (setTimeout). This means that a continuous stream of resolved promises can starve the main thread, preventing rendering. Always yield to the main thread using techniques like `await new Promise(r => setTimeout(r, 0))` or the newer `scheduler.yield()` API when processing large datasets synchronously.
 
 ### Deep Dive Section 3: Advanced Considerations
+
 When utilizing the concepts in The DOM, CSSOM, and Critical Rendering Path, it is vital to remember the exact execution sequence of the browser. The event loop prioritizes Microtasks (Promises) over Macrotasks (setTimeout). This means that a continuous stream of resolved promises can starve the main thread, preventing rendering. Always yield to the main thread using techniques like `await new Promise(r => setTimeout(r, 0))` or the newer `scheduler.yield()` API when processing large datasets synchronously.
 
 ### Deep Dive Section 4: Advanced Considerations
+
 When utilizing the concepts in The DOM, CSSOM, and Critical Rendering Path, it is vital to remember the exact execution sequence of the browser. The event loop prioritizes Microtasks (Promises) over Macrotasks (setTimeout). This means that a continuous stream of resolved promises can starve the main thread, preventing rendering. Always yield to the main thread using techniques like `await new Promise(r => setTimeout(r, 0))` or the newer `scheduler.yield()` API when processing large datasets synchronously.
 
 ### Deep Dive Section 5: Advanced Considerations
+
 When utilizing the concepts in The DOM, CSSOM, and Critical Rendering Path, it is vital to remember the exact execution sequence of the browser. The event loop prioritizes Microtasks (Promises) over Macrotasks (setTimeout). This means that a continuous stream of resolved promises can starve the main thread, preventing rendering. Always yield to the main thread using techniques like `await new Promise(r => setTimeout(r, 0))` or the newer `scheduler.yield()` API when processing large datasets synchronously.
 
 ### Deep Dive Section 6: Advanced Considerations
+
 When utilizing the concepts in The DOM, CSSOM, and Critical Rendering Path, it is vital to remember the exact execution sequence of the browser. The event loop prioritizes Microtasks (Promises) over Macrotasks (setTimeout). This means that a continuous stream of resolved promises can starve the main thread, preventing rendering. Always yield to the main thread using techniques like `await new Promise(r => setTimeout(r, 0))` or the newer `scheduler.yield()` API when processing large datasets synchronously.
 
 ### Deep Dive Section 7: Advanced Considerations
+
 When utilizing the concepts in The DOM, CSSOM, and Critical Rendering Path, it is vital to remember the exact execution sequence of the browser. The event loop prioritizes Microtasks (Promises) over Macrotasks (setTimeout). This means that a continuous stream of resolved promises can starve the main thread, preventing rendering. Always yield to the main thread using techniques like `await new Promise(r => setTimeout(r, 0))` or the newer `scheduler.yield()` API when processing large datasets synchronously.
 
 ### Deep Dive Section 8: Advanced Considerations
+
 When utilizing the concepts in The DOM, CSSOM, and Critical Rendering Path, it is vital to remember the exact execution sequence of the browser. The event loop prioritizes Microtasks (Promises) over Macrotasks (setTimeout). This means that a continuous stream of resolved promises can starve the main thread, preventing rendering. Always yield to the main thread using techniques like `await new Promise(r => setTimeout(r, 0))` or the newer `scheduler.yield()` API when processing large datasets synchronously.
 
 ### Deep Dive Section 9: Advanced Considerations
+
 When utilizing the concepts in The DOM, CSSOM, and Critical Rendering Path, it is vital to remember the exact execution sequence of the browser. The event loop prioritizes Microtasks (Promises) over Macrotasks (setTimeout). This means that a continuous stream of resolved promises can starve the main thread, preventing rendering. Always yield to the main thread using techniques like `await new Promise(r => setTimeout(r, 0))` or the newer `scheduler.yield()` API when processing large datasets synchronously.
 
 ### Deep Dive Section 10: Advanced Considerations
+
 When utilizing the concepts in The DOM, CSSOM, and Critical Rendering Path, it is vital to remember the exact execution sequence of the browser. The event loop prioritizes Microtasks (Promises) over Macrotasks (setTimeout). This means that a continuous stream of resolved promises can starve the main thread, preventing rendering. Always yield to the main thread using techniques like `await new Promise(r => setTimeout(r, 0))` or the newer `scheduler.yield()` API when processing large datasets synchronously.
 
 ### Deep Dive Section 11: Advanced Considerations
+
 When utilizing the concepts in The DOM, CSSOM, and Critical Rendering Path, it is vital to remember the exact execution sequence of the browser. The event loop prioritizes Microtasks (Promises) over Macrotasks (setTimeout). This means that a continuous stream of resolved promises can starve the main thread, preventing rendering. Always yield to the main thread using techniques like `await new Promise(r => setTimeout(r, 0))` or the newer `scheduler.yield()` API when processing large datasets synchronously.
 
 ### Deep Dive Section 12: Advanced Considerations
+
 When utilizing the concepts in The DOM, CSSOM, and Critical Rendering Path, it is vital to remember the exact execution sequence of the browser. The event loop prioritizes Microtasks (Promises) over Macrotasks (setTimeout). This means that a continuous stream of resolved promises can starve the main thread, preventing rendering. Always yield to the main thread using techniques like `await new Promise(r => setTimeout(r, 0))` or the newer `scheduler.yield()` API when processing large datasets synchronously.
 
 ### Deep Dive Section 13: Advanced Considerations
+
 When utilizing the concepts in The DOM, CSSOM, and Critical Rendering Path, it is vital to remember the exact execution sequence of the browser. The event loop prioritizes Microtasks (Promises) over Macrotasks (setTimeout). This means that a continuous stream of resolved promises can starve the main thread, preventing rendering. Always yield to the main thread using techniques like `await new Promise(r => setTimeout(r, 0))` or the newer `scheduler.yield()` API when processing large datasets synchronously.
 
 ### Deep Dive Section 14: Advanced Considerations
+
 When utilizing the concepts in The DOM, CSSOM, and Critical Rendering Path, it is vital to remember the exact execution sequence of the browser. The event loop prioritizes Microtasks (Promises) over Macrotasks (setTimeout). This means that a continuous stream of resolved promises can starve the main thread, preventing rendering. Always yield to the main thread using techniques like `await new Promise(r => setTimeout(r, 0))` or the newer `scheduler.yield()` API when processing large datasets synchronously.

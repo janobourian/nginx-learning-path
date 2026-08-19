@@ -1,6 +1,6 @@
 # Module 08: Context API & Preventing Re-Render Cascades
 
-**Track:** React — Modern UI & Fiber Architecture  
+**Track:** React — Modern UI & Fiber Architecture
 **Category:** Global Data Flow, Dependency Injection & Performance Optimization
 
 ---
@@ -11,7 +11,7 @@ In React, data is typically passed top-down via props. However, when multiple de
 
 **React Context** provides a mechanism to pass data down the component tree without manually threading props at every level:
 
-```
+```text
 Without Context (Prop Drilling):
 App (has theme) ──► Layout ──► Sidebar ──► NavSection ──► ThemeToggle (uses theme)
 
@@ -78,6 +78,7 @@ A critical architectural pitfall with React Context:
 > **When a Context value changes (`Object.is(prevValue, nextValue) === false`), EVERY single component that calls `useContext(MyContext)` MUST re-render**, completely bypassing `React.memo`!
 
 If you bundle your entire application state (user profile, theme, notifications, shopping cart, live WebSocket feeds) into a single giant Context:
+
 - A user typing a single character into a search input in Context triggers a re-render of the navbar, sidebar, profile badge, and heavy charts!
 
 ---

@@ -1,6 +1,6 @@
 # Module 14: Optimistic UI Updates with `useOptimistic`
 
-**Track:** React — Modern UI & Fiber Architecture  
+**Track:** React — Modern UI & Fiber Architecture
 **Category:** Asynchronous UX, Optimistic UI & React 19 Standards
 
 ---
@@ -10,6 +10,7 @@
 In traditional web applications, when a user clicks "Like", "Send Message", or "Add Todo", the UI shows a loading spinner until the backend server confirms the write operation over the network (taking 200ms to 2,000ms+).
 
 **Optimistic UI** flips this paradigm:
+
 1. When the user takes an action, the UI **instantly updates to the expected success state** (0ms latency).
 2. The asynchronous request is dispatched to the server in the background.
 3. If the server confirms success, the optimistic state is replaced with the true server state seamlessly.
@@ -177,7 +178,7 @@ export function LikeButton({
 
 How does React guarantee that failed requests don't leave corrupt data on screen?
 
-```
+```text
 Optimistic Flow & Rollback:
 1. True State: { count: 10 }
 2. User Clicks Like ──► setOptimistic ──► UI renders { count: 11 }

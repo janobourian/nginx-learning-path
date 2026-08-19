@@ -1,6 +1,6 @@
 # Module 05: Hierarchical Dependency Injection & The Functional `inject()` API
 
-**Track:** Angular — Signals Platform & Ivy Architecture  
+**Track:** Angular — Signals Platform & Ivy Architecture
 **Category:** Inversion of Control (IoC), Injector Trees & Modern Functional DI
 
 ---
@@ -9,7 +9,7 @@
 
 Angular features one of the most sophisticated **Hierarchical Dependency Injection (DI)** systems in software engineering. Unlike flat DI containers, Angular organizes injectors into a hierarchical tree that mirrors your component architecture.
 
-```
+```text
 Hierarchical Injector Tree:
 ┌─────────────────────────────────────────────────────────────┐
 │                       NullInjector                          │ (Throws 'NullInjectorError: No provider for X!')
@@ -33,6 +33,7 @@ Hierarchical Injector Tree:
 ```
 
 When a component requests a dependency:
+
 1. Angular starts searching at the component's local `ElementInjector`.
 2. If not found, it traverses upward to parent element injectors.
 3. If not found, it checks the `RootInjector` (`providedIn: 'root'`).

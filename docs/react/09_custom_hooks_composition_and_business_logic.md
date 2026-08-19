@@ -1,6 +1,6 @@
 # Module 09: Custom Hooks — Composition, Architecture & Reusable Logic
 
-**Track:** React — Modern UI & Fiber Architecture  
+**Track:** React — Modern UI & Fiber Architecture
 **Category:** Logic Extraction, Reusable Hooks & Design Patterns
 
 ---
@@ -20,9 +20,11 @@ Whenever two components use the same custom hook, **each component gets complete
 To allow React to track which state belongs to which hook across re-renders (using Fiber linked lists), you must adhere to the **Two Golden Rules of Hooks**:
 
 1. **Only Call Hooks at the Top Level**:
+
    - Do **not** call hooks inside loops (`for`), conditions (`if`), or nested functions.
    - This guarantees that hooks are called in the exact same order on every render.
 2. **Only Call Hooks from React Functions**:
+
    - Call hooks from React function components or other custom hooks. Never call hooks from regular utility functions.
 
 ---
@@ -224,5 +226,6 @@ export function SearchAndInfiniteFeed() {
 ## Troubleshooting & Best Practices
 
 1. **Return Formats: Tuples vs Objects**
+
    - Use **Tuples (`[state, setter]`)** when the hook mimics `useState` (1-2 values) so consumers can name them freely (`const [name, setName] = useLocalStorage(...)`).
    - Use **Objects (`{ data, error, isLoading, refetch }`)** when the hook returns 3+ properties to allow named destructuring without order dependency.

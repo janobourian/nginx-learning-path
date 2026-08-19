@@ -1,6 +1,6 @@
 # Module 01: The Node.js Event Loop, Libuv Phases & Microtasks
 
-**Track:** Node.js — Enterprise Architecture & Libuv Internals  
+**Track:** Node.js — Enterprise Architecture & Libuv Internals
 **Category:** Concurrency Internals, Libuv Thread Pool & Event Scheduling
 
 ---
@@ -9,7 +9,8 @@
 
 A frequent misconception in software engineering is: *"Node.js is completely single-threaded."*
 
-### The Reality:
+### The Reality
+
 - **JavaScript Execution is Single-Threaded**: Userland JavaScript runs on a single V8 main thread.
 - **The Node.js Runtime is Multi-Threaded**: Node.js is backed by **libuv**, which manages a background **Worker Thread Pool** (default: 4 C threads) and leverages OS kernel asynchronous notification mechanisms (**epoll** on Linux, **kqueue** on macOS, and **IOCP** on Windows).
 
@@ -19,7 +20,7 @@ A frequent misconception in software engineering is: *"Node.js is completely sin
 
 Every rotation ("tick") of the Libuv Event Loop progresses through **six distinct, sequential phases**:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 The 6 Libuv Event Loop Phases               │
 │                                                             │
@@ -57,11 +58,11 @@ Every rotation ("tick") of the Libuv Event Loop progresses through **six distinc
 
 ## 3. The Microtask Queues: `process.nextTick()` & Promises
 
-Microtasks do **not** belong to any of the 6 Libuv phases. 
+Microtasks do **not** belong to any of the 6 Libuv phases.
 
 Instead, the **Microtask Queues are executed immediately after the current JavaScript operation finishes, between EVERY phase of the event loop**:
 
-```
+```text
 Microtask Priority Hierarchy:
 [Current JS Function Completes]
        │
@@ -75,7 +76,7 @@ Microtask Priority Hierarchy:
 [Next Libuv Phase in Event Loop begins]
 ```
 
-### The Starvation Hazard with `process.nextTick()`:
+### The Starvation Hazard with `process.nextTick()`
 
 Because `process.nextTick()` drains completely before the event loop advances to the next phase, a recursive `process.nextTick()` loop will **permanently starve the event loop**, freezing all I/O, timers, and HTTP requests:
 
@@ -125,7 +126,8 @@ fs.readFile(new URL(import.meta.url), () => {
 console.log('10. Synchronous Global Code Finished');
 ```
 
-### Output Breakdown:
+### Output Breakdown
+
 ```text
 1. Synchronous Global Code
 10. Synchronous Global Code Finished
@@ -147,20 +149,22 @@ console.log('10. Synchronous Global Code Finished');
 
 While network sockets (HTTP, TCP, UDP) use OS non-blocking kernel polling (`epoll`/`kqueue`) and **never consume thread pool threads**, certain operations cannot be performed asynchronously by OS kernels and are delegated to the **Libuv Thread Pool**:
 
-### Operations Using the Libuv Thread Pool:
+### Operations Using the Libuv Thread Pool
+
 1. **File System I/O**: `node:fs` asynchronous calls (`fs.readFile`, `fs.writeFile`, `fs.stat`).
 2. **DNS Lookups**: `dns.lookup()` (uses blocking `getaddrinfo(3)` C system call).
 3. **CPU-Bound Cryptography**: `crypto.pbkdf2()`, `crypto.scrypt()`, `crypto.randomBytes()`.
 4. **Compression**: `node:zlib` methods.
 
-### Scaling the Thread Pool for High-Load Microservices:
+### Scaling the Thread Pool for High-Load Microservices
 
 By default, the thread pool size is **4 threads**. If your app performs 10 concurrent file reads or password hashes, 6 requests will wait in queue!
 
 Increase the thread pool size via the environment variable before Node.js boots:
 
 ```bash
-# Allocate 16 background worker threads (Max: 1024):
+
+# Allocate 16 background worker threads (Max: 1024)
 UV_THREADPOOL_SIZE=16 node src/server.js
 ```
 
@@ -169,6 +173,7 @@ UV_THREADPOOL_SIZE=16 node src/server.js
 ## Troubleshooting & Best Practices
 
 1. **`dns.lookup` vs `dns.resolve`**
+
    - `dns.lookup()`: Uses the OS `getaddrinfo` system call, which runs synchronously on the **Libuv Thread Pool**. High DNS load can exhaust the thread pool and stall file I/O!
    - `dns.resolve()`: Uses **c-ares** over asynchronous network sockets, completely bypassing the thread pool!
 

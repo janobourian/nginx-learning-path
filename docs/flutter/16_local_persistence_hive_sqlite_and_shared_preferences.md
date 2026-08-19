@@ -1,6 +1,6 @@
 # Module 16: Local Persistence — `SharedPreferences`, `SecureStorage`, `Hive` & `SQLite`
 
-**Track:** Flutter — Multi-Platform Architecture & Impeller Engine  
+**Track:** Flutter — Multi-Platform Architecture & Impeller Engine
 **Category:** Data Storage, SQLite, Key-Value Stores & Hardware Encryption
 
 ---
@@ -23,6 +23,7 @@ Flutter applications require different persistence strategies depending on data 
 For sensitive authentication tokens and credentials:
 
 ```yaml
+
 # pubspec.yaml
 dependencies:
   flutter_secure_storage: ^9.0.0
@@ -64,6 +65,7 @@ class SecureTokenStorage {
 **Hive** is a lightweight, blazing-fast key-value database written in pure Dart. Because it is written in pure Dart without native C SQLite bindings, it runs identically across Mobile, Desktop, and Web:
 
 ```yaml
+
 # pubspec.yaml
 dependencies:
   hive: ^2.2.3
@@ -105,7 +107,7 @@ class CachedProject extends HiveObject {
 }
 ```
 
-### 2. Initializing & Querying Hive Boxes:
+### 2. Initializing & Querying Hive Boxes
 
 ```dart
 // lib/main.dart
@@ -151,6 +153,7 @@ void main() async {
 When you need SQL queries (`SELECT ... WHERE ... JOIN`), transactions, and indexed searches:
 
 ```yaml
+
 # pubspec.yaml
 dependencies:
   sqflite: ^2.3.3+1

@@ -1,6 +1,6 @@
 # Module 03: Layout Rules, `BoxConstraints` & The "Constraints Go Down" Law
 
-**Track:** Flutter — Multi-Platform Architecture & Impeller Engine  
+**Track:** Flutter — Multi-Platform Architecture & Impeller Engine
 **Category:** Layout Mechanics, BoxConstraints & LayoutBuilder
 
 ---
@@ -9,11 +9,11 @@
 
 Every Flutter layout bug stems from misunderstanding this foundational principle:
 
-> **1. Constraints go down.**  
-> **2. Sizes go up.**  
+> **1. Constraints go down.**
+> **2. Sizes go up.**
 > **3. Parent sets position.**
 
-```
+```text
 The 3-Step Flutter Layout Cycle:
 ┌─────────────────────────────────────────────────────────────┐
 │ 1. Parent passes BoxConstraints (min/max W & H) DOWN to child│
@@ -30,7 +30,7 @@ The 3-Step Flutter Layout Cycle:
 
 A **`BoxConstraints`** object consists of four numbers: `minWidth`, `maxWidth`, `minHeight`, and `maxHeight`.
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                    BoxConstraint Types                      │
 ├────────────────────┬────────────────────────────────────────┤

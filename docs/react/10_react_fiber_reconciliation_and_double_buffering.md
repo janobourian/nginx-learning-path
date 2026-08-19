@@ -1,15 +1,16 @@
 # Module 10: React Fiber Reconciliation & Double Buffering Architecture
 
-**Track:** React — Modern UI & Fiber Architecture  
+**Track:** React — Modern UI & Fiber Architecture
 **Category:** React Internals, Fiber Data Structures & Scheduling Engine
 
 ---
 
 ## 1. Why React Needed the Fiber Reconciler
 
-In React 15 and earlier, React used the **Stack Reconciler**. 
+In React 15 and earlier, React used the **Stack Reconciler**.
 
 When state changed, the Stack Reconciler recursively walked the entire Virtual DOM tree using JavaScript's native call stack. Because a recursive function cannot be paused until it completes:
+
 - For large component trees (10,000+ nodes), reconciliation took 30ms to 100ms+.
 - The JavaScript main thread remained completely blocked.
 - User typing input, scrolling, and CSS animations dropped frames (dropping below 60fps), causing visible UI stutter (jank).
@@ -58,7 +59,7 @@ interface FiberNode {
 
 Instead of nesting child arrays, Fiber trees use three pointers: **`child`**, **`sibling`**, and **`return`**:
 
-```
+```text
 Component Tree:
        [App]
       /     \
@@ -89,7 +90,7 @@ To ensure smooth rendering without displaying half-rendered, broken UI states, R
 1. **The `current` Tree**: Represents the UI currently painted and visible on the user's screen.
 2. **The `workInProgress` (WIP) Tree**: The tree being actively constructed, diffed, and calculated in memory.
 
-```
+```text
 Double Buffering Swap:
 
 Screen Display ──► [Current Tree Node]
@@ -109,7 +110,7 @@ During reconciliation, React builds the `workInProgress` tree by cloning `curren
 
 ## 5. The Two Phases: Render vs Commit
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │             Phase 1: Render / Reconciliation                │
 │  • Asynchronous & Interruptible                             │
@@ -152,6 +153,7 @@ function shouldYieldToHost(): boolean {
 ```
 
 If `shouldYieldToHost()` returns `true` (5ms elapsed):
+
 1. React pauses the work loop.
 2. Yields control back to the browser to process clicks, mouse events, and CSS animations.
 3. Posts a message to the browser task queue to resume the work loop in the next event loop tick.

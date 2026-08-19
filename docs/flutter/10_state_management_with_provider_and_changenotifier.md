@@ -1,6 +1,6 @@
 # Module 10: State Management with `Provider` & `ChangeNotifier`
 
-**Track:** Flutter — Multi-Platform Architecture & Impeller Engine  
+**Track:** Flutter — Multi-Platform Architecture & Impeller Engine
 **Category:** State Architecture, InheritedWidgets & Provider Patterns
 
 ---
@@ -13,7 +13,7 @@ In Flutter, passing state down 15 levels of nested widgets via constructor param
 
 An **`InheritedWidget`** is a specialized widget built into the Flutter framework that allows any descendant child widget in the element tree to look up and subscribe to data above it in **O(1) time** using `BuildContext.dependOnInheritedWidgetOfExactType<T>()`:
 
-```
+```text
 InheritedWidget Tree Lookup (O(1) Hash Map Traversal):
 [Root: MultiProvider] (InheritedElement)
         │
@@ -30,6 +30,7 @@ The **`provider`** package wraps low-level `InheritedWidget` boilerplate into a 
 ## 2. Setting Up `Provider` & `ChangeNotifier`
 
 ```yaml
+
 # pubspec.yaml
 dependencies:
   provider: ^6.1.2
@@ -146,7 +147,7 @@ class MainApplication extends StatelessWidget {
 
 There are three ways to access state from `BuildContext`:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 Provider Context Access Modes               │
 ├────────────────────┬────────────────────────────────────────┤
@@ -164,7 +165,7 @@ There are three ways to access state from `BuildContext`:
 └────────────────────┴────────────────────────────────────────┘
 ```
 
-### 1. Fine-Grained Badge with `context.select`:
+### 1. Fine-Grained Badge with `context.select`
 
 ```dart
 class CartBadgeIcon extends StatelessWidget {
@@ -185,7 +186,7 @@ class CartBadgeIcon extends StatelessWidget {
 }
 ```
 
-### 2. Button Callback with `context.read`:
+### 2. Button Callback with `context.read`
 
 ```dart
 class AddToCartButton extends StatelessWidget {

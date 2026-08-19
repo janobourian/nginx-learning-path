@@ -11,6 +11,7 @@
     Use non-overlapping CIDR blocks for VPC peering or same blocks for Transit Gateway.
 
 ```bash
+
 # Create DR VPC in us-west-2
 aws ec2 create-vpc --cidr-block 10.1.0.0/16 --region us-west-2
 
@@ -33,6 +34,7 @@ aws ec2 accept-vpc-peering-connection \
     Set TTL to 60 seconds for failover records to enable faster DNS propagation.
 
 ```bash
+
 # Create health check
 aws route53 create-health-check \
     --caller-reference $(date +%s) \
@@ -62,6 +64,7 @@ aws route53 change-resource-record-sets \
 ### Global Accelerator
 
 ```bash
+
 # Create accelerator
 aws globalaccelerator create-accelerator \
     --name "nginx-dr-accelerator" \
@@ -85,6 +88,7 @@ aws globalaccelerator create-endpoint-group \
 ### CloudFront
 
 ```bash
+
 # Create distribution with origin failover
 aws cloudfront create-distribution \
     --distribution-config '{
@@ -142,6 +146,7 @@ aws cloudfront create-distribution \
     Use AWS DRS for continuous replication of stateful instances with RPO of seconds and RTO of minutes.
 
 ```bash
+
 # Copy AMI to DR region
 aws ec2 copy-image \
     --source-image-id ami-12345678 \
@@ -175,6 +180,7 @@ aws autoscaling create-auto-scaling-group \
 ### ECS/Fargate
 
 ```bash
+
 # Enable ECR cross-region replication
 aws ecr put-replication-configuration \
     --replication-configuration '{
@@ -198,6 +204,7 @@ aws ecs create-service \
 ### Lambda
 
 ```bash
+
 # Deploy function to both regions via CloudFormation StackSets
 aws cloudformation create-stack-set \
     --stack-set-name nginx-lambda-functions \
@@ -218,6 +225,7 @@ aws cloudformation create-stack-instances \
     RPO: < 1 second, RTO: < 1 minute with managed failover.
 
 ```bash
+
 # Create Aurora Global Database
 aws rds create-global-cluster \
     --global-cluster-identifier nginx-global-cluster \
@@ -241,6 +249,7 @@ aws rds failover-global-cluster \
 ### Amazon RDS (non-Aurora)
 
 ```bash
+
 # Create cross-region read replica
 aws rds create-db-instance-read-replica \
     --db-instance-identifier nginx-replica-west \
@@ -259,6 +268,7 @@ aws rds promote-read-replica \
 ### DynamoDB
 
 ```bash
+
 # Create Global Table
 aws dynamodb create-global-table \
     --global-table-name nginx-sessions \
@@ -270,6 +280,7 @@ aws dynamodb create-global-table \
 ### ElastiCache (Redis)
 
 ```bash
+
 # Create Global Datastore
 aws elasticache create-global-replication-group \
     --global-replication-group-id nginx-global-redis \
@@ -292,6 +303,7 @@ aws elasticache create-replication-group \
     Use S3 RTC for 15-minute replication SLA on critical data.
 
 ```bash
+
 # Enable versioning (required for CRR)
 aws s3api put-bucket-versioning \
     --bucket nginx-primary-bucket \
@@ -326,6 +338,7 @@ aws s3api put-bucket-replication \
 ### EFS
 
 ```bash
+
 # Create replication configuration
 aws efs create-replication-configuration \
     --source-file-system-id fs-12345678 \
@@ -342,6 +355,7 @@ aws efs create-replication-configuration \
     SQS doesn't support cross-region replication. Design applications for message loss during failover.
 
 ```bash
+
 # Create matching queues in DR region
 aws sqs create-queue \
     --queue-name nginx-processing-queue \
@@ -355,6 +369,7 @@ aws sqs create-queue \
 ### EventBridge
 
 ```bash
+
 # Create cross-region rule
 aws events put-rule \
     --name nginx-cross-region-rule \
@@ -377,6 +392,7 @@ aws events put-targets \
 ### Secrets Manager
 
 ```bash
+
 # Create multi-region secret
 aws secretsmanager create-secret \
     --name nginx/database/credentials \
@@ -389,6 +405,7 @@ aws secretsmanager create-secret \
 ### KMS
 
 ```bash
+
 # Create multi-region key
 aws kms create-key \
     --multi-region \
@@ -407,6 +424,7 @@ aws kms replicate-key \
 ### CloudFormation StackSets
 
 ```bash
+
 # Create StackSet for multi-region deployment
 aws cloudformation create-stack-set \
     --stack-set-name nginx-infrastructure \
@@ -429,6 +447,7 @@ aws cloudformation create-stack-instances \
 ### AWS Backup
 
 ```bash
+
 # Create backup plan with cross-region copy
 aws backup create-backup-plan \
     --backup-plan '{
@@ -455,6 +474,7 @@ aws backup create-backup-plan \
 ### CloudWatch Cross-Region Dashboard
 
 ```bash
+
 # Create cross-region dashboard
 aws cloudwatch put-dashboard \
     --dashboard-name "NGINX-DR-Overview" \
@@ -479,7 +499,7 @@ aws cloudwatch put-dashboard \
 
 ## Architecture Overview
 
-```
+```text
 ┌─────────────────┐    ┌─────────────────┐
 │   us-east-1     │    │   us-west-2     │
 │   (Primary)     │    │   (Secondary)   │

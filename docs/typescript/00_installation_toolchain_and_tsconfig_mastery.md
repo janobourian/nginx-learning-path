@@ -1,6 +1,6 @@
 # Module 00: Installation, Toolchain & `tsconfig.json` Mastery
 
-**Track:** TypeScript — Enterprise Type System  
+**Track:** TypeScript — Enterprise Type System
 **Category:** Compiler Toolchain & Configuration Architecture
 
 ---
@@ -14,9 +14,9 @@ JavaScript was designed in 1995 as a lightweight, dynamically typed scripting la
 3. **Refactoring Fear** — Renaming a database column or function signature requires manual grep-and-replace across the entire codebase without automated validation.
 4. **Lack of IDE Intelligence** — Editors cannot autocomplete properties on untyped objects or verify API payloads without executing code.
 
-**TypeScript** (created by Anders Hejlsberg at Microsoft in 2012) is a **typed superset of JavaScript that compiles to clean JavaScript**. 
+**TypeScript** (created by Anders Hejlsberg at Microsoft in 2012) is a **typed superset of JavaScript that compiles to clean JavaScript**.
 
-### The Key Principles of TypeScript:
+### The Key Principles of TypeScript
 
 - **Superset Nature**: All valid JavaScript is valid TypeScript. You can rename `.js` to `.ts` and immediately begin incrementally typing your project.
 - **Type Erasure**: Types exist **only at compile time**. The TypeScript compiler (`tsc`) validates types, reports errors, and strips away all type annotations, interfaces, and type aliases, emitting vanilla JavaScript. TypeScript types have **zero runtime overhead** and **zero runtime footprint**.
@@ -26,7 +26,7 @@ JavaScript was designed in 1995 as a lightweight, dynamically typed scripting la
 
 ## 2. The TypeScript Compilation Architecture
 
-```
+```text
 ┌──────────────────────────────────────────────────────────────────┐
 │                      TypeScript Compiler (tsc)                   │
 │                                                                  │
@@ -76,6 +76,7 @@ JavaScript was designed in 1995 as a lightweight, dynamically typed scripting la
 In production enterprise environments, **never rely on global TypeScript installations**. Always install TypeScript as a local project `devDependency` to ensure deterministic builds across developer machines, CI/CD runners, and Docker containers:
 
 ```bash
+
 # Initialize a new Node.js project
 npm init -y
 
@@ -89,6 +90,7 @@ npx tsc --version
 ### Essential `tsc` CLI Commands & Flags
 
 ```bash
+
 # Initialize a starter tsconfig.json with annotated explanations
 npx tsc --init
 
@@ -221,13 +223,14 @@ if (charlieScore !== undefined) {
 
 ## 6. Fast Development Runners: `tsx` vs `ts-node`
 
-In development, you rarely want to run `tsc` followed by `node dist/index.js` manually. 
+In development, you rarely want to run `tsc` followed by `node dist/index.js` manually.
 
 ### Recommended Modern Tool: `tsx`
 
 `tsx` is an ultrafast, zero-config TypeScript execution CLI powered by `esbuild`. It supports ESM, CJS, and path aliases natively with zero compilation wait time:
 
 ```bash
+
 # Install tsx
 npm install -D tsx
 
@@ -243,11 +246,14 @@ npx tsx watch src/server.ts
 ## 7. Troubleshooting & Common Toolchain Errors
 
 1. **`Cannot find module '@/...' or its corresponding type declarations`**
-   - TypeScript path aliases (`paths` in `tsconfig.json`) only teach the type checker where files are. They do **not** rewrite import paths in emitted JavaScript. 
+
+   - TypeScript path aliases (`paths` in `tsconfig.json`) only teach the type checker where files are. They do **not** rewrite import paths in emitted JavaScript.
    - Use bundlers (Vite, esbuild, Webpack) or runtime loaders (`tsx`, `tsconfig-paths`) to resolve path aliases at runtime.
 
 2. **`Cannot use import statement outside a module`**
+
    - Ensure `"type": "module"` is declared in your `package.json`, or set `"module": "NodeNext"` and `"moduleResolution": "NodeNext"` in `tsconfig.json`.
 
 3. **`TS5053: Option 'emitDeclarationOnly' cannot be specified with option 'noEmit'`**
+
    - In modern setups using a bundler for transpilation and `tsc` solely for type generation, use `tsc --declaration --emitDeclarationOnly` instead of setting `noEmit: true`.

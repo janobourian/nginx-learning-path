@@ -1,6 +1,6 @@
 # Module 12: Enterprise Cryptography — Web Crypto (`crypto.subtle`) & OpenSSL
 
-**Track:** Node.js — Enterprise Architecture & Libuv Internals  
+**Track:** Node.js — Enterprise Architecture & Libuv Internals
 **Category:** Cryptography, AES-256-GCM, Digital Signatures & Web Crypto
 
 ---
@@ -9,7 +9,7 @@
 
 Node.js offers two distinct cryptography APIs:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 Node.js Cryptography APIs                   │
 ├────────────────────┬────────────────────────────────────────┤
@@ -40,6 +40,7 @@ export class AesGcmVault {
   static AUTH_TAG_LENGTH = 16; // 128-bit Authentication Tag
 
   /**
+
    * Encrypts plaintext into a secure envelope format:
    * [IV (12B)] + [Auth Tag (16B)] + [Ciphertext (NB)]
    */
@@ -69,6 +70,7 @@ export class AesGcmVault {
   }
 
   /**
+
    * Decrypts and verifies the ciphertext authenticity:
    */
   static decrypt(payloadBase64Url, keyBuffer) {
@@ -188,7 +190,7 @@ import crypto from 'node:crypto';
 
 export async function hashPassword(password) {
   const salt = crypto.randomBytes(16).toString('hex');
-  
+
   return new Promise((resolve, reject) => {
     crypto.scrypt(password, salt, 64, { N: 16384, r: 8, p: 1 }, (err, derivedKey) => {
       if (err) return reject(err);

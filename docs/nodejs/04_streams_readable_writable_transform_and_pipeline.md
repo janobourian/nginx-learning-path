@@ -1,6 +1,6 @@
 # Module 04: Node.js Streams, Backpressure & `stream.pipeline`
 
-**Track:** Node.js — Enterprise Architecture & Libuv Internals  
+**Track:** Node.js — Enterprise Architecture & Libuv Internals
 **Category:** Stream Processing, Backpressure & Pipeline Architecture
 
 ---
@@ -17,7 +17,7 @@ res.end(fileBuffer);
 
 With **Streams**, data is read and transmitted chunk-by-chunk (typically 64KB chunks). A 50GB file can be streamed to 1,000 clients simultaneously with **constant, bounded memory (< 30MB RAM total)**!
 
-```
+```text
 Stream Pipeline:
 [Source: 50GB File] ──► [ReadableStream] ──(64KB Chunks)──► [TransformStream (Gzip)] ──► [WritableStream (HTTP Response)]
 Memory Footprint: Bounded to ~64KB at any given microsecond!
@@ -27,7 +27,7 @@ Memory Footprint: Bounded to ~64KB at any given microsecond!
 
 ## 2. The 4 Fundamental Stream Types
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                    The 4 Node.js Stream Types               │
 ├───────────────────┬─────────────────────────────────────────┤
@@ -53,7 +53,8 @@ Memory Footprint: Bounded to ~64KB at any given microsecond!
 
 Without backpressure, unwritten chunks accumulate in RAM, triggering OOM crashes.
 
-### The Backpressure Handshake:
+### The Backpressure Handshake
+
 1. `writable.write(chunk)` returns `false` when internal buffer exceeds **`highWaterMark`** (default: 16KB for objects, 64KB for byte streams).
 2. The producer pauses reading (`readable.pause()`).
 3. When the consumer's buffer empties, the writable emits the **`drain`** event.
@@ -82,7 +83,8 @@ function writeWithBackpressure(readable, writable) {
 
 Legacy code used `readable.pipe(transform).pipe(writable)`.
 
-### Why `.pipe()` Is Forbidden in Production:
+### Why `.pipe()` Is Forbidden in Production
+
 - If an error occurs in the middle of a `.pipe()` chain, **`.pipe()` does NOT close or destroy the other streams in the pipeline**.
 - This causes lingering open file handles, socket descriptor leaks, and memory leaks.
 
@@ -195,5 +197,6 @@ async function processStreamAsync(filePath) {
 
 2. **Handle Web Stream vs Node Stream Interoperability**
    In Node.js 20+, convert between Web Streams (`ReadableStream`) and Node.js Streams (`Readable`) using:
+
    - `Readable.fromWeb(webStream)`
    - `Readable.toWeb(nodeStream)`

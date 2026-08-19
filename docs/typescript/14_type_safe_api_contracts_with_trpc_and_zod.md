@@ -1,6 +1,6 @@
 # Module 14: Type-Safe API Contracts with tRPC & Zod
 
-**Track:** TypeScript — Enterprise Type System  
+**Track:** TypeScript — Enterprise Type System
 **Category:** Full-Stack Type Safety, API Contracts & Runtime Validation
 
 ---
@@ -9,12 +9,13 @@
 
 In traditional client-server web architectures, the type boundary between backend APIs and frontend clients is brittle:
 
-```
+```json
 [Backend: Node / Go / Python] ──(JSON over HTTP)──► [Frontend: React / Vue / Next.js]
   TypeScript Types: UserDTO                             TypeScript Types: ??? (Manual interface UserDTO)
 ```
 
 Problems:
+
 1. **Drift**: If the backend renames a field from `userId` to `id`, the frontend types do not fail to compile until runtime.
 2. **Double Maintenance**: Maintaining separate backend and frontend DTO interfaces or maintaining complex GraphQL schema codegen pipelines.
 3. **Unvalidated JSON**: Casting `await response.json() as UserDTO` performs **zero runtime validation**. If the server returns `{ error: "unauthorized" }`, the client crashes with runtime null pointer exceptions.
@@ -89,7 +90,7 @@ export const ResetPasswordSchema = z
 
 **tRPC** allows you to build fully type-safe APIs without code generation, OpenAPI schemas, or runtime GraphQL overhead. Your client imports **only the TypeScript type** of your backend router (`AppRouter`).
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                    Backend (tRPC Server)                    │
 │                                                             │

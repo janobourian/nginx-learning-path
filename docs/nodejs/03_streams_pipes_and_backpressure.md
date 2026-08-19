@@ -1,9 +1,9 @@
 # Module 03: Streams, Transform Pipelines & Backpressure Management
 
-**Track:** Node.js Enterprise Backend & Runtime  
-**Directory:** `docs/nodejs/`  
-**File:** `03_streams_pipes_and_backpressure.md`  
-**Category:** High-Throughput I/O & Streaming Pipelines  
+**Track:** Node.js Enterprise Backend & Runtime
+**Directory:** `docs/nodejs/`
+**File:** `03_streams_pipes_and_backpressure.md`
+**Category:** High-Throughput I/O & Streaming Pipelines
 **Status:** ✅ Production-Grade Reference Textbook (Zero to Master)
 
 ---
@@ -14,7 +14,7 @@ Node.js Streams represent the foundational abstraction for handling continuous d
 
 The defining architectural challenge of streaming systems is **Backpressure**. Backpressure occurs when a data producer (e.g. a high-speed NVMe SSD reading at 3,500 MB/s) generates data faster than a data consumer (e.g. a slow 3G mobile client socket writing at 500 KB/s) can consume it. If backpressure is ignored, unconsumed data accumulates in server RAM indefinitely, causing process crashes from Out-Of-Memory (OOM) errors.
 
-```
+```text
 +-------------------------------------------------------------------------------+
 |                       Node.js Stream Backpressure Flow                        |
 +-------------------------------------------------------------------------------+
@@ -44,7 +44,7 @@ Below is the complete dictionary of core Stream classes, lifecycle events, and p
 | `PassThrough` | `node:stream` | `new PassThrough()` | Trivial Transform stream outputting bytes unmodified, used for pipeline branching and spying. |
 | `pipeline(...streams)` | `node:stream/promises` | `await pipeline(r, t, w): Promise<void>` | Pipes streams together with automated error forwarding, cleanup, and backpressure management. |
 | `finished(stream)` | `node:stream/promises` | `await finished(stream): Promise<void>` | Promise resolving when a stream has finished, closed, or emitted an error. |
-| `Readable.from(iterable)`| `node:stream` | `Readable.from(iter, opts): Readable` | Constructs a Readable stream from any synchronous or asynchronous iterable sequence. |
+| `Readable.from(iterable)` | `node:stream` | `Readable.from(iter, opts): Readable` | Constructs a Readable stream from any synchronous or asynchronous iterable sequence. |
 | `highWaterMark` | Configuration | `{ highWaterMark: number }` | Buffer threshold in bytes (default 16KB for byte streams, 16 for objectMode streams). |
 | `writable.write(chunk)` | Method | `writable.write(chunk, cb): boolean` | Returns `false` when internal buffer exceeds `highWaterMark`, indicating backpressure. |
 | `'drain'` event | Event Hook | `writable.on('drain', cb)` | Emitted when the internal buffer drains below `highWaterMark`, signaling the producer to resume. |
@@ -88,8 +88,10 @@ function copyWithBackpressure(
 }
 ```
 
-### Why `stream.pipeline()` is Mandatory in Enterprise Code:
+### Why `stream.pipeline()` is Mandatory in Enterprise Code
+
 If an error occurs mid-stream when using legacy `.pipe()` (`readable.pipe(transform).pipe(writable)`):
+
 1. The error event is **not forwarded** downstream automatically.
 2. File descriptors and network sockets remain open, causing descriptor leaks.
 3. Unhandled error events crash the entire Node.js process.
@@ -102,6 +104,7 @@ If an error occurs mid-stream when using legacy `.pipe()` (`readable.pipe(transf
 This production lab creates a multi-stage streaming pipeline that reads a dataset, transforms lines into structured JSON, compresses with Gzip, and encrypts with AES-256-GCM in constant $O(1)$ memory.
 
 ### File 1: `src/streaming_etl_pipeline.ts`
+
 ```typescript
 import { pipeline } from 'node:stream/promises';
 import { Transform, TransformCallback, Readable } from 'node:stream';
@@ -122,7 +125,7 @@ export class LogTransformStream extends Transform {
     _transform(chunk: Buffer, encoding: string, callback: TransformCallback): void {
         this.buffer += chunk.toString('utf8');
         const lines = this.buffer.split('\n');
-        
+
         // Keep the last incomplete line fragment in buffer
         this.buffer = lines.pop() || '';
 
@@ -241,6 +244,7 @@ runStreamingLab();
 ## 5. Pure Escaped CLI Snippets (Production Operations)
 
 ```bash
+
 # 1. Compile TypeScript source code
 npx tsc \
     --target ES2022 \
@@ -264,15 +268,19 @@ cat /dev/urandom | head -c 500M | pv | gzip -c > /dev/null
 ## 6. Detailed Sub-Components & Diagnostics
 
 ### Node.js Stream Buffer State Machine
+
 * **Role & Function**: Manages the `BufferList` queue internal to Readable and Writable streams, tracking `length` against `highWaterMark` and toggling `needDrain` flags.
 * **Inspection Command**:
+
   ```bash
   node -e "const s = require('node:stream'); const r = new s.Readable({ read(){} }); console.log(r._readableState.highWaterMark);"
   ```
 
 ### Libuv Stream Pipe Descriptor
+
 * **Role & Function**: Binds POSIX non-blocking pipe descriptors (`pipe2(2)` with `O_NONBLOCK`) to Libuv's `uv_pipe_t` handles, managing kernel socket buffer drains.
 * **Inspection Command**:
+
   ```bash
   lsof -p $(pgrep -f "src/streaming_etl_pipeline.js") | grep PIPE
   ```
@@ -282,6 +290,7 @@ cat /dev/urandom | head -c 500M | pv | gzip -c > /dev/null
 ## References
 
 ### Official Documentation
+
 * [Node.js Stream API Specification](https://nodejs.org/docs/latest/api/stream.html) — Core stream manual.
 * [Node.js Stream Promises API](https://nodejs.org/docs/latest/api/stream.html#streams-promises-api) — Pipeline and finished utilities.
 * [Backpressure Guide in Node.js](https://nodejs.org/en/learn/asynchronous-work/backpressure-in-nodejs-streams) — Architectural manual.
@@ -289,6 +298,7 @@ cat /dev/urandom | head -c 500M | pv | gzip -c > /dev/null
 * [Node.js Crypto API Reference](https://nodejs.org/docs/latest/api/crypto.html) — Cipher streams.
 
 ### Authoritative Engineering Blogs
+
 * [Matteo Collina: Streams, Backpressure and Node.js Internals](https://noders.com/) — Stream architecture.
 * [Brendan Gregg: Linux Pipe and Stream Throughput Profiling](https://www.brendangregg.com/) — I/O performance.
 * [Cloudflare Engineering: Streaming Data Pipelines at the Edge](https://blog.cloudflare.com/) — High-throughput streaming.
@@ -302,9 +312,11 @@ cat /dev/urandom | head -c 500M | pv | gzip -c > /dev/null
 *Streaming pipelines allow small 256MB RAM containers to process multi-gigabyte files with zero memory inflation.*
 
 ### 1. Constant O(1) Memory Footprint
+
 By processing files in 64KB stream chunks via `stream.pipeline()`, process memory consumption remains strictly constant at $< 20\text{MB}$ regardless of whether the source file is 10MB or 100GB. This eliminates the requirement to provision 64GB RAM cloud instances for batch ETL jobs, reducing instance costs from $450/month down to $15/month per worker pod.
 
 ### 2. Network Egress Reduction via Inline Compression
+
 Streaming data through `zlib.createGzip()` before transmitting across availability zones reduces data payload sizes by 70–85%. Across 100 TB of monthly log and data transfers, this reduces AWS inter-AZ transfer charges ($0.01/GB) and internet egress ($0.09/GB), saving over $7,500/month.
 
 ---
@@ -314,13 +326,16 @@ Streaming data through `zlib.createGzip()` before transmitting across availabili
 ### Common Anti-Patterns
 
 1. **Using Legacy `.pipe()` Without Error Handlers**:
-   - *Anti-Pattern*: Writing `r.pipe(t).pipe(w)`. If `t` emits an error, `r` and `w` remain open, leaking file descriptors and crashing the process on uncaught exceptions.
-   - *Fix*: Always use `await pipeline(r, t, w)` from `node:stream/promises`.
+
+   * *Anti-Pattern*: Writing `r.pipe(t).pipe(w)`. If `t` emits an error, `r` and `w` remain open, leaking file descriptors and crashing the process on uncaught exceptions.
+   * *Fix*: Always use `await pipeline(r, t, w)` from `node:stream/promises`.
 
 2. **Unconsumed Readable Streams Leaking Memory**:
-   - *Anti-Pattern*: Opening a stream and attaching an error handler, but never calling `stream.resume()` or attaching a `data` listener. The stream buffers data indefinitely in RAM.
-   - *Fix*: If discarding data, pipe to `new Writable({ write(c, e, cb) { cb(); } })` or call `stream.resume()`.
+
+   * *Anti-Pattern*: Opening a stream and attaching an error handler, but never calling `stream.resume()` or attaching a `data` listener. The stream buffers data indefinitely in RAM.
+   * *Fix*: If discarding data, pipe to `new Writable({ write(c, e, cb) { cb(); } })` or call `stream.resume()`.
 
 3. **Ignoring Backpressure on Manual `write()` Calls**:
-   - *Anti-Pattern*: Calling `writable.write(chunk)` in a `while` loop without checking the return value. This buffers gigabytes into Node.js heap memory, causing OOM crashes.
-   - *Fix*: If `write()` returns `false`, wait for the `'drain'` event before resuming writes.
+
+   * *Anti-Pattern*: Calling `writable.write(chunk)` in a `while` loop without checking the return value. This buffers gigabytes into Node.js heap memory, causing OOM crashes.
+   * *Fix*: If `write()` returns `false`, wait for the `'drain'` event before resuming writes.

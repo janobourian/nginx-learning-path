@@ -1,17 +1,18 @@
 # Module 10: Composition API & Custom Composables
 
-**Track:** Vue — Progressive Web Framework  
+**Track:** Vue — Progressive Web Framework
 **Category:** Logic Reuse & Architecture
 
 ---
 
 ## What Is a Composable?
 
-In the context of Vue applications, a **composable** is a function that leverages Vue's Composition API to encapsulate and reuse **stateful logic**. 
+In the context of Vue applications, a **composable** is a function that leverages Vue's Composition API to encapsulate and reuse **stateful logic**.
 
 Unlike simple utility functions (which take inputs, perform computations, and return pure outputs), composables manage reactive state, compute derived values, register lifecycle hooks, and synchronize external resources (like browser APIs, WebSockets, or network requests).
 
 Composables solve the key limitations of Vue 2's code reuse patterns:
+
 1. **Mixins**: Implicit property collisions, unclear source of properties, tight coupling.
 2. **Scoped Slots / Renderless Components**: Component tree bloating, performance overhead, awkward syntax for non-UI logic.
 3. **Higher-Order Components (HOCs)**: Complex prop forwarding and TypeScript typing difficulties.
@@ -380,7 +381,8 @@ useEventListener(window, "mousemove", (e) => {
 
 ## Troubleshooting & Anti-Patterns
 
-**1. Destructuring a reactive object inside a composable**
+### 1. Destructuring a reactive object inside a composable
+
 ```typescript
 // ❌ WRONG: Destructuring strips proxy tracking
 export function useCounter() {
@@ -395,7 +397,8 @@ export function useCounter() {
 }
 ```
 
-**2. Calling lifecycle hooks conditionally or outside synchronous setup**
+### 2. Calling lifecycle hooks conditionally or outside synchronous setup
+
 ```typescript
 // ❌ WRONG: Calling onMounted inside an async callback
 export function useBadAsync() {
@@ -412,5 +415,6 @@ export function useGoodAsync() {
 }
 ```
 
-**3. Memory leaks from missing cleanup**
+### 3. Memory leaks from missing cleanup
+
 Always ensure event listeners, timers, web workers, and websocket connections created inside a composable are registered with `onUnmounted()` or `onScopeDispose()`.

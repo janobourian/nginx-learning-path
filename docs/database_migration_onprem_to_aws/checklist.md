@@ -52,10 +52,10 @@ Printable checklist for tracking migration progress. Based on [AWS DMS Best Prac
 
 - [ ] Create a dedicated DMS user with required permissions
 - [ ] Enable CDC on source database:
-    - [ ] **SQL Server**: set recovery model to FULL, enable CDC on database and tables, configure distribution
-    - [ ] **PostgreSQL**: set `wal_level = logical`, configure `max_replication_slots` and `max_wal_senders`, restart
-    - [ ] **MySQL**: enable binary logging with `ROW` format, set `binlog_row_image = FULL`, restart
-    - [ ] **Oracle**: enable supplemental logging (ALL COLUMNS), enable ARCHIVELOG mode
+  - [ ] **SQL Server**: set recovery model to FULL, enable CDC on database and tables, configure distribution
+  - [ ] **PostgreSQL**: set `wal_level = logical`, configure `max_replication_slots` and `max_wal_senders`, restart
+  - [ ] **MySQL**: enable binary logging with `ROW` format, set `binlog_row_image = FULL`, restart
+  - [ ] **Oracle**: enable supplemental logging (ALL COLUMNS), enable ARCHIVELOG mode
 - [ ] Verify source database has sufficient resources for replication overhead (DMS reads transaction logs)
 - [ ] Take a full backup of source database before migration
 
@@ -86,11 +86,11 @@ Printable checklist for tracking migration progress. Based on [AWS DMS Best Prac
 - [ ] Create target endpoint
 - [ ] **Test target endpoint connection** — must show `successful`
 - [ ] Create migration task with appropriate settings:
-    - [ ] Migration type: `full-load-and-cdc`
-    - [ ] Table preparation mode: `DO_NOTHING`
-    - [ ] LOB mode: selected based on data profile
-    - [ ] Enable validation: `true`
-    - [ ] Enable CloudWatch logs: `true`
+  - [ ] Migration type: `full-load-and-cdc`
+  - [ ] Table preparation mode: `DO_NOTHING`
+  - [ ] LOB mode: selected based on data profile
+  - [ ] Enable validation: `true`
+  - [ ] Enable CloudWatch logs: `true`
 - [ ] Configure table mappings (selection rules + transformation rules)
 - [ ] Run [premigration assessment](https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Tasks.AssessmentReport.html) — resolve all failures
 - [ ] Set up SNS event subscription for task failures and state changes

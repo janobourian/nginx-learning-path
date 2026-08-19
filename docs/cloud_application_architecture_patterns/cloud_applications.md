@@ -40,7 +40,7 @@ Cloud computing has several qualities that make a pool of configurable computing
 
 ## Cloud Application
 
-Cloud applications are designed to take advantage of the benefits of cloud computing, such as scalability, flexibility, and cost-efficiency. They can be accessed from anywhere with an internet connection and are often built using a variety of cloud services and technologies. 
+Cloud applications are designed to take advantage of the benefits of cloud computing, such as scalability, flexibility, and cost-efficiency. They can be accessed from anywhere with an internet connection and are often built using a variety of cloud services and technologies.
 
 Cloud applications can be categorized into different types based on their architecture and deployment models, including Software as a Service (SaaS), Platform as a Service (PaaS), Infrastructure as a Service (IaaS), and Function as a Service (FaaS).
 

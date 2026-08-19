@@ -1,6 +1,6 @@
 # Module 11: Modern State Management with Riverpod 2.0 & Code Generators
 
-**Track:** Flutter — Multi-Platform Architecture & Impeller Engine  
+**Track:** Flutter — Multi-Platform Architecture & Impeller Engine
 **Category:** State Architecture, Riverpod Generators & Asynchronous Values
 
 ---
@@ -23,6 +23,7 @@
 Modern Riverpod utilizes **`riverpod_annotation`** and **`build_runner`** for clean, boilerplate-free type generation:
 
 ```yaml
+
 # pubspec.yaml
 dependencies:
   flutter_riverpod: ^2.5.1
@@ -55,6 +56,7 @@ void main() {
 ## 3. Defining Providers with `@riverpod` Annotations
 
 Run code generation watcher:
+
 ```bash
 dart run build_runner watch -d
 ```
@@ -261,6 +263,7 @@ void main() {
 ## Troubleshooting & Best Practices
 
 1. **`ref.watch()` vs `ref.read()`**
+
    - Use **`ref.watch()`** inside the `build()` method to subscribe to state changes.
    - Use **`ref.read()`** inside button click callbacks (`onPressed`) or async methods to invoke actions. Never call `ref.read` inside `build()`.
 

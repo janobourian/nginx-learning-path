@@ -1,6 +1,6 @@
 # Module 08: Fastify Architecture, Schema Compilation & High-Throughput Microservices
 
-**Track:** Node.js — Enterprise Architecture & Libuv Internals  
+**Track:** Node.js — Enterprise Architecture & Libuv Internals
 **Category:** High-Throughput Frameworks, Schema Compilation & Plugin Architecture
 
 ---
@@ -9,18 +9,21 @@
 
 While Express remains popular for traditional monolithic apps, **Fastify** has become the gold standard for high-throughput enterprise microservices.
 
-### The 3 Architectural Secrets of Fastify:
+### The 3 Architectural Secrets of Fastify
 
 1. **`fast-json-stringify` (AOT JSON Serialization)**:
+
    - Standard `JSON.stringify(obj)` dynamically inspects object types and keys on every request.
    - Fastify takes your JSON Schema at server startup and **compiles a dedicated C++ / V8 JIT serialization function** that concatenates strings in native memory up to **2x–3x faster than `JSON.stringify`**!
 2. **`find-my-way` (Radix Tree Router)**:
+
    - Express uses a linear array of RegExp matchers (O(N) search time).
    - Fastify uses a **Radix Tree (Prefix Trie)** router, matching routes in **O(K) constant time** where K is the URL length.
 3. **Encapsulated Plugin Architecture**:
+
    - Clean dependency graphs with isolated decorator scopes and lifecycle hooks.
 
-```
+```text
 Routing Performance Comparison:
 Express (Linear RegExp Array O(N)):
 Matches Route 1 (regex) ──► Route 2 (regex) ──► ... ──► Route 50 (regex) (Slow!)
@@ -43,6 +46,7 @@ npm install fastify @sinclair/typebox
 ## 3. Schema Validation & Serialization with TypeBox
 
 In Fastify, schemas serve two critical roles simultaneously:
+
 1. **Input Validation (Ajv)**: Rejects invalid request payloads with 400 errors *before* the handler runs.
 2. **Output Serialization (`fast-json-stringify`)**: Strips unwhitelisted secret fields (like passwords) and accelerates response serialization.
 
@@ -120,7 +124,7 @@ export const userRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
 
 Fastify executes requests through an explicit, predictable lifecycle pipeline:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 Fastify Request Lifecycle Hooks             │
 │                                                             │

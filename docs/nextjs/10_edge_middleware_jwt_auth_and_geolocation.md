@@ -1,6 +1,6 @@
 # Module 10: Edge Middleware — JWT Authentication, Geolocation & Subdomain Routing
 
-**Track:** Next.js — Full-Stack App Router & Edge Architecture  
+**Track:** Next.js — Full-Stack App Router & Edge Architecture
 **Category:** Edge Computing, Request Interception & Security Middleware
 
 ---
@@ -10,10 +10,11 @@
 **Next.js Middleware** (`src/middleware.ts`) allows you to run code **globally at the Edge before an incoming HTTP request is processed** by the cache, Server Components, or Route Handlers.
 
 Because Middleware runs on the **Edge Runtime** (a lightweight V8 sandbox powered by Web Standards rather than a full Node.js server):
+
 - Middleware executes in **under 5 milliseconds** globally.
 - It can redirect, rewrite, modify headers, or inspect cookies before your backend servers ever touch the request.
 
-```
+```text
 Request Lifecycle with Middleware:
 Incoming Request ──► [Edge Middleware (src/middleware.ts)]
                             │
@@ -43,6 +44,7 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     /*
+
      * Match all request paths except for the ones starting with:
      * - api/public (public endpoints)
      * - _next/static (static files)
@@ -187,6 +189,7 @@ export function middleware(request: NextRequest) {
 ## Troubleshooting & Best Practices
 
 1. **`NextResponse.redirect` vs `NextResponse.rewrite`**
+
    - `redirect()`: Returns a 307/308 HTTP response; the **browser URL changes**.
    - `rewrite()`: Proxies the request internally to a different route; the **browser URL stays the same** (ideal for A/B testing and subdomains).
 

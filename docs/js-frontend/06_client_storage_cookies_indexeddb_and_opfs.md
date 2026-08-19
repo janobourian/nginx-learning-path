@@ -1,6 +1,6 @@
 # Module 06: Client-Side Storage — Cookies, IndexedDB & Origin Private File System (OPFS)
 
-**Track:** Modern JavaScript — Frontend Architecture & Web APIs  
+**Track:** Modern JavaScript — Frontend Architecture & Web APIs
 **Category:** Client Storage, IndexedDB & Origin Private File System
 
 ---
@@ -25,6 +25,7 @@ Cookies sent to the server must be protected against tampering and cross-site tr
 ```http
 Set-Cookie: __Host-session=xyz987; Secure; HttpOnly; SameSite=Strict; Path=/; Partitioned; Max-Age=604800
 ```
+
 - **`__Host-` Prefix**: Requires `Secure`, must be sent from HTTPS, and cannot be modified by subdomains.
 - **`Partitioned` (CHIPS)**: Prevents third-party tracking across different top-level sites.
 
@@ -34,7 +35,7 @@ Set-Cookie: __Host-session=xyz987; Secure; HttpOnly; SameSite=Strict; Path=/; Pa
 
 **IndexedDB** is an asynchronous, transactional, indexed object database built into all modern browsers.
 
-### Native Promise-Based IndexedDB Wrapper:
+### Native Promise-Based IndexedDB Wrapper
 
 ```javascript
 // src/storage/indexed_db.js
@@ -135,7 +136,8 @@ export async function readBinaryFromOpfs(fileName) {
 }
 ```
 
-### Ultra-Fast Synchronous File Access in Web Workers:
+### Ultra-Fast Synchronous File Access in Web Workers
+
 Inside a Web Worker, OPFS provides **`createSyncAccessHandle()`**, allowing WebAssembly and SQLite C libraries to read and write bytes with **microsecond synchronous NVMe speeds**:
 
 ```javascript
@@ -155,7 +157,7 @@ accessHandle.close();
 
 ## 5. Storage Quota & Persistence Management (`navigator.storage`)
 
-Modern browsers may automatically purge temporary client storage if device disk space is low. 
+Modern browsers may automatically purge temporary client storage if device disk space is low.
 
 Request **Persistent Storage** to prevent eviction:
 

@@ -1,6 +1,6 @@
 # Module 03: Buffers, TypedArrays & Low-Level Binary Protocols
 
-**Track:** Node.js — Enterprise Architecture & Libuv Internals  
+**Track:** Node.js — Enterprise Architecture & Libuv Internals
 **Category:** Binary I/O, Buffer Pools & Systems Programming
 
 ---
@@ -11,7 +11,7 @@ In JavaScript, strings are UTF-16 code units managed inside the V8 garbage-colle
 
 A **`Buffer`** is a specialized subclass of JavaScript's `Uint8Array` that represents a **fixed-length sequence of raw binary bytes allocated in raw C++ memory outside the V8 heap**.
 
-```
+```text
 Memory Allocation Architecture:
 ┌─────────────────────────────────────────────────────────────┐
 │                      V8 Memory Heap                         │
@@ -58,7 +58,7 @@ Allocating hundreds of tiny 16-byte buffers via separate C++ system calls (`mall
 
 Node.js solves this using an internal **8KB Buffer Pool (Slab Allocator)**:
 
-```
+```text
 8KB Buffer Pool (Buffer.poolSize = 8192 Bytes):
 ┌─────────────────────────────────────────────────────────────┐
 │ [Chunk 1: 16B] │ [Chunk 2: 32B] │ [Unallocated: 8144B] ...  │
@@ -102,6 +102,7 @@ export class BinaryPacket {
   static PROTOCOL_VERSION = 1;
 
   /**
+
    * Serializes a payload into a binary frame:
    * [0]     Magic Byte (0xAA)
    * [1]     Version (0x01)
@@ -136,6 +137,7 @@ export class BinaryPacket {
   }
 
   /**
+
    * Decodes a binary frame:
    */
   static decode(buffer) {

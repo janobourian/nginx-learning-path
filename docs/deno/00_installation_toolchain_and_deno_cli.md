@@ -1,6 +1,6 @@
 # Module 00: Installation, Toolchain & Deno CLI
 
-**Track:** Deno Secure Engine & Edge Runtime  
+**Track:** Deno Secure Engine & Edge Runtime
 **Category:** Getting Started & Development Environment
 
 ---
@@ -20,10 +20,12 @@ Deno ships as a **single self-contained executable** (~100MB). It includes the r
 ### macOS and Linux
 
 ```bash
+
 # Official install script — downloads the latest release binary
 curl -fsSL https://deno.land/install.sh | sh
 
 # The binary is placed in ~/.deno/bin/deno
+
 # Add to your PATH (add this line to ~/.bashrc, ~/.zshrc, or ~/.profile)
 export DENO_INSTALL="$HOME/.deno"
 export PATH="$DENO_INSTALL/bin:$PATH"
@@ -33,7 +35,8 @@ deno --version
 ```
 
 Output:
-```
+
+```text
 deno 2.1.4 (stable, release, aarch64-apple-darwin)
 v8 13.0.245.12
 typescript 5.6.2
@@ -42,6 +45,7 @@ typescript 5.6.2
 ### Windows (PowerShell)
 
 ```powershell
+
 # Using PowerShell
 irm https://deno.land/install.ps1 | iex
 
@@ -55,6 +59,7 @@ choco install deno
 ### Version Management with `dvm`
 
 ```bash
+
 # Install dvm (Deno Version Manager)
 curl -fsSL https://deno.land/install.sh | sh
 
@@ -70,6 +75,7 @@ asdf global deno 2.1.4
 ### Upgrading Deno
 
 ```bash
+
 # Upgrade to the latest stable release
 deno upgrade
 
@@ -84,7 +90,7 @@ deno upgrade --canary
 
 ## The Deno Runtime Architecture
 
-```
+```text
 ┌─────────────────────────────────────────────────┐
 │                   Your Code                     │
 │              (.ts / .js / .jsx / .tsx)          │
@@ -134,7 +140,8 @@ console.log(greeting);
 
 ```bash
 deno run hello.ts
-# Output: Hello, Deno!
+
+# Output: Hello, Deno
 ```
 
 No `package.json`, no `node_modules`, no compilation step. TypeScript runs directly.
@@ -146,6 +153,7 @@ No `package.json`, no `node_modules`, no compilation step. TypeScript runs direc
 ### `deno run` — Execute a Script
 
 ```bash
+
 # Run a local file
 deno run main.ts
 
@@ -170,6 +178,7 @@ deno run --allow-env MY_VAR=value main.ts
 Deno ships with `deno fmt`, a built-in formatter based on `dprint`. It formats TypeScript, JavaScript, JSON, Markdown, and HTML.
 
 ```bash
+
 # Format all files in the current directory
 deno fmt
 
@@ -180,12 +189,14 @@ deno fmt main.ts utils/helpers.ts
 deno fmt --check
 
 # Configure in deno.json
+
 # "fmt": { "lineWidth": 100, "indentWidth": 2, "singleQuote": true }
 ```
 
 ### `deno lint` — Linter
 
 ```bash
+
 # Lint all files
 deno lint
 
@@ -202,6 +213,7 @@ deno lint --quiet
 ### `deno test` — Test Runner
 
 ```bash
+
 # Run all test files (files ending in _test.ts, .test.ts, or in __tests__/)
 deno test
 
@@ -225,6 +237,7 @@ deno coverage coverage_dir
 ### `deno check` — Type Check Without Running
 
 ```bash
+
 # Type-check a file without executing it
 deno check main.ts
 
@@ -235,6 +248,7 @@ deno check --all main.ts
 ### `deno compile` — Standalone Binary
 
 ```bash
+
 # Compile to a self-contained executable
 deno compile --allow-net --allow-read main.ts
 
@@ -244,17 +258,23 @@ deno compile --target x86_64-unknown-linux-gnu main.ts
 # Set output filename
 deno compile --output my-server main.ts
 
-# Available targets:
+# Available targets
+
 # x86_64-unknown-linux-gnu    (Linux x86_64)
+
 # aarch64-unknown-linux-gnu   (Linux ARM64)
+
 # x86_64-pc-windows-msvc      (Windows x86_64)
+
 # x86_64-apple-darwin         (macOS Intel)
+
 # aarch64-apple-darwin         (macOS Apple Silicon)
 ```
 
 ### `deno install` — Install a Script as a Global Command
 
 ```bash
+
 # Install a Deno script as a CLI command
 deno install \
     --allow-net \
@@ -274,6 +294,7 @@ deno install \
 ### `deno repl` — Interactive Shell
 
 ```bash
+
 # Start the Deno REPL
 deno repl
 
@@ -335,6 +356,7 @@ deno repl --eval 'import { assert } from "jsr:@std/assert"'
 ```
 
 Run tasks with `deno task`:
+
 ```bash
 deno task dev      # Starts dev server with watch mode
 deno task test     # Runs all tests
@@ -376,17 +398,21 @@ import chalk from "npm:chalk@^5";
 ## Development Workflow for a New Project
 
 ```bash
+
 # 1. Create project directory
 mkdir my-deno-project && cd my-deno-project
 
 # 2. Initialize configuration
 deno init
+
 # Creates: deno.json, main.ts, main_test.ts
 
 # 3. Edit deno.json to add your tasks and imports
+
 # (see example above)
 
 # 4. Write your code in main.ts
+
 # Deno is ready — no npm install, no setup
 
 # 5. Start development with watch mode
@@ -404,7 +430,7 @@ deno fmt && deno lint
 ## Key Differences from Node.js
 
 | Feature | Node.js | Deno |
-|---|---|---|
+| --- | --- | --- |
 | TypeScript | Requires `ts-node` or build step | Native, no configuration |
 | Module system | CommonJS (`require`) or ESM | ES Modules only (`import`) |
 | Package manager | npm / yarn / pnpm | No package manager; URLs / JSR |
@@ -420,21 +446,23 @@ deno fmt && deno lint
 
 ## Troubleshooting
 
-**`deno: command not found` after installation**
+### `deno: command not found` after installation
 
 The `~/.deno/bin` directory is not in your `PATH`. Add this to your shell configuration:
+
 ```bash
 echo 'export PATH="$HOME/.deno/bin:$PATH"' >> ~/.zshrc
 source ~/.zshrc
 ```
 
-**`Error: Relative import path must start with "/", "./" or "../"`**
+### `Error: Relative import path must start with "/", "./" or "../"`
 
 Deno requires explicit relative imports. Change `import { util } from "utils"` to `import { util } from "./utils.ts"`. Note that the `.ts` extension must be included explicitly in Deno.
 
-**Module cached with old version**
+### Module cached with old version
 
 Deno caches downloaded modules in `~/.cache/deno` (Linux/macOS) or `%LOCALAPPDATA%\deno` (Windows). Force re-download:
+
 ```bash
 deno run --reload main.ts
 
@@ -442,9 +470,10 @@ deno run --reload main.ts
 deno cache --reload jsr:@std/assert@^1
 ```
 
-**TypeScript errors on a valid import**
+### TypeScript errors on a valid import
 
 Run `deno check main.ts` for detailed type errors. If the import lacks types, some npm packages need `@types/` packages added to `deno.json`:
+
 ```json
 {
   "imports": {

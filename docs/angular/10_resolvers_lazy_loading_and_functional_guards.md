@@ -1,6 +1,6 @@
 # Module 10: Route Resolvers, Preloading Strategies & Dynamic Title Strategies
 
-**Track:** Angular — Signals Platform & Ivy Architecture  
+**Track:** Angular — Signals Platform & Ivy Architecture
 **Category:** Routing Optimization, Data Pre-fetching & Preload Strategies
 
 ---
@@ -45,7 +45,7 @@ export const projectResolver: ResolveFn<ProjectData | null> = (route) => {
 };
 ```
 
-### Attaching the Resolver to Route Configuration:
+### Attaching the Resolver to Route Configuration
 
 ```typescript
 // src/app/features/projects/projects.routes.ts
@@ -62,7 +62,7 @@ export const PROJECTS_ROUTES: Routes = [
 ];
 ```
 
-### Consuming Resolved Data via Input Signal Binding:
+### Consuming Resolved Data via Input Signal Binding
 
 With `withComponentInputBinding()`, resolved data is bound directly to a component `input()` signal matching the resolver key:
 
@@ -97,7 +97,7 @@ By default, lazy-loaded route chunks (`loadComponent` / `loadChildren`) are down
 
 **Preloading Strategies** download lazy-loaded route JavaScript chunks **in the background after the initial page load has completed**.
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 Preloading Strategy Choices                 │
 ├──────────────────────────┬──────────────────────────────────┤
@@ -211,5 +211,6 @@ providers: [
 ## Troubleshooting & Best Practices
 
 1. **Resolvers vs Skeletons**
+
    - Use **Resolvers** when a page *cannot* render without initial data (e.g. edit entity form).
    - Use **Component Skeletons / `@defer`** when you want instant page navigation with progressive loading skeletons (better perceived performance).

@@ -1,6 +1,6 @@
 # Module 16: Client-Side Routing — History API & The Modern Navigation API
 
-**Track:** Modern JavaScript — Frontend Architecture & Web APIs  
+**Track:** Modern JavaScript — Frontend Architecture & Web APIs
 **Category:** Single-Page App Architecture, History API & Navigation Standards
 
 ---
@@ -10,12 +10,13 @@
 In traditional multi-page websites, clicking a link triggers a full browser reload and downloads a new HTML document from the server.
 
 In a **Single Page Application (SPA)**:
+
 1. The initial HTML/JS shell loads once.
 2. Clicking a navigation link is intercepted by JavaScript.
 3. The URL in the address bar is updated **without refreshing the page**.
 4. The router renders the corresponding component view dynamically into the DOM.
 
-```
+```text
 SPA Client-Side Routing Pipeline:
 [User Clicks Link: <a href="/dashboard">]
         │

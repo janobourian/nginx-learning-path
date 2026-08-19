@@ -1,6 +1,6 @@
 # Module 12: Enterprise Isolate Pools & High-Throughput Worker Systems
 
-**Track:** Dart — Language & VM Architecture  
+**Track:** Dart — Language & VM Architecture
 **Category:** Concurrency Engineering, Isolate Pools & Multicore Task Scheduling
 
 ---
@@ -10,10 +10,11 @@
 While `Isolate.run()` is convenient for occasional one-off jobs, spawning an isolate incurs an allocation overhead of ~15–30ms and several megabytes of heap memory.
 
 In high-throughput enterprise backends (e.g. processing 10,000 image thumbnails, cryptographic verification, or PDF rendering per second):
+
 - Spawning and tearing down thousands of isolates per second exhausts OS thread handles and saturates CPU time with VM bootstrap overhead.
 - An **Isolate Pool** pre-warms a fixed cluster of persistent worker isolates matching the host CPU core count (`Platform.numberOfProcessors`), distributing tasks via load-balancing queues with **sub-millisecond dispatch latency**.
 
-```
+```text
 Isolate Worker Pool Architecture:
                     ┌────────────────────────────┐
                     │      Task Queue Stream     │

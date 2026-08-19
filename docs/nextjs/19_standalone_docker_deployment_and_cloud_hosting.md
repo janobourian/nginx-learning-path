@@ -1,6 +1,6 @@
 # Module 19: Standalone Docker Deployment, Kubernetes & Self-Hosting
 
-**Track:** Next.js — Full-Stack App Router & Edge Architecture  
+**Track:** Next.js — Full-Stack App Router & Edge Architecture
 **Category:** DevOps, Docker Containerization & Cloud Deployment
 
 ---
@@ -12,6 +12,7 @@ By default, deploying a full-stack Next.js application required copying the enti
 Next.js includes **Standalone Output Mode** (`output: "standalone"`).
 
 When you build with standalone mode enabled:
+
 1. Next.js analyzes your entire application using `@vercel/nft` (Node File Trace).
 2. It traces only the specific files, modules, and npm packages actually used by your code.
 3. It bundles a self-contained, minimal Node.js server inside `.next/standalone/` that **weighs only ~60MB–90MB** and runs without needing a global `node_modules` folder!
@@ -34,6 +35,7 @@ export default nextConfig;
 This multi-stage Docker build produces a hardened, non-root, sub-100MB production image:
 
 ```dockerfile
+
 # ─── Stage 1: Base Dependencies ───
 FROM node:20-alpine AS deps
 RUN apk add --no-cache libc6-compat
@@ -129,6 +131,7 @@ export async function GET() {
 When hosting Next.js on your own VPS or Kubernetes cluster, place **NGINX** in front of Next.js to handle SSL termination, Gzip/Brotli compression, rate limiting, and caching of static assets:
 
 ```nginx
+
 # /etc/nginx/conf.d/nextjs.conf
 upstream nextjs_upstream {
     server 127.0.0.1:3000;
@@ -213,16 +216,20 @@ spec:
         app: nextjs-app
     spec:
       containers:
+
         - name: nextjs
           image: ghcr.io/my-org/nextjs-app:latest
           ports:
+
             - containerPort: 3000
           env:
+
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
                   name: app-secrets
                   key: database-url
+
             - name: AUTH_SECRET
               valueFrom:
                 secretKeyRef:

@@ -1,6 +1,6 @@
 # Module 11: The Web Animations API (WAAPI) & Scroll-Driven Animations
 
-**Track:** Modern JavaScript — Frontend Architecture & Web APIs  
+**Track:** Modern JavaScript — Frontend Architecture & Web APIs
 **Category:** Motion Design, GPU Animation Pipelines & WAAPI
 
 ---
@@ -8,15 +8,17 @@
 ## 1. Why the Web Animations API (WAAPI) Is Superior
 
 Historically, frontend developers were forced to choose between:
+
 - **CSS Animations (`@keyframes`)**: High performance (runs on GPU Compositor), but rigid and difficult to dynamically control or synchronize via JavaScript.
 - **JavaScript Animations (`rAF` / GSAP)**: Flexible programmatic control, but runs on the main thread and can suffer from scroll stutter and frame drops.
 
 The **Web Animations API (WAAPI)** unites both worlds:
+
 - It exposes the browser's **internal native CSS animation engine to JavaScript**.
 - Gives full programmatic playback control (`play()`, `pause()`, `reverse()`, `currentTime`, `playbackRate`).
 - Executes **100% on the GPU Compositor Thread** when animating `transform` and `opacity`!
 
-```
+```text
 Animation Performance Comparison:
 JS setInterval/rAF: [Main JS Thread (CPU)] ──► [Layout] ──► [Paint] ──► Display (High CPU)
 WAAPI (transform):  [Direct GPU Compositor Engine] ───────────────────► Display (Zero Main-Thread CPU!)
@@ -123,7 +125,8 @@ progressBar.animate(
 );
 ```
 
-### View-Based Scroll Animation (`ViewTimeline`):
+### View-Based Scroll Animation (`ViewTimeline`)
+
 Animate an element as it enters and travels through the viewport:
 
 ```javascript

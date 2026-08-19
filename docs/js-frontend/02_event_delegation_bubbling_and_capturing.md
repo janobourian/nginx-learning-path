@@ -1,6 +1,6 @@
 # Module 02: Event Propagation, Event Delegation & Passive Listeners
 
-**Track:** Modern JavaScript — Frontend Architecture & Web APIs  
+**Track:** Modern JavaScript — Frontend Architecture & Web APIs
 **Category:** Event System, Event Bubbling & Performance Optimization
 
 ---
@@ -9,7 +9,7 @@
 
 When you click an HTML element, the event does not execute solely on that single node. The browser dispatches the event through **three distinct phases**:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                 The 3 DOM Event Propagation Phases          │
 │                                                             │
@@ -50,9 +50,11 @@ element.addEventListener('click', handler, { capture: false });
 ## 3. High-Performance Event Delegation
 
 ### The Problem: Memory Bloat with Thousands of Listeners
+
 If you render a table with 5,000 rows and attach a `click` listener to every delete button, you allocate **5,000 listener closures in memory**. When rows are dynamically added or deleted, managing listener lifecycles causes memory leaks.
 
 ### The Solution: Event Delegation
+
 Attach **a single listener on the parent container** and inspect `event.target.closest()` as events bubble upward:
 
 ```html

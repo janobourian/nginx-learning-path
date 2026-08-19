@@ -2,7 +2,7 @@
 
 * Lambda + SQS is a good pattern to use an adapter before to push the information to a legacy system
 
-* The first and second partition in a DynamoDB is a good way to keep the `transaction_id` as primary and `item_id` as second partition. 
+* The first and second partition in a DynamoDB is a good way to keep the `transaction_id` as primary and `item_id` as second partition.
 
 * `ACID` is necessary to guarantee a correct operation
 
@@ -42,4 +42,4 @@
 
 * Use WAF to protect APIs
 
-* 
+*

@@ -1,6 +1,6 @@
 # Module 07: Express.js Architecture, Middleware Pipelines & Error Handling
 
-**Track:** Node.js — Enterprise Architecture & Libuv Internals  
+**Track:** Node.js — Enterprise Architecture & Libuv Internals
 **Category:** Web Frameworks, Middleware Architecture & Error Handling
 
 ---
@@ -9,7 +9,7 @@
 
 **Express.js** is the most widely adopted minimal web framework in the Node.js ecosystem. Its architecture is modeled as a **Sequential Middleware Chain (Chain of Responsibility Pattern)**:
 
-```
+```text
 Express Middleware Pipeline:
 [Incoming Request]
         │

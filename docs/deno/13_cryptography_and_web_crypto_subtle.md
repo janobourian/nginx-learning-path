@@ -1,6 +1,6 @@
 # Module 13: Cryptography & Web Crypto SubtleCrypto
 
-**Track:** Deno Secure Engine & Edge Runtime  
+**Track:** Deno Secure Engine & Edge Runtime
 **Category:** Security & Cryptographic Operations
 
 ---
@@ -379,14 +379,14 @@ async function verifyPassword(password: string, storedHash: string, storedSalt: 
 
 ## Troubleshooting
 
-**`DOMException: algorithm: Unrecognized name`**
+### `DOMException: algorithm: Unrecognized name`
 
 Algorithm names must match exactly (case matters for some implementations). Use: `"SHA-256"`, `"AES-GCM"`, `"HMAC"`, `"RSA-PSS"`, `"RSA-OAEP"`, `"ECDH"`, `"ECDSA"`, `"PBKDF2"`.
 
-**`DOMException: Decryption failed`**
+### `DOMException: Decryption failed`
 
 AES-GCM decryption fails if: the IV doesn't match the one used for encryption, the ciphertext has been tampered with (authentication tag mismatch), or the key is wrong. AES-GCM's authentication tag catches any modification.
 
-**PBKDF2 is very slow — blocking the event loop**
+### PBKDF2 is very slow — blocking the event loop
 
 `crypto.subtle.deriveBits` with PBKDF2 and high iteration counts runs synchronously in the V8 thread, blocking the event loop for 100-500ms. This is expected (the slowness is the security). For a web server, run password hashing in a worker or accept the latency on auth endpoints only.

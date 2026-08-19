@@ -1,6 +1,6 @@
 # Module 06: RESTful APIs, OpenAPI 3.1 & RPC Architectures (JSON-RPC & tRPC)
 
-**Track:** Modern JavaScript — Backend Systems & Distributed Architecture  
+**Track:** Modern JavaScript — Backend Systems & Distributed Architecture
 **Category:** API Design, OpenAPI 3.1 Specifications & RPC Protocols
 
 ---
@@ -11,7 +11,7 @@
 | :--- | :--- | :--- | :--- |
 | **Model** | **Resource-Oriented** (`/users/101`) | **Action/Function-Oriented** (`users.getById`) | Graph Query Language |
 | **Transport** | Standard HTTP/1.1 & HTTP/2 | HTTP POST / Binary HTTP/2 | HTTP POST |
-| **Schema Standard**| **OpenAPI (Swagger) 3.1** | TypeScript Types / Protobuf | GraphQL Schema Definition |
+| **Schema Standard** | **OpenAPI (Swagger) 3.1** | TypeScript Types / Protobuf | GraphQL Schema Definition |
 | **Best For** | Public APIs, microservice integrations | High-velocity full-stack TS apps, internal services | Complex relational client querying |
 
 ---
@@ -58,7 +58,7 @@ export const UserResponseDto = z.object({
 { "jsonrpc": "2.0", "result": { "tax": 8.0, "total": 108.0 }, "id": 1 }
 ```
 
-### Pure JavaScript JSON-RPC 2.0 Handler:
+### Pure JavaScript JSON-RPC 2.0 Handler
 
 ```javascript
 // src/rpc/json_rpc_server.js

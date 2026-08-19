@@ -1,6 +1,6 @@
 # Module 15: Design Patterns in TypeScript — Gang of Four (GoF) & Modern Idioms
 
-**Track:** TypeScript — Enterprise Type System  
+**Track:** TypeScript — Enterprise Type System
 **Category:** Software Architecture & Design Patterns
 
 ---

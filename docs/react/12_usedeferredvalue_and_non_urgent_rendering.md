@@ -1,6 +1,6 @@
 # Module 12: `useDeferredValue` & Adaptive Non-Urgent Rendering
 
-**Track:** React — Modern UI & Fiber Architecture  
+**Track:** React — Modern UI & Fiber Architecture
 **Category:** Concurrent Scheduling, Adaptive Latency & Rendering Optimization
 
 ---
@@ -34,11 +34,12 @@ For years, developers used `lodash.debounce` or `lodash.throttle` to manage expe
 ## 3. How `useDeferredValue` Works Under the Hood
 
 When `value` changes from `"A"` to `"AB"`:
+
 1. **First Render (Urgent)**: React renders the component with `query = "AB"`, but `deferredQuery = "A"`. The input updates on screen instantly.
 2. **Second Render (Non-Urgent Background)**: React immediately kicks off a background transition render in memory with `deferredQuery = "AB"`.
 3. **If user types "ABC" during step 2**: React **aborts** the background render for "AB" and immediately starts rendering "ABC".
 
-```
+```text
 User Action: Types 'AB'
     │
     ▼
@@ -163,5 +164,6 @@ During the very first mount of the component, `deferredValue` returns `initialVa
 
 2. **Do Not Mix `useTransition` and `useDeferredValue` for the Same State**
    Choose one:
+
    - Use **`useTransition`** when you have direct access to the `setState` function.
    - Use **`useDeferredValue`** when you receive the value as a prop or from a third-party hook.

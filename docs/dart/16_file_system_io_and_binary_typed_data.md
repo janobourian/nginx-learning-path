@@ -1,6 +1,6 @@
 # Module 16: File System I/O, Web Streams & Binary Typed Data
 
-**Track:** Dart — Language & VM Architecture  
+**Track:** Dart — Language & VM Architecture
 **Category:** Systems I/O, Binary Protocols & Typed Memory Buffers
 
 ---
@@ -83,7 +83,7 @@ Future<void> processLargeLogFile(String inputPath, String outputPath) async {
 
 The **`dart:typed_data`** library provides high-performance, contiguous byte buffers mapped directly to memory without object boxing overhead.
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                    Typed Data Hierarchy                     │
 ├────────────────────┬────────────────────────────────────────┤
@@ -120,7 +120,7 @@ void main() {
 
 Let's design and parse a binary packet protocol header:
 
-```
+```text
 Binary Protocol Header Format (12 Bytes Total):
 [0..3]   Magic Number (0xDEADBEEF) - 32-bit uint
 [4..5]   Protocol Version (e.g. 1) - 16-bit uint

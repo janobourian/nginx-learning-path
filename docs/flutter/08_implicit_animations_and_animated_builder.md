@@ -1,6 +1,6 @@
 # Module 08: Implicit Animations, `TweenAnimationBuilder` & `AnimatedBuilder` Optimization
 
-**Track:** Flutter — Multi-Platform Architecture & Impeller Engine  
+**Track:** Flutter — Multi-Platform Architecture & Impeller Engine
 **Category:** Motion Design, Implicit Animations & Rebuild Optimization
 
 ---
@@ -9,12 +9,13 @@
 
 While Explicit Animations (Module 07) require managing `AnimationController` instances, `TickerProviderStateMixin`, and `.dispose()` cleanup, **Implicit Animations** require **zero controllers or lifecycle management**.
 
-### How Implicit Animations Work:
+### How Implicit Animations Work
+
 1. You provide a target property value (e.g. `width: isExpanded ? 300 : 100`).
 2. You specify a **`duration`** and an optional **`curve`**.
 3. When the property changes, Flutter **automatically interpolates from the old value to the new value** smoothly over time!
 
-```
+```text
 Implicit Animation Workflow:
 Frame 1: Width = 100
 State changes: setState(() => isExpanded = true)
@@ -29,7 +30,7 @@ Frame 5: Width = 300 (Animation completed automatically!)
 
 ## 2. Built-in Implicit Animation Catalog
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │               Standard Implicit Animation Widgets           │
 ├──────────────────────────┬──────────────────────────────────┤
@@ -188,5 +189,6 @@ AnimatedBuilder(
    `AnimatedSwitcher` compares child keys to detect when the child changes. If you switch between two `Text` widgets without setting distinct `key: ValueKey('state_a')` and `key: ValueKey('state_b')`, `AnimatedSwitcher` will assume the widget did not change and skip the animation.
 
 2. **Implicit vs Explicit Decision Matrix**
+
    - Choose **Implicit Animations** (`AnimatedContainer`, `AnimatedOpacity`, `TweenAnimationBuilder`) when animating a property from State A to State B in response to a simple `setState()`.
    - Choose **Explicit Animations** (`AnimationController`) when you need to repeat, loop, reverse, stagger intervals, or synchronize with drag gestures.

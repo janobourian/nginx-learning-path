@@ -1,13 +1,13 @@
 # Module 07: RxJS Flattening Operators, Error Handling & Composition
 
-**Track:** Angular — Signals Platform & Ivy Architecture  
+**Track:** Angular — Signals Platform & Ivy Architecture
 **Category:** Asynchronous Streams, Flattening Operators & Resilient Pipelines
 
 ---
 
 ## 1. The Flattening Operator Matrix (Higher-Order Observables)
 
-A **Higher-Order Observable** is an Observable that emits another Observable (`Observable<Observable<T>>`). 
+A **Higher-Order Observable** is an Observable that emits another Observable (`Observable<Observable<T>>`).
 
 In web development, whenever a user action (e.g. clicking a button or typing in an input) triggers an HTTP request, a higher-order stream is created. **Flattening Operators** determine how concurrent inner Observable streams are resolved:
 
@@ -18,7 +18,7 @@ In web development, whenever a user action (e.g. clicking a button or typing in 
 | **`concatMap`** | **Sequential (Queue)** | Queues each request until previous finishes | Sequential chat message delivery, bank ledger entries |
 | **`exhaustMap`** | **Ignore Subsequent** | Ignores incoming triggers until active one completes | Login buttons, payment submit buttons (Prevents double-click!) |
 
-```
+```text
 Flattening Operator Visual Diagrams:
 
 1. switchMap (Cancels active inner stream on new emission):
@@ -121,7 +121,7 @@ combineLatest([
 
 ## 4. Resilient Error Handling & Retry Strategies
 
-In RxJS, an unhandled error inside a stream **permanently terminates and kills the Observable pipeline**. 
+In RxJS, an unhandled error inside a stream **permanently terminates and kills the Observable pipeline**.
 
 Use **`catchError`** and **`retry`** to build fault-tolerant network pipelines:
 
@@ -234,5 +234,6 @@ export class SearchPipelineService {
 ## Troubleshooting & Best Practices
 
 1. **Placing `catchError` inside `switchMap` vs outside**
+
    - If `catchError` is placed on the **outer pipe**, an error will catch once and permanently complete (kill) the form input stream.
    - Always place `catchError` inside the **inner pipe (inside `switchMap`)** so errors only catch the individual failing HTTP request without terminating the user's ongoing typing stream.

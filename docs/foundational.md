@@ -4,7 +4,7 @@ Exist several OS to work, specially on the Cloud. In this case I am going to use
 
 ## NGINX Configuration
 
-We can configure NGINX fast using `dnf install -y nginx` but, to deep dive into the NGINX details we can configure using the source code. 
+We can configure NGINX fast using `dnf install -y nginx` but, to deep dive into the NGINX details we can configure using the source code.
 
 ```sh
 sudo su
@@ -32,8 +32,8 @@ If you want to know all available commands
 
 To config nginx
 
-You can check the documentation here: https://nginx.org/en/docs/
-And you can check how builb nginx from sources: https://nginx.org/en/docs/configure.html
+You can check the documentation here: <https://nginx.org/en/docs/>
+And you can check how builb nginx from sources: <https://nginx.org/en/docs/configure.html>
 
 ```sh
 ./configure --sbin-path=/usr/bin/nginx --conf-path=/etc/nginx/nginx.conf --error-log-path=/var/log/nginx/error.log --http-log-path=/var/log/nginx/access.log --with-pcre --pid-path=/var/run/nginx.pid --with-http_ssl_module
@@ -109,6 +109,7 @@ systemctl reload nginx
 ## NGINX .conf File
 
 The `nginx.conf` file has two important sections:
+
 * context
 * directive
 
@@ -139,7 +140,7 @@ worker_processes auto;
 
 You should create and edit some folder and files to contain your `html`, `css` and `js` files.
 
-In my case I will use: 
+In my case I will use:
 
 * `ls -l /sites/demo/`: To configure the static site, maybe you will need to create the folder structure
 * `ls -l /etc/nginx/nginx.conf`: To register the site configuration
@@ -179,7 +180,7 @@ systemctl reload nginx
 
 ## NGINX Location Contents
 
-* Exact Match = 
+* Exact Match =
 * Preferential Prefix Match ^~
 * REGEX Match ~*
 * Prefix Match
@@ -235,7 +236,7 @@ http {
 
 ## NGINX Variables
 
-* Nginx variables: https://nginx.org/en/docs/varindex.html
+* Nginx variables: <https://nginx.org/en/docs/varindex.html>
 
 ```sh
 events {}
@@ -308,13 +309,13 @@ http {
 ## NGINX Rewrites and Returns
 
 * rewrite pattern URI -> maintain your uri
-    * The requests are re-evaluated
-    * Some examples:
-        * `rewrite ^/user/\w+ /greet;`
-        * `rewrite ^/user/{\w+} /greet/$1;`
-    * `last`:
-        * `rewrite ^/user/{\w+} /greet/$1 last;`
-        * `rewrite ^/user/{\w+} /thumb.png;`
+  * The requests are re-evaluated
+  * Some examples:
+    * `rewrite ^/user/\w+ /greet;`
+    * `rewrite ^/user/{\w+} /greet/$1;`
+  * `last`:
+    * `rewrite ^/user/{\w+} /greet/$1 last;`
+    * `rewrite ^/user/{\w+} /thumb.png;`
 * return status URI -> change your uri
 
 ## NGINX Try Files
@@ -500,13 +501,13 @@ http {
 `systemctl status nginx`
 
 * Check additional information:
-    * `nproc`
-    * `lscpu`
-    * `ulimit -n`
+  * `nproc`
+  * `lscpu`
+  * `ulimit -n`
 * Total connections:
-    * worker_processes x worker_connections = max_connections
+  * worker_processes x worker_connections = max_connections
 * If you need to change you pid file
-    * `pid /var/run/new_nginx.pid`
+  * `pid /var/run/new_nginx.pid`
 
 ```sh
 user nginx;
@@ -621,7 +622,7 @@ http {
 
 * Add new modules like: SSL, pagespeed
 * In the folder where you started the configuration type `nginx -V` and you'll get something like this:
-    * `--sbin-path=/usr/bin/nginx --conf-path=/etc/nginx/nginx.conf --error-log-path=/var/log/nginx/error.log --http-log-path=/var/log/nginx/access.log --with-pcre --pid-path=/var/run/nginx.pid --with-http_ssl_module`
+  * `--sbin-path=/usr/bin/nginx --conf-path=/etc/nginx/nginx.conf --error-log-path=/var/log/nginx/error.log --http-log-path=/var/log/nginx/access.log --with-pcre --pid-path=/var/run/nginx.pid --with-http_ssl_module`
 * Adding the new modules (http_image_filter_module=dynamic)
 
 ```sh

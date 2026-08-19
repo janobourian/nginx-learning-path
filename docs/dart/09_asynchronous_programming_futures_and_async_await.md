@@ -1,6 +1,6 @@
 # Module 09: Asynchronous Programming — `Future`, `async`/`await` & Event Loop
 
-**Track:** Dart — Language & VM Architecture  
+**Track:** Dart — Language & VM Architecture
 **Category:** Asynchronous Runtimes, Event Loops & Microtask Queues
 
 ---
@@ -11,7 +11,7 @@ Like JavaScript and Node.js, a Dart isolate runs on a **Single-Threaded Event Lo
 
 The Dart Event Loop manages **two distinct queues**:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                    The Dart Event Loop                      │
 │                                                             │
@@ -26,7 +26,8 @@ The Dart Event Loop manages **two distinct queues**:
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### Execution Rule:
+### Execution Rule
+
 The Event Loop **drains the entire Microtask Queue to empty** before pulling the next event from the Event Queue.
 
 ```dart
@@ -60,7 +61,7 @@ void main() {
 
 A **`Future<T>`** represents a computation that will produce a result of type `T` (or an error) at some point in the future.
 
-```
+```text
 Future State Lifecycle:
 [Uncompleted (Pending)]
        │

@@ -1,9 +1,9 @@
 # Module 05: Asynchronous Patterns, Promises & EventEmitters
 
-**Track:** Node.js Enterprise Backend & Runtime  
-**Directory:** `docs/nodejs/`  
-**File:** `05_asynchronous_patterns_promises_and_event_emitters.md`  
-**Category:** Asynchronous Architecture & Event Dispatching  
+**Track:** Node.js Enterprise Backend & Runtime
+**Directory:** `docs/nodejs/`
+**File:** `05_asynchronous_patterns_promises_and_event_emitters.md`
+**Category:** Asynchronous Architecture & Event Dispatching
 **Status:** ✅ Production-Grade Reference Textbook (Zero to Master)
 
 ---
@@ -14,7 +14,7 @@ Asynchronous control flow is the core architectural foundation of Node.js. Proce
 
 A critical misconception in Node.js engineering is assuming `EventEmitter` executes asynchronously. In reality, **`EventEmitter.emit()` is completely synchronous**: it iterates through its registered listener array in a standard loop on the active call stack. Understanding this distinction, alongside microtask priority (`Promise.then` vs `queueMicrotask` vs `process.nextTick`) and memory leak mechanisms (unbounded listener accumulation), is essential for high-throughput enterprise systems.
 
-```
+```text
 +-------------------------------------------------------------------------------+
 |                      Node.js Asynchronous Execution Model                     |
 +-------------------------------------------------------------------------------+
@@ -37,19 +37,19 @@ Below is the complete API dictionary for asynchronous primitives and event dispa
 | Class / Method | Module | Signature | Operational Execution Semantics |
 | :--- | :--- | :--- | :--- |
 | `EventEmitter.on(event, fn)` | `node:events` | `emitter.on(event: string, fn: Function): this` | Registers a listener callback invoked synchronously whenever the event is emitted. |
-| `EventEmitter.once(event, fn)`| `node:events` | `emitter.once(event: string, fn: Function): this` | Registers a one-time listener that automatically unbinds itself after its first execution. |
-| `EventEmitter.emit(event, ...args)`| `node:events`| `emitter.emit(event: string, ...args: any[]): boolean`| Synchronously dispatches the event, calling all registered listeners in the order they were added. |
-| `EventEmitter.removeListener(event, fn)`| `node:events`| `emitter.removeListener(event: string, fn: Function): this`| Unbinds a specific listener function from the event's internal listener array. |
-| `EventEmitter.setMaxListeners(n)`| `node:events`| `emitter.setMaxListeners(n: number): this` | Sets maximum listener threshold before logging `MaxListenersExceededWarning` memory warnings. |
-| `events.on(emitter, event, [opts])`| `node:events` | `events.on(emitter, event, opts?): AsyncIterable`| Transforms event emissions into an async iterable stream (`for await...of`). |
-| `events.once(emitter, event, [opts])`| `node:events`| `events.once(emitter, event, opts?): Promise<any[]>`| Returns a Promise that resolves when the specified event is emitted or rejects on `'error'`. |
+| `EventEmitter.once(event, fn)` | `node:events` | `emitter.once(event: string, fn: Function): this` | Registers a one-time listener that automatically unbinds itself after its first execution. |
+| `EventEmitter.emit(event, ...args)` | `node:events` | `emitter.emit(event: string, ...args: any[]): boolean` | Synchronously dispatches the event, calling all registered listeners in the order they were added. |
+| `EventEmitter.removeListener(event, fn)` | `node:events` | `emitter.removeListener(event: string, fn: Function): this` | Unbinds a specific listener function from the event's internal listener array. |
+| `EventEmitter.setMaxListeners(n)` | `node:events` | `emitter.setMaxListeners(n: number): this` | Sets maximum listener threshold before logging `MaxListenersExceededWarning` memory warnings. |
+| `events.on(emitter, event, [opts])` | `node:events` | `events.on(emitter, event, opts?): AsyncIterable` | Transforms event emissions into an async iterable stream (`for await...of`). |
+| `events.once(emitter, event, [opts])` | `node:events` | `events.once(emitter, event, opts?): Promise<any[]>` | Returns a Promise that resolves when the specified event is emitted or rejects on `'error'`. |
 | `Promise.all(iterable)` | Core JS | `Promise.all(promises: Promise<T>[]): Promise<T[]>` | Concurrently executes Promises; rejects immediately if **any** Promise rejects (fail-fast). |
-| `Promise.allSettled(iterable)`| Core JS | `Promise.allSettled(promises): Promise<Result[]>` | Concurrently executes Promises; waits for **all** Promises to settle, returning status objects. |
+| `Promise.allSettled(iterable)` | Core JS | `Promise.allSettled(promises): Promise<Result[]>` | Concurrently executes Promises; waits for **all** Promises to settle, returning status objects. |
 | `Promise.race(iterable)` | Core JS | `Promise.race(promises: Promise<T>[]): Promise<T>` | Resolves or rejects as soon as the **first** Promise in the iterable settles. |
 | `Promise.any(iterable)` | Core JS | `Promise.any(promises: Promise<T>[]): Promise<T>` | Resolves as soon as the **first** Promise fulfills; rejects with `AggregateError` if all reject. |
 | `AbortController()` | Global / Core | `new AbortController(): AbortController` | Instantiates a controller exposing an `AbortSignal` to cancel asynchronous operations. |
 | `AbortSignal.timeout(ms)` | Global / Core | `AbortSignal.timeout(ms: number): AbortSignal` | Returns an `AbortSignal` that automatically triggers an abort after the specified millisecond delay. |
-| `AbortSignal.any(signals)` | Global / Core | `AbortSignal.any(signals: AbortSignal[]): AbortSignal`| Returns a combined signal that aborts when **any** of the input signals abort. |
+| `AbortSignal.any(signals)` | Global / Core | `AbortSignal.any(signals: AbortSignal[]): AbortSignal` | Returns a combined signal that aborts when **any** of the input signals abort. |
 
 ---
 
@@ -87,6 +87,7 @@ export function registerRequestListenerSafe(
 This production lab implements an asynchronous worker queue with an automated Circuit Breaker, exponential backoff retries, and strict `AbortSignal` timeout cancellations.
 
 ### File 1: `src/async_resilience_engine.ts`
+
 ```typescript
 import { EventEmitter } from 'node:events';
 import { performance } from 'node:perf_hooks';
@@ -194,7 +195,7 @@ export class ResilientAsyncQueue {
                 lastError = err;
                 const duration = (performance.now() - startTime).toFixed(2);
                 console.error(`[QUEUE ERROR] Task ${config.id} failed on attempt ${attempt} in ${duration}ms: ${err.message}`);
-                
+
                 this.breaker.recordFailure();
 
                 if (attempt < config.maxRetries) {
@@ -256,6 +257,7 @@ runAsyncLab();
 ## 5. Pure Escaped CLI Snippets (Production Operations)
 
 ```bash
+
 # 1. Compile TypeScript source code
 npx tsc \
     --target ES2022 \
@@ -276,15 +278,19 @@ node \
 ## 6. Detailed Sub-Components & Diagnostics
 
 ### V8 Microtask Queue Runner
+
 * **Role & Function**: Manages the checkpoint execution of resolved Promises and `queueMicrotask` callbacks, draining all microtasks before returning execution to the Libuv event loop.
 * **Inspection Command**:
+
   ```bash
   node --trace-event-categories node.async_hooks src/async_resilience_engine.js
   ```
 
 ### Node.js AsyncResource / AsyncLocalStorage Context
+
 * **Role & Function**: Tracks asynchronous execution boundaries across Promise chains to propagate distributed transaction IDs and request headers.
 * **Inspection Command**:
+
   ```bash
   node -e "const { AsyncLocalStorage } = require('node:async_hooks'); const storage = new AsyncLocalStorage(); storage.run({ id: 1 }, () => console.log(storage.getStore()));"
   ```
@@ -294,6 +300,7 @@ node \
 ## References
 
 ### Official Documentation
+
 * [Node.js Events (EventEmitter) Documentation](https://nodejs.org/docs/latest/api/events.html) — Event system manual.
 * [Node.js Async Hooks & Context Tracking](https://nodejs.org/docs/latest/api/async_hooks.html) — Execution tracing.
 * [W3C AbortController Specification](https://dom.spec.whatwg.org/#interface-abortcontroller) — Web standard for cooperative task cancellation.
@@ -301,6 +308,7 @@ node \
 * [V8 Microtask Queue Execution Model](https://v8.dev/blog) — V8 task scheduling.
 
 ### Authoritative Engineering Blogs
+
 * [Matteo Collina: Asynchronous Programming & EventEmitter Hazards](https://noders.com/) — Concurrency patterns.
 * [Brendan Gregg: Tracing Asynchronous Node.js Latency](https://www.brendangregg.com/) — Async profiling.
 * [Netflix TechBlog: Circuit Breaker Patterns in Microservices](https://netflixtechblog.com/) — Fault tolerance.
@@ -314,9 +322,11 @@ node \
 *Strict AbortSignal timeouts prevent hung asynchronous tasks from consuming billable cloud compute.*
 
 ### 1. Eliminating Zombie Microservice Tasks
+
 When an upstream client disconnects or an external database call hangs, un-aborted Promises continue executing in the background, consuming CPU registers and holding database connections in the connection pool. Enforcing `AbortSignal.timeout()` ensures all pending asynchronous work is cancelled immediately, freeing up container compute capacity and lowering required Kubernetes replicas by 25%.
 
 ### 2. Preventing Memory Leaks from Long-Lived Event Subscriptions
+
 Using `{ signal }` in `emitter.on(event, fn, { signal })` automatically unbinds event listeners when the request scope ends. This eliminates memory leaks that otherwise force container restarts and trigger false-positive autoscaling events.
 
 ---
@@ -326,13 +336,16 @@ Using `{ signal }` in `emitter.on(event, fn, { signal })` automatically unbinds 
 ### Common Anti-Patterns
 
 1. **Treating `EventEmitter.emit()` as Asynchronous**:
-   - *Anti-Pattern*: Assuming `emit()` yields control to the event loop. In reality, it executes all listeners synchronously on the current call stack; a slow listener blocks all subsequent listeners and freezes HTTP request processing.
-   - *Fix*: If a listener must perform asynchronous work, wrap its internal logic in `setImmediate()` or an `async` function.
+
+   * *Anti-Pattern*: Assuming `emit()` yields control to the event loop. In reality, it executes all listeners synchronously on the current call stack; a slow listener blocks all subsequent listeners and freezes HTTP request processing.
+   * *Fix*: If a listener must perform asynchronous work, wrap its internal logic in `setImmediate()` or an `async` function.
 
 2. **Unhandled `'error'` Events on EventEmitters**:
-   - *Anti-Pattern*: Emitting `emitter.emit('error', new Error())` when no `'error'` listener is attached. Node.js treats this as a fatal uncaught exception and terminates the process immediately.
-   - *Fix*: Always register an `.on('error', ...)` handler or use `events.once(emitter, 'error')`.
+
+   * *Anti-Pattern*: Emitting `emitter.emit('error', new Error())` when no `'error'` listener is attached. Node.js treats this as a fatal uncaught exception and terminates the process immediately.
+   * *Fix*: Always register an `.on('error', ...)` handler or use `events.once(emitter, 'error')`.
 
 3. **Promise Executor Anti-Pattern with Async Functions**:
-   - *Anti-Pattern*: Writing `new Promise(async (resolve, reject) => { ... })`. If an exception is thrown inside the async executor, it becomes an unhandled rejection rather than rejecting the outer Promise.
-   - *Fix*: Use standard synchronous Promise executors or call an external `async` function.
+
+   * *Anti-Pattern*: Writing `new Promise(async (resolve, reject) => { ... })`. If an exception is thrown inside the async executor, it becomes an unhandled rejection rather than rejecting the outer Promise.
+   * *Fix*: Use standard synchronous Promise executors or call an external `async` function.

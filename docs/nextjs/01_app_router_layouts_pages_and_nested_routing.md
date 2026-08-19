@@ -1,6 +1,6 @@
 # Module 01: App Router — Layouts, Pages, Nested Routing & Special Files
 
-**Track:** Next.js — Full-Stack App Router & Edge Architecture  
+**Track:** Next.js — Full-Stack App Router & Edge Architecture
 **Category:** File-System Routing, Layouts & Route Interception
 
 ---
@@ -19,7 +19,7 @@ In the Next.js App Router, routing is driven by directory structure. Inside each
 | **`not-found.tsx`** | UI rendered when `notFound()` is invoked | **Server Component** |
 | **`route.ts`** | Backend HTTP API handler (GET, POST, PUT, DELETE) | **Server Node / Edge** |
 
-```
+```text
 Route Hierarchy & Component Nesting:
 <Layout>
   <Template>
@@ -80,7 +80,7 @@ Use `template.tsx` instead of `layout.tsx` when you specifically want a fresh in
 
 ## 3. Dynamic Route Segments
 
-```
+```text
 Directory Structure:
 src/app/
 ├── blog/
@@ -130,13 +130,14 @@ export default async function BlogPostPage({ params, searchParams }: PageProps) 
 
 ## 4. Route Groups: `(groupName)`
 
-Folders wrapped in parentheses (e.g. `(auth)`, `(marketing)`, `(dashboard)`) are **Route Groups**. 
+Folders wrapped in parentheses (e.g. `(auth)`, `(marketing)`, `(dashboard)`) are **Route Groups**.
 
 Route groups allow:
+
 1. **Organizing files without affecting URL paths** (`app/(auth)/login/page.tsx` maps to `/login`, NOT `/auth/login`).
 2. **Opting into different root layouts** (e.g. `(auth)` has a minimalist center-card layout, while `(marketing)` has a full header and footer layout).
 
-```
+```text
 src/app/
 ├── (auth)/
 │   ├── layout.tsx        ← Auth layout (Clean card centered on screen)
@@ -189,7 +190,7 @@ Intercepting routes allow loading a route from another part of your app within t
 - `(..)(..)` matches segments **two levels above**.
 - `(...)` matches segments from the **root `app` directory**.
 
-```
+```text
 Feed with Modal Photo View:
 src/app/
 ├── feed/

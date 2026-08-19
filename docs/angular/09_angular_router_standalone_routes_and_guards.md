@@ -1,6 +1,6 @@
 # Module 09: Standalone Angular Router & Functional Route Guards
 
-**Track:** Angular — Signals Platform & Ivy Architecture  
+**Track:** Angular — Signals Platform & Ivy Architecture
 **Category:** Client-Side Routing, Lazy Loading & Functional Guards
 
 ---
@@ -55,7 +55,7 @@ export const routes: Routes = [
 
 ## 2. Functional Route Guards (`CanActivateFn`, `CanMatchFn`, `CanDeactivateFn`)
 
-In legacy Angular, route guards required creating classes that implemented `CanActivate`. 
+In legacy Angular, route guards required creating classes that implemented `CanActivate`.
 
 In modern Angular, guards are simple **pure functions** that consume dependencies via `inject()`:
 
@@ -145,7 +145,7 @@ export const appConfig: ApplicationConfig = {
 };
 ```
 
-### Consuming Route Params Directly as Signal Inputs:
+### Consuming Route Params Directly as Signal Inputs
 
 Given route path: `/projects/:projectId?tab=analytics`
 
